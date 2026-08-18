@@ -1,0 +1,289 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: var(--font-cormorant), ui-serif, Georgia, serif;
+  --font-sans: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
+
+  --color-cream: #f8efe8;
+  --color-cream-deep: #f1ddd1;
+  --color-sand: #e8cfc0;
+  --color-blush: #e8c4b4;
+  --color-rose: #c97d73;
+  --color-terracotta: #c17a5c;
+  --color-gold: #c4a06a;
+  --color-gold-soft: #ddc39a;
+  --color-gold-deep: #8d6236;
+  --color-ink: #3a2c28;
+  --color-ink-soft: #5b4740;
+  --color-line: rgba(193, 122, 92, 0.22);
+  --color-white: #fff8f3;
+
+  --shadow-soft: 0 22px 60px -30px rgba(193, 122, 92, 0.45);
+  --shadow-glow: 0 18px 40px -14px rgba(196, 160, 106, 0.55);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+body {
+  background:
+    radial-gradient(ellipse 70% 45% at 100% 8%, rgba(201, 125, 115, 0.26), transparent 55%),
+    radial-gradient(ellipse 55% 40% at 0% 55%, rgba(232, 196, 180, 0.48), transparent 50%),
+    radial-gradient(ellipse 45% 35% at 85% 95%, rgba(196, 160, 106, 0.24), transparent 50%),
+    radial-gradient(ellipse 40% 30% at 15% 5%, rgba(201, 125, 115, 0.14), transparent 55%),
+    var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--color-rose) 40%, transparent);
+  color: var(--color-ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-terracotta);
+  outline-offset: 3px;
+}
+
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -4rem;
+  z-index: 80;
+  background: var(--color-ink);
+  color: var(--color-cream);
+  padding: 0.75rem 1rem;
+}
+
+.skip-link:focus {
+  top: 1rem;
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  animation: rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: var(--delay, 0ms);
+}
+
+@keyframes rise {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+}
+
+/* Scroll-triggered reveal, driven by the Reveal component's IntersectionObserver. */
+.reveal-up {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--delay, 0ms);
+}
+
+.reveal-up.in-view {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal-up {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+.gold-rule {
+  height: 2px;
+  width: 3.5rem;
+  background: linear-gradient(to right, var(--color-terracotta), var(--color-gold));
+  border-radius: 999px;
+}
+
+/* Gradient text for section kickers — swap for -light on photo/dark backgrounds. */
+.text-gradient {
+  background: linear-gradient(90deg, var(--color-terracotta), var(--color-gold-deep));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.text-gradient-light {
+  background: linear-gradient(90deg, var(--color-gold-soft), var(--color-cream));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.hover-lift {
+  transition:
+    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.hover-lift:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-soft);
+}
+
+.price-chip {
+  background: linear-gradient(135deg, var(--color-terracotta), var(--color-rose));
+  transition:
+    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.3s ease;
+}
+
+li:hover > .price-chip,
+tr:hover .price-chip {
+  transform: scale(1.06);
+  box-shadow: var(--shadow-glow);
+}
+
+.nav-link {
+  position: relative;
+}
+
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 100%;
+  bottom: -6px;
+  height: 1px;
+  background: currentColor;
+  transition: right 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  opacity: 0.7;
+}
+
+.nav-link:hover::after,
+.nav-link[data-active="true"]::after {
+  right: 0;
+}
+
+@keyframes drift {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(14px, -18px) scale(1.08);
+  }
+}
+
+.animate-drift {
+  animation: drift 11s ease-in-out infinite;
+}
+
+.animate-drift-slow {
+  animation: drift 16s ease-in-out infinite;
+  animation-delay: -6s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-drift,
+  .animate-drift-slow {
+    animation: none;
+  }
+}
+
+@keyframes modal-pop {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.modal-pop {
+  animation: modal-pop 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes backdrop-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.backdrop-fade {
+  animation: backdrop-fade 0.3s ease forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-pop,
+  .backdrop-fade {
+    animation: none;
+  }
+}
+
+.img-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.img-melt {
+  -webkit-mask-image: radial-gradient(ellipse 95% 90% at 50% 48%, #000 40%, transparent 78%);
+  mask-image: radial-gradient(ellipse 95% 90% at 50% 48%, #000 40%, transparent 78%);
+}
+
+.img-fade-right {
+  -webkit-mask-image: linear-gradient(to right, #000 0%, #000 58%, transparent 100%);
+  mask-image: linear-gradient(to right, #000 0%, #000 58%, transparent 100%);
+}
+
+.img-fade-left {
+  -webkit-mask-image: linear-gradient(to left, #000 0%, #000 58%, transparent 100%);
+  mask-image: linear-gradient(to left, #000 0%, #000 58%, transparent 100%);
+}
+
+.img-fade-bottom {
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 62%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 62%, transparent 100%);
+}
+
+.img-arch {
+  border-radius: 1.6rem 1.6rem 42% 1.6rem;
+}
+
+@media (min-width: 1024px) {
+  .img-fade-right {
+    -webkit-mask-image: linear-gradient(to right, #000 0%, #000 52%, transparent 96%);
+    mask-image: linear-gradient(to right, #000 0%, #000 52%, transparent 96%);
+  }
+}
