@@ -5,6 +5,7 @@ import { Footer } from "@/components/Footer";
 import { BookingProvider } from "@/components/BookingProvider";
 import { MobileBookingBar } from "@/components/MobileBookingBar";
 import { salon } from "@/data/salon";
+import { getSiteUrl } from "@/lib/site";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -20,7 +21,7 @@ const cormorant = Cormorant_Garamond({
   display: "swap",
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+const siteUrl = getSiteUrl();
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
