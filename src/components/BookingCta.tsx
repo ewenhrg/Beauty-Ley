@@ -1,7 +1,10 @@
 import { BookingButton } from "./BookingButton";
+import { getStoreStatus } from "@/server/db";
 import { Reveal } from "./Reveal";
 
 export function BookingCta() {
+  const online = getStoreStatus().ready;
+
   return (
     <section className="relative overflow-hidden">
       <picture>
@@ -31,7 +34,9 @@ export function BookingCta() {
           Prendre rendez-vous
         </Reveal>
         <Reveal as="p" delay={160} className="mx-auto mt-6 max-w-md text-sm leading-relaxed text-cream/85">
-          Contactez Beauty Ley sur Instagram, Facebook ou Snapchat pour réserver une prestation.
+          {online
+            ? "Choisissez votre prestation, votre professionnelle et votre créneau. Confirmation immédiate."
+            : "Contactez Beauty Ley sur Instagram, Facebook ou Snapchat pour réserver une prestation."}
         </Reveal>
         <Reveal delay={240} className="mt-10">
           <BookingButton variant="light" />

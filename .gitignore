@@ -10,3 +10,6 @@ _ocr
 .env*.local
 *.traineddata
 tsconfig.tsbuildinfo
+
+# Booking data store (local development only)
+.data

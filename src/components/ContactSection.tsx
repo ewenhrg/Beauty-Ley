@@ -2,8 +2,11 @@ import { salon } from "@/data/salon";
 import { BookingButton } from "./BookingButton";
 import { InstagramIcon, FacebookIcon, SnapchatIcon } from "./SocialIcons";
 import { Reveal } from "./Reveal";
+import { getStoreStatus } from "@/server/db";
 
 export function ContactSection() {
+  const online = getStoreStatus().ready;
+
   return (
     <section className="relative">
       <div className="mx-auto grid max-w-7xl items-center gap-10 px-5 py-20 sm:px-8 lg:grid-cols-2 lg:gap-16 lg:py-28">
@@ -23,7 +26,9 @@ export function ContactSection() {
             <Reveal as="div" delay={260}>
               <dt className="text-[11px] tracking-[0.2em] text-rose uppercase">Réservation</dt>
               <dd className="mt-2 max-w-sm text-ink-soft">
-                La prise de rendez-vous se fait via Instagram, Facebook ou Snapchat.
+                {online
+                  ? "Réservez en ligne en quelques étapes, ou écrivez-nous sur Instagram, Facebook ou Snapchat."
+                  : "La prise de rendez-vous se fait via Instagram, Facebook ou Snapchat."}
               </dd>
             </Reveal>
             <Reveal as="div" delay={320}>

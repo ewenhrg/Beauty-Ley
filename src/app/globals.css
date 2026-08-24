@@ -287,3 +287,169 @@ tr:hover .price-chip {
     mask-image: linear-gradient(to right, #000 0%, #000 52%, transparent 96%);
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Booking flow
+   Micro-interactions for the reservation journey and the admin calendar. They
+   follow the same easing curve as the rest of the site so the booking system
+   feels like part of the salon, not a bolted-on tool.
+   --------------------------------------------------------------------------- */
+
+@keyframes step-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes step-in-back {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.step-in {
+  animation: step-in 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.step-in-back {
+  animation: step-in-back 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.pop-in {
+  animation: pop-in 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--delay, 0ms);
+}
+
+@keyframes shimmer {
+  from {
+    background-position: -220% 0;
+  }
+  to {
+    background-position: 220% 0;
+  }
+}
+
+.skeleton {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(232, 196, 180, 0.28) 0%,
+      rgba(248, 239, 232, 0.75) 50%,
+      rgba(232, 196, 180, 0.28) 100%
+    );
+  background-size: 220% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 0.9rem;
+}
+
+@keyframes ring-draw {
+  from {
+    stroke-dashoffset: 190;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes check-draw {
+  from {
+    stroke-dashoffset: 44;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.confirm-ring {
+  stroke-dasharray: 190;
+  animation: ring-draw 0.85s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.confirm-check {
+  stroke-dasharray: 44;
+  stroke-dashoffset: 44;
+  animation: check-draw 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.55s forwards;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner {
+  animation: spin 0.7s linear infinite;
+}
+
+/* Horizontal pickers keep their scroll without showing a bar on desktop. */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Selectable card: the shared shell for services, staff and slots. */
+.pick-card {
+  transition:
+    border-color 0.28s ease,
+    background-color 0.28s ease,
+    transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.28s ease;
+}
+
+.pick-card:hover {
+  transform: translateY(-2px);
+}
+
+.pick-card[data-selected="true"] {
+  box-shadow: var(--shadow-glow);
+}
+
+.pick-card:active {
+  transform: scale(0.985);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .step-in,
+  .step-in-back,
+  .pop-in,
+  .skeleton,
+  .confirm-ring,
+  .confirm-check,
+  .spinner {
+    animation: none;
+  }
+
+  .confirm-check {
+    stroke-dashoffset: 0;
+  }
+
+  .pick-card:hover,
+  .pick-card:active {
+    transform: none;
+  }
+}

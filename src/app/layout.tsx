@@ -1,9 +1,5 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Outfit } from "next/font/google";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
-import { BookingProvider } from "@/components/BookingProvider";
-import { MobileBookingBar } from "@/components/MobileBookingBar";
 import { salon } from "@/data/salon";
 import { getSiteUrl } from "@/lib/site";
 import "./globals.css";
@@ -60,41 +56,10 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@type": "BeautySalon",
-  name: salon.name,
-  description: `${salon.name} — ${salon.tagline}, ${salon.city}`,
-  image: `${siteUrl}/images/og.jpg`,
-  url: siteUrl,
-  address: {
-    "@type": "PostalAddress",
-    addressLocality: salon.city,
-    addressCountry: "EG",
-  },
-  sameAs: [salon.social.instagram.href, salon.social.facebook.href, salon.social.snapchat.href],
-};
-
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr" className={`${outfit.variable} ${cormorant.variable}`}>
-      <body className="font-sans antialiased">
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
-        <a className="skip-link" href="#contenu">
-          Aller au contenu
-        </a>
-        <BookingProvider>
-          <Header />
-          <main id="contenu" className="pb-20 lg:pb-0">
-            {children}
-          </main>
-          <Footer />
-          <MobileBookingBar />
-        </BookingProvider>
-      </body>
+      <body className="font-sans antialiased">{children}</body>
     </html>
   );
 }

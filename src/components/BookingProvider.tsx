@@ -6,18 +6,27 @@ import { BookingModal } from "./BookingModal";
 type BookingContextValue = {
   openBooking: () => void;
   closeBooking: () => void;
+  /** True when online booking is configured; otherwise the social modal is used. */
+  online: boolean;
 };
 
 const BookingContext = createContext<BookingContextValue | null>(null);
 
-export function BookingProvider({ children }: { children: React.ReactNode }) {
+export function BookingProvider({
+  children,
+  online = false,
+}: {
+  children: React.ReactNode;
+  online?: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const value = useMemo(
     () => ({
       openBooking: () => setOpen(true),
       closeBooking: () => setOpen(false),
+      online,
     }),
-    [],
+    [online],
   );
 
   return (

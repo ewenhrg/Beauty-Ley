@@ -12,7 +12,7 @@ export function PriceList({ groups }: { groups: ServiceGroup[] }) {
           key={group.id}
           delay={(index % 4) * 90}
           aria-labelledby={group.id}
-          className={group.id === "coloration-avancee" ? "lg:col-span-2" : ""}
+          className={`min-w-0${group.id === "coloration-avancee" ? " lg:col-span-2" : ""}`}
         >
           <h3
             id={group.id}
