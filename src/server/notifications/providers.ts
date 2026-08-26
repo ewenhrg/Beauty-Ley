@@ -151,8 +151,7 @@ function staffCalendarUrl() {
   return `${getSiteUrl()}/admin/calendrier`;
 }
 
-export function getNtfyProvider(): MessageProvider | null {
-  const topic = process.env.NTFY_TOPIC?.trim();
+export function getNtfyProvider(topic = ntfyTopic()): MessageProvider | null {
   if (!topic) return null;
   const server = (process.env.NTFY_SERVER?.trim() || "https://ntfy.sh").replace(/\/$/, "");
   return new NtfyProvider(server, topic);
@@ -169,8 +168,18 @@ export function ntfyTopic(): string | null {
   return process.env.NTFY_TOPIC?.trim() || null;
 }
 
-export function ntfySubscribeUrl(): string | null {
-  const topic = ntfyTopic();
+export function ntfyTopicSlug(username: string) {
+  return username.trim().toLowerCase().replace(/[^a-z0-9._-]+/g, "-");
+}
+
+/** One ntfy subject per team login, derived from the shared base topic. */
+export function ntfyTopicForUser(username: string): string | null {
+  const base = ntfyTopic();
+  if (!base) return null;
+  return `${base}-${ntfyTopicSlug(username)}`;
+}
+
+export function ntfySubscribeUrl(topic = ntfyTopic()): string | null {
   if (!topic) return null;
   const server = (process.env.NTFY_SERVER?.trim() || "https://ntfy.sh").replace(/\/$/, "");
   return `${server}/${encodeURIComponent(topic)}`;

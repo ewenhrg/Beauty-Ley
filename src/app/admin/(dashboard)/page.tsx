@@ -56,12 +56,10 @@ export default async function AdminDashboardPage() {
         <StatCard
           label="Notifs équipe"
           value={channels.ntfy || channels.telegram ? "Actives" : "À activer"}
-          hint={
+              hint={
             channels.ntfy
-              ? "Alerte téléphone à chaque RDV"
-              : channels.telegram
-                ? "Via Telegram"
-                : "Voir Paramètres"
+              ? "Après attribution dans l'admin"
+              : "Voir Paramètres"
           }
         />
         ) : null}

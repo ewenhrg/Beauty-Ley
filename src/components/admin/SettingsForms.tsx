@@ -255,6 +255,7 @@ export function BookingSettingsForm({
 
 export function NotificationStatus({
   channels,
+  accounts,
 }: {
   channels: {
     email: string | null;
@@ -265,10 +266,10 @@ export function NotificationStatus({
     ntfyTopic: string | null;
     ntfyUrl: string | null;
   };
+  accounts: Array<{ name: string; username: string; topic: string; url: string }>;
 }) {
   const rows = [
-    { label: "Notifs téléphone (équipe)", value: channels.ntfy, hint: "NTFY_TOPIC" },
-    { label: "Telegram (équipe)", value: channels.telegram, hint: "TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID" },
+    { label: "Notifs téléphone (par personne)", value: channels.ntfy, hint: "NTFY_TOPIC" },
     { label: "Email clientes", value: channels.email, hint: "RESEND_API_KEY + NOTIFICATION_FROM" },
     { label: "SMS", value: channels.sms, hint: "Aucun fournisseur branché" },
     { label: "WhatsApp", value: channels.whatsapp, hint: "Aucun fournisseur branché" },
@@ -289,14 +290,29 @@ export function NotificationStatus({
         </div>
       ))}
 
-      {channels.ntfyTopic && channels.ntfyUrl ? (
+      {channels.ntfy && accounts.length ? (
         <div className="mt-4 rounded-2xl border border-terracotta/30 bg-blush/20 px-4 py-4 text-sm leading-relaxed text-ink">
-          <p className="text-[10px] tracking-[0.2em] text-rose uppercase">Alerter l&apos;équipe</p>
+          <p className="text-[10px] tracking-[0.2em] text-rose uppercase">Un sujet par personne</p>
           <p className="mt-2">
-            Sur chaque téléphone du staff : installer{" "}
-            <strong>ntfy</strong>, puis s&apos;abonner au sujet{" "}
-            <code className="break-all text-xs">{channels.ntfyTopic}</code>.
+            Personne n&apos;est alerté à la réservation en ligne. La notification part sur le
+            téléphone de la personne uniquement quand vous lui attribuez le rendez-vous.
           </p>
+          <ul className="mt-3 space-y-2 text-xs">
+            {accounts.map((account) => (
+              <li key={account.username}>
+                <span className="font-medium text-ink">{account.name}</span>
+                <span className="text-ink-soft"> · @{account.username} · </span>
+                <a
+                  href={account.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="break-all text-terracotta underline"
+                >
+                  {account.topic}
+                </a>
+              </li>
+            ))}
+          </ul>
           <ol className="mt-3 list-decimal space-y-1 pl-5 text-xs text-ink-soft">
             <li>
               iPhone :{" "}
@@ -319,22 +335,21 @@ export function NotificationStatus({
                 Play Store
               </a>
             </li>
-            <li>Ouvrir ntfy → + → s&apos;abonner au sujet ci-dessus</li>
+            <li>Ouvrir ntfy → + → s&apos;abonner à SON sujet (ci-dessus)</li>
             <li>Autoriser les notifications du téléphone</li>
           </ol>
-          <a
-            href={channels.ntfyUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-3 inline-flex text-[10px] tracking-[0.18em] text-terracotta uppercase"
-          >
-            Ouvrir le sujet ntfy
-          </a>
         </div>
+      ) : channels.ntfyTopic && channels.ntfyUrl ? (
+        <p className="mt-3 text-xs leading-relaxed text-ink-soft">
+          Créez un compte par personne dans{" "}
+          <a href="/admin/comptes" className="text-terracotta underline">
+            Comptes
+          </a>
+          , lié à un membre de l&apos;équipe. Chaque compte a ensuite son propre sujet ntfy.
+        </p>
       ) : (
         <p className="text-xs leading-relaxed text-ink-soft">
-          Pour les alertes téléphone de l&apos;équipe, renseignez <code>NTFY_TOPIC</code> ou un bot
-          Telegram.
+          Pour les alertes téléphone, renseignez <code>NTFY_TOPIC</code>.
         </p>
       )}
     </div>

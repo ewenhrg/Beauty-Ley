@@ -167,8 +167,8 @@ export async function moveAppointmentAction(
       startAt,
       staffId: staffId ?? undefined,
     });
-    await sendAppointmentEmail("reschedule", updated);
-    return "Rendez-vous déplacé.";
+    await sendAppointmentEmail("reschedule", updated, { notifyAssignee: true });
+    return "Personne attribuée. Notification envoyée sur son téléphone.";
   }, ADMIN_PATHS);
 }
 
@@ -197,11 +197,11 @@ export async function createAppointmentAction(
     const time = asString(formData.get("time"), "time", { max: 5 });
     const startAt = wallToInstant(date, labelToMinutes(time)).toISOString();
     const locked = agendaStaffId(session);
-    const staffId = locked ?? asOptionalString(formData.get("staffId"), "staffId", 80);
+    const staffId = locked ?? asString(formData.get("staffId"), "staffId", { max: 80 });
 
     const { appointment } = await createBooking({
       serviceId: asString(formData.get("serviceId"), "serviceId"),
-      staffId: staffId ?? undefined,
+      staffId,
       startAt,
       customer: {
         firstName: asString(formData.get("firstName"), "firstName", { max: 60 }),
@@ -212,8 +212,8 @@ export async function createAppointmentAction(
       },
       source: "admin",
     });
-    await sendAppointmentEmail("confirmation", appointment);
-    return `Rendez-vous créé (${appointment.reference}).`;
+    await sendAppointmentEmail("confirmation", appointment, { notifyAssignee: true });
+    return `Rendez-vous créé (${appointment.reference}). Notification envoyée.`;
   }, ADMIN_PATHS);
 }
 
@@ -633,7 +633,7 @@ export async function saveUserAction(
       throw new ValidationError("Mot de passe : 6 caractères minimum.");
     }
 
-    const staffId = asOptionalString(formData.get("staffId"), "staffId", 80);
+    const staffId = asString(formData.get("staffId"), "staffId", { max: 80 });
     const patch: Partial<AdminUserRow> = {
       username,
       display_name: asString(formData.get("displayName"), "displayName", { max: 80 }),

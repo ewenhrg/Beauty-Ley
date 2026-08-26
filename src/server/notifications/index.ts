@@ -1,7 +1,6 @@
 import { getStore } from "../db";
 import type { NotificationRow } from "../db/types";
 import { newId } from "../ids";
-import { getSettings } from "../repo/settings";
 import {
   getEmailProvider,
   getNtfyProvider,
@@ -10,10 +9,12 @@ import {
   getWhatsappProvider,
   ntfySubscribeUrl,
   ntfyTopic,
+  ntfyTopicForUser,
 } from "./providers";
 import type { MessageProvider } from "./providers";
 import { buildEmail, buildStaffAlert } from "./templates";
 import type { NotificationContext, NotificationKind } from "./templates";
+import { listUsers } from "../repo/users";
 
 export type { NotificationContext, NotificationKind } from "./templates";
 
@@ -107,52 +108,38 @@ export async function notifyAppointment(kind: NotificationKind, context: Notific
   });
 }
 
-/** Push + Telegram + salon inbox. Failures never block the booking. */
+/**
+ * Pushes to the team member whose account is linked to this appointment's
+ * staff profile. The shared salon topic is never used: a booking only alerts
+ * someone after you assign them in admin.
+ */
 export async function notifyStaff(kind: NotificationKind, context: NotificationContext) {
   if (kind === "reminder") return;
   const alert = buildStaffAlert(kind, context);
+  const staffId = context.staff.id;
 
-  const ntfy = getNtfyProvider();
-  if (ntfy) {
+  let users: Awaited<ReturnType<typeof listUsers>> = [];
+  try {
+    users = (await listUsers()).filter(
+      (user) => user.active && user.staff_id === staffId,
+    );
+  } catch {
+    users = [];
+  }
+
+  for (const user of users) {
+    const topic = ntfyTopicForUser(user.username);
+    const ntfy = topic ? getNtfyProvider(topic) : null;
+    if (!ntfy) continue;
     await dispatch({
       appointmentId: context.appointment.id,
       channel: "sms",
       kind,
-      recipient: "équipe (ntfy)",
+      recipient: user.username,
       subject: alert.title,
       body: alert.body,
       provider: ntfy,
     });
-  }
-
-  const telegram = getTelegramProvider();
-  if (telegram) {
-    await dispatch({
-      appointmentId: context.appointment.id,
-      channel: "whatsapp",
-      kind,
-      recipient: "équipe (telegram)",
-      subject: alert.title,
-      body: alert.body,
-      provider: telegram,
-    });
-  }
-
-  const email = getEmailProvider();
-  if (email) {
-    const settings = await getSettings();
-    const inbox = settings.salon_email?.trim();
-    if (inbox && inbox !== context.customer.email) {
-      await dispatch({
-        appointmentId: context.appointment.id,
-        channel: "email",
-        kind,
-        recipient: inbox,
-        subject: `[Staff] ${alert.title}`,
-        body: alert.body,
-        provider: email,
-      });
-    }
   }
 }
 

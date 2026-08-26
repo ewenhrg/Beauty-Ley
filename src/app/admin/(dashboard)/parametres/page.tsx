@@ -8,22 +8,34 @@ import { Card } from "@/components/admin/ui";
 import { requirePage } from "@/server/access";
 import { getStoreStatus } from "@/server/db";
 import { listNotifications, notificationStatus } from "@/server/notifications";
+import { ntfySubscribeUrl, ntfyTopicForUser } from "@/server/notifications/providers";
 import { availablePaymentModes, isStripeConfigured } from "@/server/payments";
 import { listBusinessHours, listClosures } from "@/server/repo/schedule";
 import { getSettings } from "@/server/repo/settings";
+import { listUsers, usersTableReady } from "@/server/repo/users";
 import { SALON_TZ } from "@/lib/time";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminSettingsPage() {
   await requirePage("parametres");
-  const [settings, hours, closures, notifications] = await Promise.all([
+  const ready = await usersTableReady();
+  const [settings, hours, closures, notifications, users] = await Promise.all([
     getSettings(),
     listBusinessHours(),
     listClosures(),
     listNotifications(15),
+    ready ? listUsers() : Promise.resolve([]),
   ]);
   const status = getStoreStatus();
+  const accounts = users
+    .filter((user) => user.active)
+    .flatMap((user) => {
+      const topic = ntfyTopicForUser(user.username);
+      const url = topic ? ntfySubscribeUrl(topic) : null;
+      if (!topic || !url) return [];
+      return [{ name: user.display_name, username: user.username, topic, url }];
+    });
 
   return (
     <div>
@@ -56,7 +68,7 @@ export default async function AdminSettingsPage() {
         </Card>
 
         <Card title="Notifications">
-          <NotificationStatus channels={notificationStatus()} />
+          <NotificationStatus channels={notificationStatus()} accounts={accounts} />
 
           <div className="mt-6">
             <p className="text-[10px] tracking-[0.2em] text-rose uppercase">Derniers messages</p>

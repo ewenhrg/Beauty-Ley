@@ -75,11 +75,11 @@ export function NewAppointmentForm({
             ) : null}
             <select
               name={lockedStaffId ? undefined : "staffId"}
+              required={!lockedStaffId}
               className={adminInput}
-              defaultValue={lockedStaffId ?? ""}
+              defaultValue={lockedStaffId ?? eligibleStaff[0]?.id ?? ""}
               disabled={Boolean(lockedStaffId)}
             >
-              {lockedStaffId ? null : <option value="">Première disponible</option>}
               {eligibleStaff.map((member) => (
                 <option key={member.id} value={member.id}>
                   {member.name}

@@ -162,14 +162,17 @@ async function notificationContext(appointment: AppointmentRow) {
 export async function sendAppointmentEmail(
   kind: "confirmation" | "reminder" | "reschedule" | "cancellation",
   appointment: AppointmentRow,
+  options: { notifyAssignee?: boolean } = {},
 ) {
   const context = await notificationContext(appointment);
   if (!context) return null;
   const customer = await notifyAppointment(kind, context);
-  try {
-    await notifyStaff(kind, context);
-  } catch (error) {
-    console.error("[staff-notify]", error);
+  if (options.notifyAssignee) {
+    try {
+      await notifyStaff(kind, context);
+    } catch (error) {
+      console.error("[staff-notify]", error);
+    }
   }
   return customer;
 }

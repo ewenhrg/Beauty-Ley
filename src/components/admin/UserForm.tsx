@@ -17,9 +17,11 @@ export type UserEditorValue = {
 export function UserForm({
   user,
   staff,
+  ntfy,
 }: {
   user?: UserEditorValue;
   staff: Array<{ id: string; name: string }>;
+  ntfy?: { topic: string; url: string } | null;
 }) {
   return (
     <>
@@ -55,9 +57,11 @@ export function UserForm({
               className={adminInput}
             />
           </LabelledField>
-          <LabelledField label="Lié à" className="sm:col-span-2">
-            <select name="staffId" defaultValue={user?.staff_id ?? ""} className={adminInput}>
-              <option value="">Aucun membre</option>
+          <LabelledField label="Personne (équipe)" className="sm:col-span-2">
+            <select name="staffId" required defaultValue={user?.staff_id ?? ""} className={adminInput}>
+              <option value="" disabled>
+                Choisir qui est ce compte
+              </option>
               {staff.map((member) => (
                 <option key={member.id} value={member.id}>
                   {member.name}
@@ -76,7 +80,11 @@ export function UserForm({
                   type="checkbox"
                   name="pages"
                   value={item.id}
-                  defaultChecked={user ? user.pages.includes(item.id) : item.id === "calendrier"}
+                  defaultChecked={
+                    user
+                      ? user.pages.includes(item.id)
+                      : item.id === "calendrier" || item.id === "rendez-vous"
+                  }
                   className="h-4 w-4 accent-[#c17a5c]"
                 />
                 {item.label}
@@ -93,10 +101,10 @@ export function UserForm({
           <input
             type="checkbox"
             name="ownAgenda"
-            defaultChecked={user?.own_agenda ?? false}
+            defaultChecked={user?.own_agenda ?? true}
             className="h-4 w-4 accent-[#c17a5c]"
           />
-          Voir uniquement son planning (nécessite un membre lié)
+          Voir uniquement son planning
         </label>
         <label className="mt-2 flex items-center gap-2 text-sm text-ink">
           <input
@@ -110,6 +118,25 @@ export function UserForm({
 
         <SubmitButton className="mt-5">{user ? "Enregistrer" : "Créer le compte"}</SubmitButton>
       </ActionForm>
+
+      {ntfy ? (
+        <div className="mt-5 rounded-xl border border-terracotta/30 bg-blush/20 px-4 py-4 text-sm leading-relaxed text-ink">
+          <p className="text-[10px] tracking-[0.2em] text-rose uppercase">Son téléphone</p>
+          <p className="mt-2">
+            Cette personne s&apos;abonne dans l&apos;app ntfy au sujet{" "}
+            <code className="break-all text-xs">{ntfy.topic}</code>
+            . Elle ne reçoit une alerte que lorsque vous lui attribuez un rendez-vous.
+          </p>
+          <a
+            href={ntfy.url}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-3 inline-flex text-[10px] tracking-[0.18em] text-terracotta uppercase"
+          >
+            Ouvrir le sujet ntfy
+          </a>
+        </div>
+      ) : null}
 
       {user ? (
         <ActionForm action={deleteUserAction} className="mt-5 border-t border-line pt-5">

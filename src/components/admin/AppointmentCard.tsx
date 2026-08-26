@@ -170,7 +170,7 @@ export function AppointmentCard({
                   </select>
                 </label>
               </div>
-              <SubmitButton className="mt-3">Déplacer</SubmitButton>
+              <SubmitButton className="mt-3">Attribuer et notifier</SubmitButton>
             </ActionForm>
           </div>
 
