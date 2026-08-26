@@ -14,13 +14,27 @@ export const HAIR_STYLISTS = [
   { firstName: "Mohammed", slugs: ["mohammed", "mohamed"] },
 ] as const;
 
-/** Rows the app once auto-inserted. Never recreate; drop on boot if unused. */
-export const INVENTED_STAFF_IDS = [
+/** Rows the app once auto-inserted. Never recreate; drop or hide on boot. */
+export const AUTO_CREATED_STAFF_IDS = [
+  "staff-ley",
+  "staff-sarah",
+  "staff-nour",
+  "staff-yasmine",
   "staff-bebo",
   "staff-david",
   "staff-mickael",
   "staff-melad",
   "staff-mohammed",
+] as const;
+
+/** Studio hours copied onto a new compte when nobody else has a schedule yet. Friday is closed. */
+export const DEFAULT_WORK_WINDOWS = [
+  { weekday: 0, start_min: 10 * 60, end_min: 20 * 60 },
+  { weekday: 1, start_min: 10 * 60, end_min: 20 * 60 },
+  { weekday: 2, start_min: 10 * 60, end_min: 20 * 60 },
+  { weekday: 3, start_min: 10 * 60, end_min: 20 * 60 },
+  { weekday: 4, start_min: 10 * 60, end_min: 20 * 60 },
+  { weekday: 6, start_min: 10 * 60, end_min: 20 * 60 },
 ] as const;
 
 const HAIR_SLUGS = HAIR_STYLISTS.flatMap((stylist) => [...stylist.slugs]);
@@ -46,7 +60,7 @@ export function serviceAllowsStaffChoice(
 }
 
 export function isChoosableHairStylist(name: string, id?: string) {
-  if (id && (INVENTED_STAFF_IDS as readonly string[]).includes(id)) return true;
+  if (id && (AUTO_CREATED_STAFF_IDS as readonly string[]).includes(id)) return false;
   const key = keyOf(name);
   return HAIR_SLUGS.some((stylist) => key === stylist || key.startsWith(`${stylist} `));
 }

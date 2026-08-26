@@ -2,7 +2,7 @@ import { getStore } from "../db";
 import { buildSeed } from "../db/seed";
 import { TABLE_NAMES } from "../db/types";
 import type { StaffRow, TableName, Tables } from "../db/types";
-import { isChoosableHairStylist, isHairCategorySlug, INVENTED_STAFF_IDS } from "@/lib/staff-choice";
+import { isChoosableHairStylist, isHairCategorySlug, AUTO_CREATED_STAFF_IDS, DEFAULT_WORK_WINDOWS } from "@/lib/staff-choice";
 import { newId } from "../ids";
 import type { Store } from "../db/store";
 
@@ -41,7 +41,7 @@ async function run() {
       }
     }
 
-    await removeInventedStaff(store);
+    await removeAutoCreatedStaff(store);
     await ensureStaffForAccounts(store);
   });
 }
@@ -55,19 +55,16 @@ function splitName(displayName: string) {
 }
 
 /**
- * Drop salon members the app used to invent (Bebo, David, …). Team logins
- * recreate their own profiles from the display name.
+ * Drop salon members the app used to invent (Ley, Sarah, Nour, Yasmine, …).
+ * Team logins recreate their own profiles from Comptes.
  */
-async function removeInventedStaff(store: Store) {
-  const invented = new Set<string>(INVENTED_STAFF_IDS);
+async function removeAutoCreatedStaff(store: Store) {
+  const invented = new Set<string>(AUTO_CREATED_STAFF_IDS);
   const staff = await store.select("staff");
   const targets = staff.filter((row) => invented.has(row.id));
   if (!targets.length) return;
 
   for (const member of targets) {
-    const booked = await store.select("appointments", { eq: { staff_id: member.id }, limit: 1 });
-    if (booked.length) continue;
-
     try {
       const users = await store.select("admin_users", { eq: { staff_id: member.id } });
       for (const user of users) {
@@ -83,6 +80,12 @@ async function removeInventedStaff(store: Store) {
     for (const row of hours) await store.remove("staff_schedules", row.id);
     const timeOff = await store.select("staff_time_off", { eq: { staff_id: member.id } });
     for (const row of timeOff) await store.remove("staff_time_off", row.id);
+
+    const booked = await store.select("appointments", { eq: { staff_id: member.id }, limit: 1 });
+    if (booked.length) {
+      await store.update("staff", member.id, { active: false });
+      continue;
+    }
     await store.remove("staff", member.id);
   }
 }
@@ -101,9 +104,10 @@ async function ensureStaffForAccounts(store: Store) {
 
   const staff = await store.select("staff");
   const present = new Set(staff.map((row) => row.id));
+  const autoCreated = new Set<string>(AUTO_CREATED_STAFF_IDS);
 
   for (const user of users) {
-    if (user.staff_id && present.has(user.staff_id)) continue;
+    if (user.staff_id && present.has(user.staff_id) && !autoCreated.has(user.staff_id)) continue;
     const { first_name, last_name } = splitName(user.display_name || "Équipe");
     const name = [first_name, last_name].filter(Boolean).join(" ");
     const hair = isChoosableHairStylist(name);
@@ -147,22 +151,27 @@ async function attachHairWork(store: Store, staffId: string) {
 
   const ownHours = await store.select("staff_schedules", { eq: { staff_id: staffId } });
   if (ownHours.length) return;
-  const template =
-    (await store.select("staff_schedules", { eq: { staff_id: "staff-ley" } })) || [];
-  const source = template.length
-    ? template
-    : (await store.select("staff_schedules")).filter((row) => row.staff_id !== staffId);
-  const byStaff = new Map<string, typeof source>();
-  for (const row of source) {
+  const others = (await store.select("staff_schedules")).filter(
+    (row) =>
+      row.staff_id !== staffId && !(AUTO_CREATED_STAFF_IDS as readonly string[]).includes(row.staff_id),
+  );
+  const byStaff = new Map<string, typeof others>();
+  for (const row of others) {
     const list = byStaff.get(row.staff_id) ?? [];
     list.push(row);
     byStaff.set(row.staff_id, list);
   }
-  const hours = byStaff.get("staff-ley") ?? [...byStaff.values()][0] ?? [];
-  if (!hours.length) return;
+  const hours = [...byStaff.values()][0] ?? [];
+  const windows = hours.length
+    ? hours.map((row) => ({
+        weekday: row.weekday,
+        start_min: row.start_min,
+        end_min: row.end_min,
+      }))
+    : [...DEFAULT_WORK_WINDOWS];
   await store.insert(
     "staff_schedules",
-    hours.map((row, index) => ({
+    windows.map((row, index) => ({
       id: `sched-${staffId}-${row.weekday}-${index}`,
       staff_id: staffId,
       weekday: row.weekday,

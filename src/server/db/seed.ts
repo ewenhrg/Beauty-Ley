@@ -179,88 +179,6 @@ const SERVICES: Record<string, ServiceSeed[]> = {
   ],
 };
 
-const STAFF: Array<{
-  id: string;
-  first_name: string;
-  role: string;
-  bio: string;
-  color: string;
-  categories: string[];
-}> = [
-  {
-    id: "staff-ley",
-    first_name: "Ley",
-    role: "Fondatrice · Coiffure & couleur",
-    bio: "Coloriste passionnée, Ley signe les balayages et les coupes du studio depuis son ouverture à Hurghada.",
-    color: "#c17a5c",
-    categories: ["cat-coiffure", "cat-coloration"],
-  },
-  {
-    id: "staff-sarah",
-    first_name: "Sarah",
-    role: "Prothésiste ongulaire",
-    bio: "Spécialiste du gel et des extensions, Sarah dessine des ongles sur mesure, du nude le plus discret au nail art le plus graphique.",
-    color: "#c97d73",
-    categories: ["cat-manucure", "cat-pedicure"],
-  },
-  {
-    id: "staff-nour",
-    first_name: "Nour",
-    role: "Experte regard",
-    bio: "Nour travaille le regard : extensions de cils, browlift et maquillage permanent, avec une obsession pour la symétrie.",
-    color: "#c4a06a",
-    categories: ["cat-cils", "cat-sourcils", "cat-pmu"],
-  },
-  {
-    id: "staff-yasmine",
-    first_name: "Yasmine",
-    role: "Esthéticienne & massages",
-    bio: "Yasmine accompagne les soins du visage, les massages et l'épilation, dans une approche douce et méthodique.",
-    color: "#b08968",
-    categories: ["cat-epilation", "cat-soins", "cat-pedicure"],
-  },
-];
-
-/** Split shifts double as lunch breaks: the gap between two windows is closed. */
-const SCHEDULES: Record<string, Array<[weekday: number, start: string, end: string]>> = {
-  "staff-ley": [
-    [0, "11:00", "19:00"],
-    [1, "10:00", "14:00"],
-    [1, "15:00", "20:00"],
-    [2, "10:00", "14:00"],
-    [2, "15:00", "20:00"],
-    [3, "10:00", "14:00"],
-    [3, "15:00", "20:00"],
-    [4, "10:00", "14:00"],
-    [4, "15:00", "20:00"],
-    [6, "10:00", "20:00"],
-  ],
-  "staff-sarah": [
-    [0, "10:00", "18:00"],
-    [1, "10:00", "18:00"],
-    [2, "12:00", "20:00"],
-    [3, "10:00", "14:00"],
-    [3, "15:00", "20:00"],
-    [6, "10:00", "20:00"],
-  ],
-  "staff-nour": [
-    [0, "10:00", "18:00"],
-    [2, "10:00", "18:00"],
-    [3, "10:00", "18:00"],
-    [4, "11:00", "20:00"],
-    [6, "10:00", "18:00"],
-  ],
-  "staff-yasmine": [
-    [1, "10:00", "14:00"],
-    [1, "15:00", "19:00"],
-    [2, "10:00", "19:00"],
-    [3, "10:00", "19:00"],
-    [4, "10:00", "14:00"],
-    [4, "15:00", "19:00"],
-    [6, "11:00", "19:00"],
-  ],
-};
-
 function toMinutes(label: string) {
   const [hours, minutes] = label.split(":").map(Number);
   return hours * 60 + minutes;
@@ -295,37 +213,9 @@ export function buildSeed(now = new Date()): Seed {
     })),
   );
 
-  const staff = STAFF.map((member, index) => ({
-    id: member.id,
-    first_name: member.first_name,
-    last_name: null,
-    role: member.role,
-    bio: member.bio,
-    photo: null,
-    color: member.color,
-    sort_order: index,
-    active: true,
-  }));
-
-  const staff_services = STAFF.flatMap((member) =>
-    services
-      .filter((service) => member.categories.includes(service.category_id))
-      .map((service) => ({
-        id: `link-${member.id}-${service.id}`,
-        staff_id: member.id,
-        service_id: service.id,
-      })),
-  );
-
-  const staff_schedules = Object.entries(SCHEDULES).flatMap(([staffId, windows]) =>
-    windows.map(([weekday, start, end], index) => ({
-      id: `sched-${staffId}-${weekday}-${index}`,
-      staff_id: staffId,
-      weekday,
-      start_min: toMinutes(start),
-      end_min: toMinutes(end),
-    })),
-  );
+  const staff: Seed["staff"] = [];
+  const staff_services: Seed["staff_services"] = [];
+  const staff_schedules: Seed["staff_schedules"] = [];
 
   // Friday is the salon's weekly closing day.
   const business_hours = [0, 1, 2, 3, 4, 5, 6].map((weekday) => ({

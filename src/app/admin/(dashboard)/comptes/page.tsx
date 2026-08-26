@@ -53,6 +53,12 @@ export default async function AdminUsersPage() {
 
       {ready ? (
         <div className="mt-8 grid gap-6 xl:grid-cols-2">
+          <Card title="Ajouter un compte">
+            <p className="mb-4 text-sm leading-relaxed text-ink-soft">
+              Autant de personnes que vous voulez. Le nom affiché devient le profil équipe.
+            </p>
+            <UserForm />
+          </Card>
           {users.map((user) => (
             <Card key={user.id} title={user.display_name}>
               <p className="mb-4 text-xs text-ink-soft">
@@ -71,9 +77,6 @@ export default async function AdminUsersPage() {
               />
             </Card>
           ))}
-          <Card title="Nouveau compte">
-            <UserForm />
-          </Card>
         </div>
       ) : null}
     </div>

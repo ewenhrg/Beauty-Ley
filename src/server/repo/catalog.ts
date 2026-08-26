@@ -1,4 +1,4 @@
-import { isChoosableHairStylist, isHairCategorySlug, INVENTED_STAFF_IDS } from "@/lib/staff-choice";
+import { isChoosableHairStylist, isHairCategorySlug, AUTO_CREATED_STAFF_IDS, DEFAULT_WORK_WINDOWS } from "@/lib/staff-choice";
 import { getStore } from "../db";
 import type {
   ServiceCategoryRow,
@@ -41,10 +41,12 @@ export async function getCategory(id: string) {
 
 export async function listStaff(options: { activeOnly?: boolean } = {}) {
   await ensureSeeded();
-  return getStore().select("staff", {
+  const hidden = new Set<string>(AUTO_CREATED_STAFF_IDS);
+  const rows = await getStore().select("staff", {
     ...(options.activeOnly ? { eq: { active: true } } : {}),
     order: { column: "sort_order" },
   });
+  return rows.filter((row) => !hidden.has(row.id));
 }
 
 export async function getStaff(id: string) {
@@ -185,7 +187,7 @@ export async function upsertStaffFromAccount(existingId: string | null, displayN
   const { first_name, last_name } = splitDisplayName(displayName);
   const name = [first_name, last_name].filter(Boolean).join(" ");
   const linkedId =
-    existingId && !(INVENTED_STAFF_IDS as readonly string[]).includes(existingId)
+    existingId && !(AUTO_CREATED_STAFF_IDS as readonly string[]).includes(existingId)
       ? existingId
       : null;
   const hair = isChoosableHairStylist(name, linkedId ?? undefined);
@@ -222,16 +224,23 @@ export async function upsertStaffFromAccount(existingId: string | null, displayN
   });
   if (hair) await setStaffServices(id, await hairServiceIds());
 
-  const template = await getStore().select("staff_schedules", { eq: { staff_id: "staff-ley" } });
-  if (template.length) {
-    await replaceStaffSchedules(
-      id,
-      template.map((row) => ({
+  const template = (await getStore().select("staff_schedules")).filter(
+    (row) => row.staff_id !== id && !(AUTO_CREATED_STAFF_IDS as readonly string[]).includes(row.staff_id),
+  );
+  const byStaff = new Map<string, typeof template>();
+  for (const row of template) {
+    const list = byStaff.get(row.staff_id) ?? [];
+    list.push(row);
+    byStaff.set(row.staff_id, list);
+  }
+  const hours = [...byStaff.values()][0] ?? [];
+  const windows = hours.length
+    ? hours.map((row) => ({
         weekday: row.weekday,
         start_min: row.start_min,
         end_min: row.end_min,
-      })),
-    );
-  }
+      }))
+    : [...DEFAULT_WORK_WINDOWS];
+  await replaceStaffSchedules(id, windows);
   return id;
 }

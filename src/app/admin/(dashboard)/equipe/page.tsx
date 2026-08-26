@@ -48,6 +48,12 @@ export default async function AdminTeamPage() {
         </p>
       </header>
 
+      <div className="mt-8">
+        <Card title="Ajouter un membre">
+          <StaffForm categories={categories} services={services} selectedServices={[]} />
+        </Card>
+      </div>
+
       <div className="mt-8 space-y-3">
         {staff.map((member) => {
           const name = staffDisplayName(member);
@@ -94,12 +100,6 @@ export default async function AdminTeamPage() {
             </Link>
           );
         })}
-      </div>
-
-      <div className="mt-8">
-        <Card title="Ajouter un membre">
-          <StaffForm categories={categories} services={services} selectedServices={[]} />
-        </Card>
       </div>
     </div>
   );
