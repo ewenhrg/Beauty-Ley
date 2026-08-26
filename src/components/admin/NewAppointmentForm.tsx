@@ -10,10 +10,12 @@ export function NewAppointmentForm({
   services,
   staff,
   defaultDate,
+  lockedStaffId,
 }: {
   services: ServiceOption[];
   staff: Array<{ id: string; name: string }>;
   defaultDate: string;
+  lockedStaffId?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [serviceId, setServiceId] = useState(services[0]?.id ?? "");
@@ -68,8 +70,16 @@ export function NewAppointmentForm({
           </LabelledField>
 
           <LabelledField label="Professionnelle">
-            <select name="staffId" className={adminInput} defaultValue="">
-              <option value="">Première disponible</option>
+            {lockedStaffId ? (
+              <input type="hidden" name="staffId" value={lockedStaffId} />
+            ) : null}
+            <select
+              name={lockedStaffId ? undefined : "staffId"}
+              className={adminInput}
+              defaultValue={lockedStaffId ?? ""}
+              disabled={Boolean(lockedStaffId)}
+            >
+              {lockedStaffId ? null : <option value="">Première disponible</option>}
               {eligibleStaff.map((member) => (
                 <option key={member.id} value={member.id}>
                   {member.name}

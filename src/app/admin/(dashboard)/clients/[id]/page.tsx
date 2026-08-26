@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { AppointmentCard } from "@/components/admin/AppointmentCard";
 import { CustomerForm } from "@/components/admin/CustomerForm";
 import { Card, EmptyState, Money, StatCard } from "@/components/admin/ui";
+import { requirePage } from "@/server/access";
+import { agendaStaffId } from "@/server/auth";
 import { customerHistory } from "@/server/admin";
 import { toAppointmentView } from "@/server/admin-view";
 import { getCustomer } from "@/server/repo/customers";
@@ -14,20 +16,28 @@ export const dynamic = "force-dynamic";
 type Props = { params: Promise<{ id: string }> };
 
 export default async function AdminCustomerPage({ params }: Props) {
+  const session = await requirePage("clients");
   const { id } = await params;
   const customer = await getCustomer(id);
   if (!customer) notFound();
 
   const [history, staff] = await Promise.all([customerHistory(id), listStaff()]);
-  const staffOptions = staff.map((member) => ({
-    id: member.id,
-    name: staffDisplayName(member),
-  }));
+  const locked = agendaStaffId(session);
+  const visibleHistory = locked
+    ? history.filter((entry) => entry.appointment.staff_id === locked)
+    : history;
+  if (locked && visibleHistory.length === 0) notFound();
+  const staffOptions = staff
+    .filter((member) => !locked || member.id === locked)
+    .map((member) => ({
+      id: member.id,
+      name: staffDisplayName(member),
+    }));
 
-  const honoured = history.filter((entry) => entry.appointment.status === "COMPLETED");
-  const cancelled = history.filter((entry) => entry.appointment.status === "CANCELLED");
+  const honoured = visibleHistory.filter((entry) => entry.appointment.status === "COMPLETED");
+  const cancelled = visibleHistory.filter((entry) => entry.appointment.status === "CANCELLED");
   const totalSpent = honoured.reduce((total, entry) => total + entry.appointment.price, 0);
-  const favourite = mostFrequent(history.map((entry) => entry.service?.name).filter(Boolean) as string[]);
+  const favourite = mostFrequent(visibleHistory.map((entry) => entry.service?.name).filter(Boolean) as string[]);
 
   return (
     <div>
@@ -52,7 +62,7 @@ export default async function AdminCustomerPage({ params }: Props) {
       </header>
 
       <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Rendez-vous" value={String(history.length)} />
+        <StatCard label="Rendez-vous" value={String(visibleHistory.length)} />
         <StatCard label="Honorés" value={String(honoured.length)} />
         <StatCard label="Annulés" value={String(cancelled.length)} />
         <StatCard label="Total dépensé" value={`${totalSpent} EGP`} hint={favourite ?? undefined} />
@@ -64,9 +74,9 @@ export default async function AdminCustomerPage({ params }: Props) {
         </Card>
 
         <Card title="Historique">
-          {history.length ? (
+          {visibleHistory.length ? (
             <div className="space-y-3">
-              {history.map((entry) => (
+              {visibleHistory.map((entry) => (
                 <AppointmentCard
                   key={entry.appointment.id}
                   appointment={toAppointmentView(entry)}

@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { Card, EmptyState, Money } from "@/components/admin/ui";
+import { requirePage } from "@/server/access";
+import { agendaStaffId } from "@/server/auth";
 import { customerSummaries } from "@/server/admin";
 import { normalisePhone } from "@/server/repo/customers";
 import { formatDateKey, instantToWall } from "@/lib/time";
@@ -9,8 +11,9 @@ export const dynamic = "force-dynamic";
 type Props = { searchParams: Promise<{ q?: string }> };
 
 export default async function AdminCustomersPage({ searchParams }: Props) {
+  const session = await requirePage("clients");
   const { q } = await searchParams;
-  const all = await customerSummaries();
+  const all = await customerSummaries(agendaStaffId(session));
   const needle = q?.trim().toLowerCase() ?? "";
   const digits = needle ? normalisePhone(needle) : "";
 

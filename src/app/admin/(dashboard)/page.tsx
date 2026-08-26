@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { AppointmentCard } from "@/components/admin/AppointmentCard";
 import { Card, EmptyState, StatCard } from "@/components/admin/ui";
+import { requirePage } from "@/server/access";
+import { agendaStaffId, canAccess } from "@/server/auth";
 import { dashboardStats } from "@/server/admin";
 import { toAppointmentView } from "@/server/admin-view";
 import { listStaff, staffDisplayName } from "@/server/repo/catalog";
@@ -10,11 +12,18 @@ import { formatDateKey, todayKey } from "@/lib/time";
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboardPage() {
-  const [stats, staff] = await Promise.all([dashboardStats(), listStaff({ activeOnly: true })]);
-  const staffOptions = staff.map((member) => ({
-    id: member.id,
-    name: staffDisplayName(member),
-  }));
+  const session = await requirePage("dashboard");
+  const scopedStaff = agendaStaffId(session);
+  const [stats, staff] = await Promise.all([
+    dashboardStats(new Date(), scopedStaff),
+    listStaff({ activeOnly: true }),
+  ]);
+  const staffOptions = staff
+    .filter((member) => !scopedStaff || member.id === scopedStaff)
+    .map((member) => ({
+      id: member.id,
+      name: staffDisplayName(member),
+    }));
   const channels = notificationStatus();
   const money = (value: number) => `${new Intl.NumberFormat("fr-FR").format(value)} EGP`;
 
@@ -43,6 +52,7 @@ export default async function AdminDashboardPage() {
         />
         <StatCard label="Taux d'occupation" value={`${stats.occupancy} %`} hint="Sur la journée" />
         <StatCard label="Clientes enregistrées" value={String(stats.customerCount)} />
+        {canAccess(session, "parametres") ? (
         <StatCard
           label="Notifs équipe"
           value={channels.ntfy || channels.telegram ? "Actives" : "À activer"}
@@ -54,18 +64,21 @@ export default async function AdminDashboardPage() {
                 : "Voir Paramètres"
           }
         />
+        ) : null}
       </div>
 
       <div className="mt-8">
         <Card
           title="Prochains rendez-vous"
           action={
+            canAccess(session, "calendrier") ? (
             <Link
               href="/admin/calendrier"
               className="nav-link text-[10px] tracking-[0.18em] text-ink-soft uppercase hover:text-ink"
             >
               Voir le calendrier
             </Link>
+            ) : undefined
           }
         >
           {stats.upcoming.length ? (

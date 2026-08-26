@@ -97,15 +97,16 @@ export type DashboardStats = {
   upcoming: AgendaEntry[];
 };
 
-export async function dashboardStats(now = new Date()): Promise<DashboardStats> {
+export async function dashboardStats(now = new Date(), staffId?: string): Promise<DashboardStats> {
   const today = todayKey(now);
   const tomorrow = addDays(today, 1);
   const weekEnd = addDays(today, 7);
+  const scope = staffId ? { staffId } : {};
 
   const [todayEntries, tomorrowEntries, weekEntries, customers, staff] = await Promise.all([
-    loadAgenda(today, tomorrow),
-    loadAgenda(tomorrow, addDays(tomorrow, 1)),
-    loadAgenda(today, weekEnd),
+    loadAgenda(today, tomorrow, scope),
+    loadAgenda(tomorrow, addDays(tomorrow, 1), scope),
+    loadAgenda(today, weekEnd, scope),
     listCustomers(),
     listStaff({ activeOnly: true }),
   ]);
@@ -119,9 +120,9 @@ export async function dashboardStats(now = new Date()): Promise<DashboardStats> 
     0,
   );
   // A rough but honest denominator: the team's opening span for the day.
-  const capacityMinutes = staff.length * 8 * 60;
+  const capacityMinutes = (staffId ? 1 : staff.length) * 8 * 60;
 
-  const upcoming = (await loadAgenda(today, addDays(today, 14)))
+  const upcoming = (await loadAgenda(today, addDays(today, 14), scope))
     .filter(
       (entry) =>
         BLOCKING_STATUSES.includes(entry.appointment.status) &&
@@ -137,7 +138,13 @@ export async function dashboardStats(now = new Date()): Promise<DashboardStats> 
       (total, entry) => total + entry.appointment.price,
       0,
     ),
-    customerCount: customers.length,
+    customerCount: staffId
+      ? new Set(
+          [...todayEntries, ...weekEntries]
+            .map((entry) => entry.appointment.customer_id)
+            .filter(Boolean),
+        ).size
+      : customers.length,
     occupancy: capacityMinutes ? Math.round((bookedMinutes / capacityMinutes) * 100) : 0,
     pendingCount: todayEntries.filter((entry) => entry.appointment.status === "PENDING").length,
     upcoming,
@@ -151,16 +158,23 @@ export type CustomerSummary = {
   totalSpent: number;
 };
 
-export async function customerSummaries(): Promise<CustomerSummary[]> {
+export async function customerSummaries(staffId?: string): Promise<CustomerSummary[]> {
   const [customers, appointments] = await Promise.all([listCustomers(), listAppointments()]);
+  const scoped = staffId
+    ? appointments.filter((appointment) => appointment.staff_id === staffId)
+    : appointments;
   const byCustomer = new Map<string, AppointmentRow[]>();
-  for (const appointment of appointments) {
+  for (const appointment of scoped) {
     const list = byCustomer.get(appointment.customer_id) ?? [];
     list.push(appointment);
     byCustomer.set(appointment.customer_id, list);
   }
 
-  return customers
+  const visibleCustomers = staffId
+    ? customers.filter((customer) => byCustomer.has(customer.id))
+    : customers;
+
+  return visibleCustomers
     .map((customer) => {
       const list = byCustomer.get(customer.id) ?? [];
       const honoured = list.filter((row) => row.status === "COMPLETED");

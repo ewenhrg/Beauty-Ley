@@ -2,6 +2,8 @@ import Link from "next/link";
 import { AdminCalendar } from "@/components/admin/AdminCalendar";
 import type { CalendarBlock, CalendarView } from "@/components/admin/AdminCalendar";
 import { NewAppointmentForm } from "@/components/admin/NewAppointmentForm";
+import { requirePage } from "@/server/access";
+import { agendaStaffId } from "@/server/auth";
 import { loadAgenda } from "@/server/admin";
 import { toAppointmentView } from "@/server/admin-view";
 import { listCategories, listServices, listStaff, listStaffServices, staffDisplayName } from "@/server/repo/catalog";
@@ -41,10 +43,12 @@ function rangeFor(view: CalendarView, anchor: string) {
 }
 
 export default async function AdminCalendarPage({ searchParams }: Props) {
+  const session = await requirePage("calendrier");
+  const lockedStaff = agendaStaffId(session);
   const params = await searchParams;
   const view = (VIEWS.includes(params.view as CalendarView) ? params.view : "jour") as CalendarView;
   const anchor = isValidDateKey(params.date) ? params.date : todayKey();
-  const staffFilter = params.staff || null;
+  const staffFilter = lockedStaff ?? (params.staff || null);
 
   const { days, title, step } = rangeFor(view, anchor);
   const [entries, staff, services, categories, links, hours] = await Promise.all([
@@ -112,6 +116,7 @@ export default async function AdminCalendarPage({ searchParams }: Props) {
           }))}
           staff={staffList}
           defaultDate={anchor}
+          lockedStaffId={lockedStaff}
         />
       </header>
 
@@ -155,6 +160,7 @@ export default async function AdminCalendarPage({ searchParams }: Props) {
           </div>
         </div>
 
+        {lockedStaff ? null : (
         <div className="no-scrollbar -mx-4 flex gap-1.5 overflow-x-auto px-4 pb-1">
           <Link
             href={link({ staff: "" })}
@@ -185,6 +191,7 @@ export default async function AdminCalendarPage({ searchParams }: Props) {
             </Link>
           ))}
         </div>
+        )}
       </div>
 
       <div className="mt-6">

@@ -367,5 +367,6 @@ export function buildSeed(now = new Date()): Seed {
     appointments: [],
     notifications: [],
     settings,
+    admin_users: [],
   };
 }

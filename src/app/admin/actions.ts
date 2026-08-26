@@ -5,12 +5,17 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import {
   ADMIN_COOKIE,
-  checkPassword,
+  ADMIN_PAGE_IDS,
+  agendaStaffId,
+  authenticate,
   createSessionValue,
-  isAdmin,
-  isAdminConfigured,
+  firstAdminHref,
+  hashPassword,
   sessionCookieOptions,
+  type AdminPageId,
 } from "@/server/auth";
+import { OWNER_USERNAMES } from "@/server/admin-pages";
+import { requirePage, requireSession } from "@/server/access";
 import {
   BookingError,
   createBooking,
@@ -27,6 +32,7 @@ import type {
   StaffTimeOffRow,
 } from "@/server/db/types";
 import { newId, slugify } from "@/server/ids";
+import type { AdminUserRow } from "@/server/db/types";
 import {
   createCategory,
   createService,
@@ -42,6 +48,14 @@ import {
 } from "@/server/repo/catalog";
 import { deleteAppointment, getAppointment, updateAppointment } from "@/server/repo/appointments";
 import { deleteCustomer, updateCustomer } from "@/server/repo/customers";
+import {
+  createUser,
+  deleteUser,
+  findUserByUsername,
+  getUser,
+  updateUser,
+  UsersTableMissingError,
+} from "@/server/repo/users";
 import {
   createClosure,
   createTimeOff,
@@ -64,8 +78,18 @@ import {
 import { labelToMinutes, wallToInstant } from "@/lib/time";
 import type { ActionState } from "./action-state";
 
-async function guard() {
-  if (!(await isAdmin())) redirect("/admin/login");
+async function guard(...pages: AdminPageId[]) {
+  if (!pages.length) return requireSession();
+  return requirePage(...pages);
+}
+
+async function assertOwnAppointment(session: Awaited<ReturnType<typeof guard>>, appointmentId: string) {
+  const locked = agendaStaffId(session);
+  if (!locked) return;
+  const appointment = await getAppointment(appointmentId);
+  if (!appointment || appointment.staff_id !== locked) {
+    throw new ValidationError("Ce rendez-vous n'est pas dans votre planning.");
+  }
 }
 
 /** Wraps an action so validation failures surface as form messages. */
@@ -75,7 +99,7 @@ async function run(fn: () => Promise<string | void>, paths: string[]): Promise<A
     for (const path of paths) revalidatePath(path);
     return { ok: true, message: message ?? null };
   } catch (error) {
-    if (error instanceof ValidationError || error instanceof BookingError) {
+    if (error instanceof ValidationError || error instanceof BookingError || error instanceof UsersTableMissingError) {
       return { ok: false, message: error.message };
     }
     console.error("[admin]", error);
@@ -90,19 +114,15 @@ const ADMIN_PATHS = ["/admin", "/admin/calendrier", "/admin/rendez-vous"];
 /* -------------------------------------------------------------------------- */
 
 export async function login(_state: ActionState, formData: FormData): Promise<ActionState> {
-  if (!isAdminConfigured()) {
-    return {
-      ok: false,
-      message: "ADMIN_PASSWORD n'est pas configuré sur le serveur.",
-    };
-  }
+  const username = String(formData.get("username") ?? "");
   const password = String(formData.get("password") ?? "");
-  if (!checkPassword(password)) {
-    return { ok: false, message: "Mot de passe incorrect." };
+  const session = await authenticate(username, password);
+  if (!session) {
+    return { ok: false, message: "Identifiant ou mot de passe incorrect." };
   }
   const store = await cookies();
-  store.set(ADMIN_COOKIE, await createSessionValue(), sessionCookieOptions);
-  redirect("/admin");
+  store.set(ADMIN_COOKIE, await createSessionValue(session.id), sessionCookieOptions);
+  redirect(firstAdminHref(session));
 }
 
 export async function logout() {
@@ -119,9 +139,10 @@ export async function changeStatusAction(
   _state: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await guard();
+  const session = await guard("calendrier", "rendez-vous");
   return run(async () => {
     const id = asString(formData.get("id"), "id");
+    await assertOwnAppointment(session, id);
     const status = asEnum(formData.get("status"), APPOINTMENT_STATUSES, "status");
     await setAppointmentStatus(id, status);
     return "Statut mis à jour.";
@@ -132,12 +153,14 @@ export async function moveAppointmentAction(
   _state: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await guard();
+  const session = await guard("calendrier", "rendez-vous");
   return run(async () => {
     const id = asString(formData.get("id"), "id");
+    await assertOwnAppointment(session, id);
     const date = asString(formData.get("date"), "date", { max: 10 });
     const time = asString(formData.get("time"), "time", { max: 5 });
-    const staffId = asOptionalString(formData.get("staffId"), "staffId", 80);
+    const locked = agendaStaffId(session);
+    const staffId = locked ?? asOptionalString(formData.get("staffId"), "staffId", 80);
     const startAt = wallToInstant(date, labelToMinutes(time)).toISOString();
     const updated = await moveAppointment({
       appointmentId: id,
@@ -153,9 +176,10 @@ export async function updateAppointmentNoteAction(
   _state: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await guard();
+  const session = await guard("calendrier", "rendez-vous");
   return run(async () => {
     const id = asString(formData.get("id"), "id");
+    await assertOwnAppointment(session, id);
     await updateAppointment(id, {
       admin_note: asOptionalString(formData.get("adminNote"), "adminNote", 1000),
     });
@@ -167,12 +191,13 @@ export async function createAppointmentAction(
   _state: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await guard();
+  const session = await guard("calendrier", "rendez-vous");
   return run(async () => {
     const date = asString(formData.get("date"), "date", { max: 10 });
     const time = asString(formData.get("time"), "time", { max: 5 });
     const startAt = wallToInstant(date, labelToMinutes(time)).toISOString();
-    const staffId = asOptionalString(formData.get("staffId"), "staffId", 80);
+    const locked = agendaStaffId(session);
+    const staffId = locked ?? asOptionalString(formData.get("staffId"), "staffId", 80);
 
     const { appointment } = await createBooking({
       serviceId: asString(formData.get("serviceId"), "serviceId"),
@@ -196,9 +221,10 @@ export async function deleteAppointmentAction(
   _state: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await guard();
+  const session = await guard("calendrier", "rendez-vous");
   return run(async () => {
     const id = asString(formData.get("id"), "id");
+    await assertOwnAppointment(session, id);
     const appointment = await getAppointment(id);
     if (!appointment) throw new ValidationError("Rendez-vous introuvable.");
     await deleteAppointment(id);
@@ -210,9 +236,10 @@ export async function resendConfirmationAction(
   _state: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await guard();
+  const session = await guard("calendrier", "rendez-vous");
   return run(async () => {
     const id = asString(formData.get("id"), "id");
+    await assertOwnAppointment(session, id);
     const appointment = await getAppointment(id);
     if (!appointment) throw new ValidationError("Rendez-vous introuvable.");
     const result = await sendAppointmentEmail("confirmation", appointment);
@@ -231,7 +258,7 @@ export async function updateCustomerAction(
   _state: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await guard();
+  await guard("clients");
   return run(async () => {
     const id = asString(formData.get("id"), "id");
     await updateCustomer(id, {
@@ -249,7 +276,7 @@ export async function deleteCustomerAction(
   _state: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await guard();
+  await guard("clients");
   const id = asString(formData.get("id"), "id");
   const result = await run(async () => {
     await deleteCustomer(id);
@@ -266,7 +293,7 @@ export async function saveCategoryAction(
   _state: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await guard();
+  await guard("prestations");
   return run(async () => {
     const id = asOptionalString(formData.get("id"), "id", 80);
     const name = asString(formData.get("name"), "name", { max: 60 });
@@ -292,7 +319,7 @@ export async function deleteCategoryAction(
   _state: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await guard();
+  await guard("prestations");
   return run(async () => {
     await deleteCategory(asString(formData.get("id"), "id"));
     return "Catégorie supprimée.";
@@ -303,7 +330,7 @@ export async function saveServiceAction(
   _state: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await guard();
+  await guard("prestations");
   return run(async () => {
     const id = asOptionalString(formData.get("id"), "id", 80);
     const staffIds = formData.getAll("staffIds").map(String).filter(Boolean);
@@ -336,7 +363,7 @@ export async function deleteServiceAction(
   _state: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await guard();
+  await guard("prestations");
   return run(async () => {
     await deleteService(asString(formData.get("id"), "id"));
     return "Prestation supprimée.";
@@ -351,7 +378,7 @@ export async function saveStaffAction(
   _state: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await guard();
+  await guard("equipe");
   return run(async () => {
     const id = asOptionalString(formData.get("id"), "id", 80);
     const patch: Partial<StaffRow> = {
@@ -383,7 +410,7 @@ export async function deleteStaffAction(
   _state: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await guard();
+  await guard("equipe");
   const id = asString(formData.get("id"), "id");
   const result = await run(async () => {
     await deleteStaff(id);
@@ -396,7 +423,7 @@ export async function saveScheduleAction(
   _state: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await guard();
+  await guard("equipe");
   return run(async () => {
     const staffId = asString(formData.get("staffId"), "staffId");
     const windows: Array<{ weekday: number; start_min: number; end_min: number }> = [];
@@ -425,7 +452,7 @@ export async function createTimeOffAction(
   _state: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await guard();
+  await guard("equipe");
   return run(async () => {
     const staffId = asString(formData.get("staffId"), "staffId");
     const startDate = asString(formData.get("startDate"), "startDate", { max: 10 });
@@ -453,7 +480,7 @@ export async function deleteTimeOffAction(
   _state: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await guard();
+  await guard("equipe");
   return run(async () => {
     await deleteTimeOff(asString(formData.get("id"), "id"));
     return "Indisponibilité supprimée.";
@@ -468,7 +495,7 @@ export async function saveBusinessHoursAction(
   _state: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await guard();
+  await guard("parametres");
   return run(async () => {
     for (let weekday = 0; weekday < 7; weekday += 1) {
       const id = String(formData.get(`id-${weekday}`) ?? "");
@@ -493,7 +520,7 @@ export async function createClosureAction(
   _state: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await guard();
+  await guard("parametres");
   return run(async () => {
     const startDate = asString(formData.get("startDate"), "startDate", { max: 10 });
     const endDate = asString(formData.get("endDate"), "endDate", { max: 10 });
@@ -513,7 +540,7 @@ export async function deleteClosureAction(
   _state: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await guard();
+  await guard("parametres");
   return run(async () => {
     await deleteClosure(asString(formData.get("id"), "id"));
     return "Fermeture supprimée.";
@@ -524,7 +551,7 @@ export async function saveSettingsAction(
   _state: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await guard();
+  await guard("parametres");
   return run(async () => {
     const modes = availablePaymentModes();
     const requestedMode = String(formData.get("paymentMode") ?? "onsite");
@@ -557,4 +584,100 @@ export async function saveSettingsAction(
     });
     return "Paramètres enregistrés.";
   }, ["/admin/parametres", "/reservation"]);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Team logins                                                                 */
+/* -------------------------------------------------------------------------- */
+
+function parseUsername(value: FormDataEntryValue | null) {
+  const username = asString(value, "username", { min: 3, max: 32 }).toLowerCase();
+  if (OWNER_USERNAMES.has(username)) {
+    throw new ValidationError("Cet identifiant est réservé au compte administrateur.");
+  }
+  if (!/^[a-z0-9._-]+$/.test(username)) {
+    throw new ValidationError("Identifiant : lettres, chiffres, point, tiret ou underscore.");
+  }
+  return username;
+}
+
+function parsePages(formData: FormData): AdminPageId[] {
+  const allowed = new Set<string>(ADMIN_PAGE_IDS.filter((page) => page !== "comptes"));
+  const pages = formData
+    .getAll("pages")
+    .map(String)
+    .filter((page): page is AdminPageId => allowed.has(page));
+  if (!pages.length) {
+    throw new ValidationError("Cochez au moins une page.");
+  }
+  return pages;
+}
+
+export async function saveUserAction(
+  _state: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await guard("comptes");
+  return run(async () => {
+    const id = asOptionalString(formData.get("id"), "id", 80);
+    const username = parseUsername(formData.get("username"));
+    const password = String(formData.get("password") ?? "");
+    const existing = await findUserByUsername(username);
+    if (existing && existing.id !== id) {
+      throw new ValidationError("Cet identifiant est déjà utilisé.");
+    }
+    if (!id && password.length < 6) {
+      throw new ValidationError("Mot de passe : 6 caractères minimum.");
+    }
+    if (id && password && password.length < 6) {
+      throw new ValidationError("Mot de passe : 6 caractères minimum.");
+    }
+
+    const staffId = asOptionalString(formData.get("staffId"), "staffId", 80);
+    const patch: Partial<AdminUserRow> = {
+      username,
+      display_name: asString(formData.get("displayName"), "displayName", { max: 80 }),
+      pages: parsePages(formData),
+      staff_id: staffId,
+      own_agenda: formData.get("ownAgenda") === "on",
+      active: formData.get("active") === "on",
+      updated_at: new Date().toISOString(),
+    };
+    if (patch.own_agenda && !staffId) {
+      throw new ValidationError("Liez le compte à un membre de l'équipe pour limiter son planning.");
+    }
+    if (password) patch.password_hash = hashPassword(password);
+
+    if (id) {
+      const current = await getUser(id);
+      if (!current) throw new ValidationError("Compte introuvable.");
+      await updateUser(id, patch);
+      return "Compte mis à jour.";
+    }
+
+    await createUser({
+      id: newId("usr"),
+      username,
+      display_name: patch.display_name as string,
+      password_hash: patch.password_hash as string,
+      pages: patch.pages as AdminPageId[],
+      staff_id: staffId,
+      own_agenda: Boolean(patch.own_agenda),
+      active: patch.active !== false,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    });
+    return "Compte créé.";
+  }, ["/admin/comptes"]);
+}
+
+export async function deleteUserAction(
+  _state: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await guard("comptes");
+  return run(async () => {
+    await deleteUser(asString(formData.get("id"), "id"));
+    return "Compte supprimé.";
+  }, ["/admin/comptes"]);
 }

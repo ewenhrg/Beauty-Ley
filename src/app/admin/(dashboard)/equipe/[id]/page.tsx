@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { requirePage } from "@/server/access";
 import { ScheduleEditor } from "@/components/admin/ScheduleEditor";
 import { StaffForm } from "@/components/admin/StaffForm";
 import { Card } from "@/components/admin/ui";
@@ -19,6 +20,7 @@ export const dynamic = "force-dynamic";
 type Props = { params: Promise<{ id: string }> };
 
 export default async function AdminStaffPage({ params }: Props) {
+  await requirePage("equipe");
   const { id } = await params;
   const member = await getStaff(id);
   if (!member) notFound();

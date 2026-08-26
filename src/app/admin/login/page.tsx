@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { LoginForm } from "@/components/admin/LoginForm";
 import { Logo } from "@/components/Logo";
-import { isAdmin, isAdminConfigured } from "@/server/auth";
+import { firstAdminHref, getAdminSession } from "@/server/auth";
 
 export const metadata: Metadata = {
   title: "Administration",
@@ -12,7 +12,8 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function AdminLoginPage() {
-  if (await isAdmin()) redirect("/admin");
+  const session = await getAdminSession();
+  if (session) redirect(firstAdminHref(session));
 
   return (
     <main className="flex min-h-svh items-center justify-center px-5 py-16">
@@ -30,7 +31,7 @@ export default async function AdminLoginPage() {
           </p>
 
           <div className="mt-7">
-            <LoginForm configured={isAdminConfigured()} />
+            <LoginForm />
           </div>
         </div>
       </div>

@@ -5,6 +5,7 @@ import {
   NotificationStatus,
 } from "@/components/admin/SettingsForms";
 import { Card } from "@/components/admin/ui";
+import { requirePage } from "@/server/access";
 import { getStoreStatus } from "@/server/db";
 import { listNotifications, notificationStatus } from "@/server/notifications";
 import { availablePaymentModes, isStripeConfigured } from "@/server/payments";
@@ -15,6 +16,7 @@ import { SALON_TZ } from "@/lib/time";
 export const dynamic = "force-dynamic";
 
 export default async function AdminSettingsPage() {
+  await requirePage("parametres");
   const [settings, hours, closures, notifications] = await Promise.all([
     getSettings(),
     listBusinessHours(),

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { Notice } from "@/components/booking/ui";
-import { isAdmin } from "@/server/auth";
+import { firstAdminHref, getAdminSession } from "@/server/auth";
 import { getStoreStatus } from "@/server/db";
 
 export const metadata: Metadata = {
@@ -13,12 +13,17 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  if (!(await isAdmin())) redirect("/admin/login");
+  const session = await getAdminSession();
+  if (!session) redirect("/admin/login");
 
   const status = getStoreStatus();
 
   return (
-    <AdminShell>
+    <AdminShell
+      name={session.name}
+      pages={session.pages}
+      homeHref={firstAdminHref(session)}
+    >
       {status.ready ? null : (
         <div className="mb-6">
           <Notice tone="error">{status.reason}</Notice>

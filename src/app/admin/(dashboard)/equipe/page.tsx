@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { requirePage } from "@/server/access";
 import { StaffForm } from "@/components/admin/StaffForm";
 import { Avatar } from "@/components/booking/ui";
 import { Card } from "@/components/admin/ui";
@@ -18,6 +19,7 @@ export const dynamic = "force-dynamic";
 const WEEK_ORDER = [1, 2, 3, 4, 5, 6, 0];
 
 export default async function AdminTeamPage() {
+  await requirePage("equipe");
   const [staff, categories, services, links, schedules] = await Promise.all([
     listStaff(),
     listCategories(),

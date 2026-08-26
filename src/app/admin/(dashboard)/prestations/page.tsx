@@ -1,3 +1,4 @@
+import { requirePage } from "@/server/access";
 import { ServiceEditor } from "@/components/admin/ServiceEditor";
 import {
   listCategories,
@@ -10,6 +11,7 @@ import {
 export const dynamic = "force-dynamic";
 
 export default async function AdminServicesPage() {
+  await requirePage("prestations");
   const [categories, services, staff, links] = await Promise.all([
     listCategories(),
     listServices(),

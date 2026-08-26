@@ -158,6 +158,31 @@ export type NotificationRow = {
   sent_at: string | null;
 };
 
+export type AdminPageId =
+  | "dashboard"
+  | "calendrier"
+  | "rendez-vous"
+  | "clients"
+  | "prestations"
+  | "equipe"
+  | "parametres"
+  | "comptes";
+
+export type AdminUserRow = {
+  id: string;
+  username: string;
+  display_name: string;
+  password_hash: string;
+  /** Page ids this person may open. The owner account ignores this list. */
+  pages: AdminPageId[];
+  staff_id: string | null;
+  /** When true, calendar and appointments are limited to `staff_id`. */
+  own_agenda: boolean;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
 export type SettingsRow = {
   id: string;
   /** Slot grid in minutes (15 => 09:00, 09:15, …). */
@@ -191,6 +216,7 @@ export type Tables = {
   appointments: AppointmentRow;
   notifications: NotificationRow;
   settings: SettingsRow;
+  admin_users: AdminUserRow;
 };
 
 export type TableName = keyof Tables;
@@ -208,4 +234,5 @@ export const TABLE_NAMES: TableName[] = [
   "appointments",
   "notifications",
   "settings",
+  "admin_users",
 ];

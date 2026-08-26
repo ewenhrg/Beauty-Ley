@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { AppointmentCard } from "@/components/admin/AppointmentCard";
 import { Card, EmptyState } from "@/components/admin/ui";
+import { requirePage } from "@/server/access";
+import { agendaStaffId } from "@/server/auth";
 import { loadAgenda } from "@/server/admin";
 import { toAppointmentView } from "@/server/admin-view";
 import { APPOINTMENT_STATUSES } from "@/server/db/types";
@@ -23,6 +25,8 @@ type Props = {
 };
 
 export default async function AdminAppointmentsPage({ searchParams }: Props) {
+  const session = await requirePage("rendez-vous");
+  const lockedStaff = agendaStaffId(session);
   const params = await searchParams;
   const today = todayKey();
   const from = isValidDateKey(params.from) ? params.from : today;
@@ -33,7 +37,7 @@ export default async function AdminAppointmentsPage({ searchParams }: Props) {
 
   const [entries, staff, services] = await Promise.all([
     loadAgenda(from, addDays(to, 1), {
-      staffId: params.staff || undefined,
+      staffId: lockedStaff ?? (params.staff || undefined),
       serviceId: params.service || undefined,
       status,
       query: params.q,
@@ -42,10 +46,12 @@ export default async function AdminAppointmentsPage({ searchParams }: Props) {
     listServices(),
   ]);
 
-  const staffOptions = staff.map((member) => ({
-    id: member.id,
-    name: staffDisplayName(member),
-  }));
+  const staffOptions = staff
+    .filter((member) => !lockedStaff || member.id === lockedStaff)
+    .map((member) => ({
+      id: member.id,
+      name: staffDisplayName(member),
+    }));
 
   const byDay = new Map<string, typeof entries>();
   for (const entry of entries) {
@@ -76,6 +82,9 @@ export default async function AdminAppointmentsPage({ searchParams }: Props) {
           <Filter label="Au">
             <input type="date" name="to" defaultValue={to} className={FILTER_INPUT} />
           </Filter>
+          {lockedStaff ? (
+            <input type="hidden" name="staff" value={lockedStaff} />
+          ) : (
           <Filter label="Professionnelle">
             <select name="staff" defaultValue={params.staff ?? ""} className={FILTER_INPUT}>
               <option value="">Toutes</option>
@@ -86,6 +95,7 @@ export default async function AdminAppointmentsPage({ searchParams }: Props) {
               ))}
             </select>
           </Filter>
+          )}
           <Filter label="Prestation">
             <select name="service" defaultValue={params.service ?? ""} className={FILTER_INPUT}>
               <option value="">Toutes</option>

@@ -6,21 +6,24 @@ import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { logout } from "@/app/admin/actions";
 import { Logo } from "@/components/Logo";
+import { ADMIN_NAV, type AdminPageId } from "@/server/admin-pages";
 
-const LINKS = [
-  { href: "/admin", label: "Tableau de bord", icon: "dashboard" },
-  { href: "/admin/calendrier", label: "Calendrier", icon: "calendar" },
-  { href: "/admin/rendez-vous", label: "Rendez-vous", icon: "list" },
-  { href: "/admin/clients", label: "Clientes", icon: "people" },
-  { href: "/admin/prestations", label: "Prestations", icon: "sparkle" },
-  { href: "/admin/equipe", label: "Équipe", icon: "team" },
-  { href: "/admin/parametres", label: "Paramètres", icon: "settings" },
-] as const;
-
-export function AdminShell({ children }: { children: ReactNode }) {
+export function AdminShell({
+  children,
+  name,
+  pages,
+  homeHref,
+}: {
+  children: ReactNode;
+  name: string;
+  pages: AdminPageId[];
+  homeHref: string;
+}) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [lastPathname, setLastPathname] = useState(pathname);
+  const allowed = new Set(pages);
+  const links = ADMIN_NAV.filter((link) => allowed.has(link.id));
 
   if (pathname !== lastPathname) {
     setLastPathname(pathname);
@@ -37,12 +40,12 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const isActive = (href: string) =>
     href === "/admin" ? pathname === "/admin" : pathname.startsWith(href);
 
-  const current = LINKS.find((link) => isActive(link.href));
+  const current = links.find((link) => isActive(link.href));
 
   return (
     <div className="min-h-svh lg:flex">
       <header className="sticky top-0 z-40 flex items-center justify-between gap-3 border-b border-line bg-cream/95 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] backdrop-blur-md lg:hidden">
-        <Link href="/admin" className="min-w-0">
+        <Link href={homeHref} className="min-w-0">
           <Logo compact />
         </Link>
         <p className="min-w-0 truncate text-[11px] tracking-[0.16em] text-ink-soft uppercase">
@@ -75,12 +78,15 @@ export function AdminShell({ children }: { children: ReactNode }) {
           open ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
-        <Link href="/admin" className="hidden lg:block" onClick={() => setOpen(false)}>
+        <Link href={homeHref} className="hidden lg:block" onClick={() => setOpen(false)}>
           <Logo compact />
         </Link>
+        <p className="mt-4 hidden truncate text-[11px] tracking-[0.16em] text-ink-soft uppercase lg:block">
+          {name}
+        </p>
 
         <ul className="mt-0 space-y-1 lg:mt-9">
-          {LINKS.map((link) => {
+          {links.map((link) => {
             const active = isActive(link.href);
             return (
               <li key={link.href}>
@@ -142,6 +148,9 @@ function NavIcon({ name }: { name: string }) {
     team: <path d="M12 12.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM5 20a7 7 0 0 1 14 0" />,
     settings: (
       <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM19.5 12c0-.5-.05-1-.15-1.45l1.75-1.3-1.9-3.3-2.05.8a7.5 7.5 0 0 0-2.5-1.45L14.4 3h-3.8l-.25 2.3a7.5 7.5 0 0 0-2.5 1.45l-2.05-.8-1.9 3.3 1.75 1.3a7.6 7.6 0 0 0 0 2.9l-1.75 1.3 1.9 3.3 2.05-.8a7.5 7.5 0 0 0 2.5 1.45L10.6 21h3.8l.25-2.3a7.5 7.5 0 0 0-2.5-1.45l2.05.8 1.9-3.3-1.75-1.3c.1-.45.15-.95.15-1.45z" />
+    ),
+    users: (
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
     ),
   };
 

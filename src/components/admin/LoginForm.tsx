@@ -3,20 +3,19 @@
 import { login } from "@/app/admin/actions";
 import { ActionForm, SubmitButton, adminInput, adminLabel } from "./ui";
 
-export function LoginForm({ configured }: { configured: boolean }) {
-  if (!configured) {
-    return (
-      <p className="rounded-xl bg-rose/12 px-4 py-3.5 text-sm leading-relaxed text-rose">
-        L&apos;administration n&apos;est pas encore activée. Définissez la variable
-        d&apos;environnement <code className="tracking-wide">ADMIN_PASSWORD</code> sur le serveur,
-        puis rechargez cette page.
-      </p>
-    );
-  }
-
+export function LoginForm() {
   return (
     <ActionForm action={login}>
       <label className="block">
+        <span className={adminLabel}>Identifiant</span>
+        <input
+          name="username"
+          autoComplete="username"
+          placeholder="admin"
+          className={`${adminInput} mt-1.5`}
+        />
+      </label>
+      <label className="mt-4 block">
         <span className={adminLabel}>Mot de passe</span>
         <input
           type="password"
@@ -26,6 +25,10 @@ export function LoginForm({ configured }: { configured: boolean }) {
           className={`${adminInput} mt-1.5`}
         />
       </label>
+      <p className="mt-3 text-xs leading-relaxed text-ink-soft">
+        Compte studio : identifiant <code>admin</code> et le mot de passe administrateur. Les
+        membres de l&apos;équipe utilisent l&apos;identifiant créé pour eux.
+      </p>
       <SubmitButton className="mt-5 w-full">Se connecter</SubmitButton>
     </ActionForm>
   );

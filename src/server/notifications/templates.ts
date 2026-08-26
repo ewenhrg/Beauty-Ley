@@ -1,7 +1,7 @@
 import { salon } from "@/data/salon";
 import { getSiteUrl } from "@/lib/site";
 import type { AppointmentRow, CustomerRow, ServiceRow, StaffRow } from "../db/types";
-import { formatDateKey, formatDuration, instantToWall, minutesToLabel } from "@/lib/time";
+import { formatDuration, instantToWall, minutesToLabel } from "@/lib/time";
 
 export type NotificationKind = "confirmation" | "reminder" | "reschedule" | "cancellation";
 
@@ -16,18 +16,26 @@ export type NotificationContext = {
 
 function when(appointment: AppointmentRow) {
   const wall = instantToWall(new Date(appointment.start_at));
-  return `${formatDateKey(wall.dateKey)} à ${minutesToLabel(wall.minutes)}`;
+  const [year, month, day] = wall.dateKey.split("-").map(Number);
+  const dateLabel = new Date(Date.UTC(year, month - 1, day)).toLocaleDateString("en-GB", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+  return `${dateLabel} at ${minutesToLabel(wall.minutes)}`;
 }
 
 function summary(context: NotificationContext) {
   const { appointment, service, staff } = context;
   return [
-    `Prestation : ${service.name}`,
-    `Avec : ${staff.first_name}`,
-    `Quand : ${when(appointment)}`,
-    `Durée : ${formatDuration(appointment.duration_min)}`,
-    `Prix : ${service.price_kind === "from" ? "à partir de " : ""}${appointment.price} EGP`,
-    `Référence : ${appointment.reference}`,
+    `Service: ${service.name}`,
+    `With: ${staff.first_name}`,
+    `When: ${when(appointment)}`,
+    `Duration: ${formatDuration(appointment.duration_min)}`,
+    `Price: ${service.price_kind === "from" ? "from " : ""}${appointment.price} EGP`,
+    `Reference: ${appointment.reference}`,
   ].join("\n");
 }
 
@@ -37,14 +45,14 @@ export function buildStaffAlert(kind: NotificationKind, context: NotificationCon
   const client = `${customer.first_name} ${customer.last_name}`.trim();
   const calendarUrl = `${getSiteUrl()}/admin/calendrier`;
   const details = [
-    `Prestation : ${service.name}`,
-    `Avec : ${staff.first_name}`,
-    `Quand : ${whenLabel}`,
-    `Cliente : ${client}`,
-    customer.phone ? `Tél : ${customer.phone}` : null,
-    `Réf : ${appointment.reference}`,
+    `Service: ${service.name}`,
+    `With: ${staff.first_name}`,
+    `When: ${whenLabel}`,
+    `Client: ${client}`,
+    customer.phone ? `Phone: ${customer.phone}` : null,
+    `Ref: ${appointment.reference}`,
     "",
-    `Planning : ${calendarUrl}`,
+    `Calendar: ${calendarUrl}`,
   ]
     .filter(Boolean)
     .join("\n");
@@ -52,17 +60,17 @@ export function buildStaffAlert(kind: NotificationKind, context: NotificationCon
   switch (kind) {
     case "cancellation":
       return {
-        title: `RDV annulé - ${whenLabel}`,
-        body: [`${client} a annulé.`, "", details].join("\n"),
+        title: `Appointment cancelled - ${whenLabel}`,
+        body: [`${client} cancelled.`, "", details].join("\n"),
       };
     case "reschedule":
       return {
-        title: `RDV déplacé - ${whenLabel}`,
-        body: [`Nouveau créneau pour ${client}.`, "", details].join("\n"),
+        title: `Appointment rescheduled - ${whenLabel}`,
+        body: [`New time for ${client}.`, "", details].join("\n"),
       };
     default:
       return {
-        title: `Nouveau RDV - ${whenLabel}`,
+        title: `New appointment - ${whenLabel}`,
         body: details,
       };
   }
@@ -70,28 +78,28 @@ export function buildStaffAlert(kind: NotificationKind, context: NotificationCon
 
 export function buildEmail(kind: NotificationKind, context: NotificationContext) {
   const { customer, appointment, manageUrl, cancellationWindowHours } = context;
-  const hello = `Bonjour ${customer.first_name},`;
+  const hello = `Hello ${customer.first_name},`;
   const footer = [
     "",
-    `Gérer ou annuler votre rendez-vous : ${manageUrl}`,
-    `Annulation gratuite jusqu'à ${cancellationWindowHours} h avant le créneau.`,
+    `Manage or cancel your appointment: ${manageUrl}`,
+    `Free cancellation up to ${cancellationWindowHours} hours before the slot.`,
     "",
-    `${salon.name} — ${salon.tagline}, ${salon.city}`,
+    `${salon.name} - ${salon.tagline}, ${salon.city}`,
   ].join("\n");
 
   switch (kind) {
     case "confirmation":
       return {
-        subject: `Votre rendez-vous ${salon.name} — ${when(appointment)}`,
-        body: [hello, "", "Votre rendez-vous est confirmé.", "", summary(context), footer].join("\n"),
+        subject: `Your ${salon.name} appointment - ${when(appointment)}`,
+        body: [hello, "", "Your appointment is confirmed.", "", summary(context), footer].join("\n"),
       };
     case "reminder":
       return {
-        subject: `Rappel : votre rendez-vous ${salon.name} ${when(appointment)}`,
+        subject: `Reminder: your ${salon.name} appointment ${when(appointment)}`,
         body: [
           hello,
           "",
-          "Petit rappel de votre rendez-vous.",
+          "This is a reminder of your appointment.",
           "",
           summary(context),
           footer,
@@ -99,11 +107,11 @@ export function buildEmail(kind: NotificationKind, context: NotificationContext)
       };
     case "reschedule":
       return {
-        subject: `Votre rendez-vous ${salon.name} a été déplacé`,
+        subject: `Your ${salon.name} appointment has been rescheduled`,
         body: [
           hello,
           "",
-          "Votre rendez-vous a bien été déplacé. Voici les nouvelles informations.",
+          "Your appointment has been moved. Here are the new details.",
           "",
           summary(context),
           footer,
@@ -111,17 +119,17 @@ export function buildEmail(kind: NotificationKind, context: NotificationContext)
       };
     case "cancellation":
       return {
-        subject: `Annulation de votre rendez-vous ${salon.name}`,
+        subject: `Your ${salon.name} appointment has been cancelled`,
         body: [
           hello,
           "",
-          `Votre rendez-vous du ${when(appointment)} a bien été annulé.`,
+          `Your appointment on ${when(appointment)} has been cancelled.`,
           "",
-          `Référence : ${appointment.reference}`,
+          `Reference: ${appointment.reference}`,
           "",
-          "Au plaisir de vous revoir très bientôt.",
+          "We look forward to seeing you again soon.",
           "",
-          `${salon.name} — ${salon.tagline}, ${salon.city}`,
+          `${salon.name} - ${salon.tagline}, ${salon.city}`,
         ].join("\n"),
       };
   }
