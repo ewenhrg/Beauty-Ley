@@ -1,3 +1,5 @@
+import { getSiteUrl } from "@/lib/site";
+
 export type OutgoingMessage = {
   to: string;
   subject: string;
@@ -76,4 +78,98 @@ export function getSmsProvider(): MessageProvider | null {
 
 export function getWhatsappProvider(): MessageProvider | null {
   return null;
+}
+
+/** Phone push via ntfy (https://ntfy.sh). Staff subscribe to NTFY_TOPIC. */
+class NtfyProvider implements MessageProvider {
+  readonly channel = "sms" as const;
+  readonly name = "ntfy";
+
+  constructor(
+    private readonly server: string,
+    private readonly topic: string,
+  ) {}
+
+  async send(message: OutgoingMessage): Promise<DeliveryResult> {
+    try {
+      const response = await fetch(`${this.server}/${encodeURIComponent(this.topic)}`, {
+        method: "POST",
+        headers: {
+          Title: message.subject.slice(0, 120),
+          Tags: "nail_care,calendar",
+          Click: staffCalendarUrl(),
+          Priority: "high",
+        },
+        body: message.body,
+      });
+      if (!response.ok) {
+        return { status: "failed", error: `ntfy ${response.status}: ${await response.text()}` };
+      }
+      return { status: "sent" };
+    } catch (error) {
+      return { status: "failed", error: error instanceof Error ? error.message : String(error) };
+    }
+  }
+}
+
+class TelegramProvider implements MessageProvider {
+  readonly channel = "whatsapp" as const;
+  readonly name = "telegram";
+
+  constructor(
+    private readonly token: string,
+    private readonly chatId: string,
+  ) {}
+
+  async send(message: OutgoingMessage): Promise<DeliveryResult> {
+    try {
+      const response = await fetch(`https://api.telegram.org/bot${this.token}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: this.chatId,
+          text: `${message.subject}\n\n${message.body}`,
+          disable_web_page_preview: true,
+        }),
+      });
+      if (!response.ok) {
+        return {
+          status: "failed",
+          error: `Telegram ${response.status}: ${await response.text()}`,
+        };
+      }
+      return { status: "sent" };
+    } catch (error) {
+      return { status: "failed", error: error instanceof Error ? error.message : String(error) };
+    }
+  }
+}
+
+function staffCalendarUrl() {
+  return `${getSiteUrl()}/admin/calendrier`;
+}
+
+export function getNtfyProvider(): MessageProvider | null {
+  const topic = process.env.NTFY_TOPIC?.trim();
+  if (!topic) return null;
+  const server = (process.env.NTFY_SERVER?.trim() || "https://ntfy.sh").replace(/\/$/, "");
+  return new NtfyProvider(server, topic);
+}
+
+export function getTelegramProvider(): MessageProvider | null {
+  const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
+  const chatId = process.env.TELEGRAM_CHAT_ID?.trim();
+  if (!token || !chatId) return null;
+  return new TelegramProvider(token, chatId);
+}
+
+export function ntfyTopic(): string | null {
+  return process.env.NTFY_TOPIC?.trim() || null;
+}
+
+export function ntfySubscribeUrl(): string | null {
+  const topic = ntfyTopic();
+  if (!topic) return null;
+  const server = (process.env.NTFY_SERVER?.trim() || "https://ntfy.sh").replace(/\/$/, "");
+  return `${server}/${encodeURIComponent(topic)}`;
 }

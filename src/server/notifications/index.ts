@@ -1,9 +1,18 @@
 import { getStore } from "../db";
 import type { NotificationRow } from "../db/types";
 import { newId } from "../ids";
-import { getEmailProvider, getSmsProvider, getWhatsappProvider } from "./providers";
+import { getSettings } from "../repo/settings";
+import {
+  getEmailProvider,
+  getNtfyProvider,
+  getSmsProvider,
+  getTelegramProvider,
+  getWhatsappProvider,
+  ntfySubscribeUrl,
+  ntfyTopic,
+} from "./providers";
 import type { MessageProvider } from "./providers";
-import { buildEmail } from "./templates";
+import { buildEmail, buildStaffAlert } from "./templates";
 import type { NotificationContext, NotificationKind } from "./templates";
 
 export type { NotificationContext, NotificationKind } from "./templates";
@@ -30,6 +39,7 @@ export async function dispatch(options: {
   recipient: string;
   subject: string | null;
   body: string;
+  provider?: MessageProvider | null;
 }) {
   const store = getStore();
   const row: NotificationRow = {
@@ -45,14 +55,23 @@ export async function dispatch(options: {
     created_at: new Date().toISOString(),
     sent_at: null,
   };
-  await store.insert("notifications", [row]);
 
-  const provider = providerFor(options.channel);
+  try {
+    await store.insert("notifications", [row]);
+  } catch (error) {
+    console.error("[notify] outbox insert failed", error);
+  }
+
+  const provider = options.provider === undefined ? providerFor(options.channel) : options.provider;
   if (!provider) {
-    await store.update("notifications", row.id, {
-      status: "skipped",
-      error: `Aucun fournisseur ${options.channel} configuré.`,
-    });
+    try {
+      await store.update("notifications", row.id, {
+        status: "skipped",
+        error: `Aucun fournisseur ${options.channel} configuré.`,
+      });
+    } catch {
+      /* outbox row may be missing on older schemas */
+    }
     return { ...row, status: "skipped" as const };
   }
 
@@ -62,11 +81,15 @@ export async function dispatch(options: {
     body: options.body,
   });
 
-  await store.update("notifications", row.id, {
-    status: result.status,
-    error: result.status === "sent" ? null : result.error,
-    sent_at: result.status === "sent" ? new Date().toISOString() : null,
-  });
+  try {
+    await store.update("notifications", row.id, {
+      status: result.status,
+      error: result.status === "sent" ? null : result.error,
+      sent_at: result.status === "sent" ? new Date().toISOString() : null,
+    });
+  } catch {
+    /* ignore */
+  }
   return { ...row, status: result.status };
 }
 
@@ -82,6 +105,55 @@ export async function notifyAppointment(kind: NotificationKind, context: Notific
     subject,
     body,
   });
+}
+
+/** Push + Telegram + salon inbox. Failures never block the booking. */
+export async function notifyStaff(kind: NotificationKind, context: NotificationContext) {
+  if (kind === "reminder") return;
+  const alert = buildStaffAlert(kind, context);
+
+  const ntfy = getNtfyProvider();
+  if (ntfy) {
+    await dispatch({
+      appointmentId: context.appointment.id,
+      channel: "sms",
+      kind,
+      recipient: "équipe (ntfy)",
+      subject: alert.title,
+      body: alert.body,
+      provider: ntfy,
+    });
+  }
+
+  const telegram = getTelegramProvider();
+  if (telegram) {
+    await dispatch({
+      appointmentId: context.appointment.id,
+      channel: "whatsapp",
+      kind,
+      recipient: "équipe (telegram)",
+      subject: alert.title,
+      body: alert.body,
+      provider: telegram,
+    });
+  }
+
+  const email = getEmailProvider();
+  if (email) {
+    const settings = await getSettings();
+    const inbox = settings.salon_email?.trim();
+    if (inbox && inbox !== context.customer.email) {
+      await dispatch({
+        appointmentId: context.appointment.id,
+        channel: "email",
+        kind,
+        recipient: inbox,
+        subject: `[Staff] ${alert.title}`,
+        body: alert.body,
+        provider: email,
+      });
+    }
+  }
 }
 
 export async function listNotifications(limit = 100) {
@@ -105,5 +177,9 @@ export function notificationStatus() {
     email: getEmailProvider()?.name ?? null,
     sms: getSmsProvider()?.name ?? null,
     whatsapp: getWhatsappProvider()?.name ?? null,
+    ntfy: getNtfyProvider()?.name ?? null,
+    telegram: getTelegramProvider()?.name ?? null,
+    ntfyTopic: ntfyTopic(),
+    ntfyUrl: ntfySubscribeUrl(),
   };
 }

@@ -1,4 +1,5 @@
 import { salon } from "@/data/salon";
+import { getSiteUrl } from "@/lib/site";
 import type { AppointmentRow, CustomerRow, ServiceRow, StaffRow } from "../db/types";
 import { formatDateKey, formatDuration, instantToWall, minutesToLabel } from "@/lib/time";
 
@@ -28,6 +29,43 @@ function summary(context: NotificationContext) {
     `Prix : ${service.price_kind === "from" ? "à partir de " : ""}${appointment.price} EGP`,
     `Référence : ${appointment.reference}`,
   ].join("\n");
+}
+
+export function buildStaffAlert(kind: NotificationKind, context: NotificationContext) {
+  const { appointment, customer, service, staff } = context;
+  const whenLabel = when(appointment);
+  const client = `${customer.first_name} ${customer.last_name}`.trim();
+  const calendarUrl = `${getSiteUrl()}/admin/calendrier`;
+  const details = [
+    `Prestation : ${service.name}`,
+    `Avec : ${staff.first_name}`,
+    `Quand : ${whenLabel}`,
+    `Cliente : ${client}`,
+    customer.phone ? `Tél : ${customer.phone}` : null,
+    `Réf : ${appointment.reference}`,
+    "",
+    `Planning : ${calendarUrl}`,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  switch (kind) {
+    case "cancellation":
+      return {
+        title: `RDV annulé — ${whenLabel}`,
+        body: [`${client} a annulé.`, "", details].join("\n"),
+      };
+    case "reschedule":
+      return {
+        title: `RDV déplacé — ${whenLabel}`,
+        body: [`Nouveau créneau pour ${client}.`, "", details].join("\n"),
+      };
+    default:
+      return {
+        title: `Nouveau RDV — ${whenLabel}`,
+        body: details,
+      };
+  }
 }
 
 export function buildEmail(kind: NotificationKind, context: NotificationContext) {

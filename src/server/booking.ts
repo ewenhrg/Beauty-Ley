@@ -2,7 +2,7 @@ import { resolveSlot } from "./availability";
 import { getStore, SupabaseError } from "./db";
 import type { AppointmentRow, AppointmentStatus, CustomerRow } from "./db/types";
 import { newId, newReference, newToken } from "./ids";
-import { notifyAppointment } from "./notifications";
+import { notifyAppointment, notifyStaff } from "./notifications";
 import { planFor } from "./payments";
 import {
   getAppointment,
@@ -159,7 +159,13 @@ export async function sendAppointmentEmail(
 ) {
   const context = await notificationContext(appointment);
   if (!context) return null;
-  return notifyAppointment(kind, context);
+  const customer = await notifyAppointment(kind, context);
+  try {
+    await notifyStaff(kind, context);
+  } catch (error) {
+    console.error("[staff-notify]", error);
+  }
+  return customer;
 }
 
 export async function loadForCustomer(reference: string, token: string) {

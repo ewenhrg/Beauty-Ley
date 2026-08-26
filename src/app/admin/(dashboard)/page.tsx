@@ -44,9 +44,15 @@ export default async function AdminDashboardPage() {
         <StatCard label="Taux d'occupation" value={`${stats.occupancy} %`} hint="Sur la journée" />
         <StatCard label="Clientes enregistrées" value={String(stats.customerCount)} />
         <StatCard
-          label="Emails automatiques"
-          value={channels.email ? "Actifs" : "Non configurés"}
-          hint={channels.email ? `Via ${channels.email}` : "RESEND_API_KEY manquante"}
+          label="Notifs équipe"
+          value={channels.ntfy || channels.telegram ? "Actives" : "À activer"}
+          hint={
+            channels.ntfy
+              ? "Alerte téléphone à chaque RDV"
+              : channels.telegram
+                ? "Via Telegram"
+                : "Voir Paramètres"
+          }
         />
       </div>
 

@@ -256,10 +256,20 @@ export function BookingSettingsForm({
 export function NotificationStatus({
   channels,
 }: {
-  channels: { email: string | null; sms: string | null; whatsapp: string | null };
+  channels: {
+    email: string | null;
+    sms: string | null;
+    whatsapp: string | null;
+    ntfy: string | null;
+    telegram: string | null;
+    ntfyTopic: string | null;
+    ntfyUrl: string | null;
+  };
 }) {
   const rows = [
-    { label: "Email", value: channels.email, hint: "RESEND_API_KEY + NOTIFICATION_FROM" },
+    { label: "Notifs téléphone (équipe)", value: channels.ntfy, hint: "NTFY_TOPIC" },
+    { label: "Telegram (équipe)", value: channels.telegram, hint: "TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID" },
+    { label: "Email clientes", value: channels.email, hint: "RESEND_API_KEY + NOTIFICATION_FROM" },
     { label: "SMS", value: channels.sms, hint: "Aucun fournisseur branché" },
     { label: "WhatsApp", value: channels.whatsapp, hint: "Aucun fournisseur branché" },
   ];
@@ -278,9 +288,55 @@ export function NotificationStatus({
           </span>
         </div>
       ))}
-      <p className="text-xs leading-relaxed text-ink-soft">
-        Les messages sont toujours enregistrés, même sans fournisseur : rien n&apos;est simulé.
-      </p>
+
+      {channels.ntfyTopic && channels.ntfyUrl ? (
+        <div className="mt-4 rounded-2xl border border-terracotta/30 bg-blush/20 px-4 py-4 text-sm leading-relaxed text-ink">
+          <p className="text-[10px] tracking-[0.2em] text-rose uppercase">Alerter l&apos;équipe</p>
+          <p className="mt-2">
+            Sur chaque téléphone du staff : installer{" "}
+            <strong>ntfy</strong>, puis s&apos;abonner au sujet{" "}
+            <code className="break-all text-xs">{channels.ntfyTopic}</code>.
+          </p>
+          <ol className="mt-3 list-decimal space-y-1 pl-5 text-xs text-ink-soft">
+            <li>
+              iPhone :{" "}
+              <a
+                className="underline"
+                href="https://apps.apple.com/app/ntfy/id1625396347"
+                target="_blank"
+                rel="noreferrer"
+              >
+                App Store
+              </a>
+              {" · "}
+              Android :{" "}
+              <a
+                className="underline"
+                href="https://play.google.com/store/apps/details?id=io.heckel.ntfy"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Play Store
+              </a>
+            </li>
+            <li>Ouvrir ntfy → + → s&apos;abonner au sujet ci-dessus</li>
+            <li>Autoriser les notifications du téléphone</li>
+          </ol>
+          <a
+            href={channels.ntfyUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-3 inline-flex text-[10px] tracking-[0.18em] text-terracotta uppercase"
+          >
+            Ouvrir le sujet ntfy
+          </a>
+        </div>
+      ) : (
+        <p className="text-xs leading-relaxed text-ink-soft">
+          Pour les alertes téléphone de l&apos;équipe, renseignez <code>NTFY_TOPIC</code> ou un bot
+          Telegram.
+        </p>
+      )}
     </div>
   );
 }
