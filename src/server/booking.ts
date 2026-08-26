@@ -68,7 +68,13 @@ export async function createBooking(input: BookingInput) {
   const store = getStore();
 
   return store.transaction(async () => {
-    const resolved = await resolveSlot(input.serviceId, input.startAt, input.staffId);
+    const resolved = await resolveSlot(
+      input.serviceId,
+      input.startAt,
+      input.staffId,
+      new Date(),
+      input.source === "admin" ? "internal" : "public",
+    );
     if (!resolved.ok) {
       throw resolved.reason === "service"
         ? new BookingError("SERVICE_UNAVAILABLE", "Cette prestation n'est plus disponible.")

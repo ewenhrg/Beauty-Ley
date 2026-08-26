@@ -1,6 +1,7 @@
 "use client";
 
 import type { ServiceDto, StaffDto } from "@/lib/booking-types";
+import { choosableHairStaff } from "@/lib/staff-choice";
 import { Avatar, Eyebrow, StepLead, StepTitle } from "./ui";
 
 export function StaffStep({
@@ -15,14 +16,14 @@ export function StaffStep({
   selectedId: string | null | undefined;
   onSelect: (staffId: string | null) => void;
 }) {
-  const eligible = staff.filter((member) => service.staffIds.includes(member.id));
+  const eligible = choosableHairStaff(staff, service.staffIds);
 
   return (
     <div>
       <Eyebrow>Étape 2</Eyebrow>
-      <StepTitle>Qui souhaitez-vous pour votre rendez-vous ?</StepTitle>
+      <StepTitle>Qui pour votre rendez-vous cheveux ?</StepTitle>
       <StepLead>
-        Choisissez une professionnelle, ou laissez-nous vous attribuer la première disponible.
+        Choisissez Bebo, David, ou peu importe — le studio attribuera alors le premier disponible.
       </StepLead>
 
       <ul className="mt-8 space-y-3">
@@ -43,8 +44,8 @@ export function StaffStep({
             <span className="min-w-0 flex-1">
               <span className="block text-[15px] font-medium text-ink">Peu importe</span>
               <span className="mt-1 block text-[13px] leading-relaxed text-ink-soft">
-                Nous vous proposons les créneaux de toute l&apos;équipe et attribuons la
-                professionnelle disponible.
+                Nous vous proposons les créneaux de Bebo et de David, puis attribuons celui qui est
+                disponible.
               </span>
             </span>
           </button>
@@ -75,7 +76,9 @@ export function StaffStep({
                   color={member.color}
                 />
                 <span className="min-w-0 flex-1">
-                  <span className="block text-[15px] font-medium text-ink">{member.name}</span>
+                  <span className="block text-[15px] font-medium tracking-[0.04em] text-ink uppercase">
+                    {member.name}
+                  </span>
                   {member.role ? (
                     <span className="mt-0.5 block text-[11px] tracking-[0.14em] text-rose uppercase">
                       {member.role}

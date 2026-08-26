@@ -121,8 +121,8 @@ export function NewAppointmentForm({
         </div>
 
         <p className="mt-3 text-xs text-ink-soft">
-          Le créneau est vérifié côté serveur : un chevauchement avec un rendez-vous existant sera
-          refusé.
+          C&apos;est ici que vous choisissez qui réalise la prestation. Le créneau est vérifié
+          côté serveur : un chevauchement avec un rendez-vous existant sera refusé.
         </p>
         <SubmitButton className="mt-4">Créer le rendez-vous</SubmitButton>
       </ActionForm>

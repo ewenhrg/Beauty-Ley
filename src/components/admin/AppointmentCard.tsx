@@ -132,30 +132,43 @@ export function AppointmentCard({
 
             <ActionForm action={moveAppointmentAction} className="rounded-xl bg-cream/70 p-4">
               <input type="hidden" name="id" value={appointment.id} />
-              <span className={adminLabel}>Déplacer</span>
+              <span className={adminLabel}>Déplacer / attribuer</span>
               <div className="mt-2 grid gap-2 sm:grid-cols-3">
-                <input
-                  type="date"
-                  name="date"
-                  defaultValue={appointment.date}
-                  required
-                  className={adminInput}
-                />
-                <input
-                  type="time"
-                  name="time"
-                  defaultValue={appointment.startLabel}
-                  step={300}
-                  required
-                  className={adminInput}
-                />
-                <select name="staffId" defaultValue={appointment.staffId} className={adminInput}>
-                  {staff.map((member) => (
-                    <option key={member.id} value={member.id}>
-                      {member.name}
-                    </option>
-                  ))}
-                </select>
+                <label>
+                  <span className={adminLabel}>Date</span>
+                  <input
+                    type="date"
+                    name="date"
+                    defaultValue={appointment.date}
+                    required
+                    className={`${adminInput} mt-1.5`}
+                  />
+                </label>
+                <label>
+                  <span className={adminLabel}>Heure</span>
+                  <input
+                    type="time"
+                    name="time"
+                    defaultValue={appointment.startLabel}
+                    step={300}
+                    required
+                    className={`${adminInput} mt-1.5`}
+                  />
+                </label>
+                <label>
+                  <span className={adminLabel}>Professionnelle</span>
+                  <select
+                    name="staffId"
+                    defaultValue={appointment.staffId}
+                    className={`${adminInput} mt-1.5`}
+                  >
+                    {staff.map((member) => (
+                      <option key={member.id} value={member.id}>
+                        {member.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
               </div>
               <SubmitButton className="mt-3">Déplacer</SubmitButton>
             </ActionForm>

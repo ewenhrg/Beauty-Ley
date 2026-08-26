@@ -30,6 +30,12 @@ export async function getService(id: string) {
   return rows[0] ?? null;
 }
 
+export async function getCategory(id: string) {
+  await ensureSeeded();
+  const rows = await getStore().select("service_categories", { eq: { id }, limit: 1 });
+  return rows[0] ?? null;
+}
+
 export async function listStaff(options: { activeOnly?: boolean } = {}) {
   await ensureSeeded();
   return getStore().select("staff", {

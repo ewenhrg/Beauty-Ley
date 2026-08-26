@@ -16,12 +16,14 @@ export type BookingSelection = {
 export function SummaryStep({
   selection,
   policy,
+  chooseStaff,
   onEditService,
   onEditStaff,
   onEditSlot,
 }: {
   selection: BookingSelection;
   policy: { cancellationWindowHours: number; paymentLabel: string };
+  chooseStaff: boolean;
   onEditService: () => void;
   onEditStaff: () => void;
   onEditSlot: () => void;
@@ -30,17 +32,19 @@ export function SummaryStep({
 
   return (
     <div>
-      <Eyebrow>Étape 4</Eyebrow>
+      <Eyebrow>Étape {chooseStaff ? 4 : 3}</Eyebrow>
       <StepTitle>Votre récapitulatif</StepTitle>
       <StepLead>Vérifiez les informations avant de finaliser votre réservation.</StepLead>
 
       <dl className="mt-8 rounded-[1.75rem] border border-line bg-white/55 px-5 py-2 sm:px-7">
         <SummaryRow label="Prestation" value={service.name} onEdit={onEditService} />
-        <SummaryRow
-          label="Professionnelle"
-          value={staff ? staff.name : "Peu importe — la première disponible"}
-          onEdit={onEditStaff}
-        />
+        {chooseStaff ? (
+          <SummaryRow
+            label="Coiffeur"
+            value={staff ? staff.name : "Peu importe — Bebo ou David"}
+            onEdit={onEditStaff}
+          />
+        ) : null}
         <SummaryRow label="Date" value={formatDateKey(date)} onEdit={onEditSlot} />
         <SummaryRow label="Heure" value={time} onEdit={onEditSlot} />
         <SummaryRow label="Durée" value={formatDuration(service.duration)} />

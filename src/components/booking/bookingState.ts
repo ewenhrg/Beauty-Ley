@@ -18,6 +18,8 @@ export type BookingState = {
   /** `null` is a deliberate "peu importe"; `staffPicked` tells the two apart. */
   staffId: string | null;
   staffPicked: boolean;
+  /** Hair services only — nails, lashes, etc. skip this step. */
+  chooseStaff: boolean;
   date: string | null;
   startAt: string | null;
   time: string | null;
@@ -38,6 +40,7 @@ export const initialState: BookingState = {
   serviceId: null,
   staffId: null,
   staffPicked: false,
+  chooseStaff: false,
   date: null,
   startAt: null,
   time: null,
@@ -45,7 +48,7 @@ export const initialState: BookingState = {
 };
 
 export type BookingAction =
-  | { type: "pickService"; serviceId: string }
+  | { type: "pickService"; serviceId: string; chooseStaff: boolean }
   | { type: "pickStaff"; staffId: string | null }
   | { type: "pickDate"; date: string }
   | { type: "pickSlot"; startAt: string; time: string; date: string }
@@ -62,12 +65,13 @@ export function reducer(state: BookingState, action: BookingAction): BookingStat
       return {
         ...state,
         serviceId: action.serviceId,
+        chooseStaff: action.chooseStaff,
         staffId: changed ? null : state.staffId,
-        staffPicked: changed ? false : state.staffPicked,
+        staffPicked: changed ? !action.chooseStaff : action.chooseStaff ? state.staffPicked : true,
         date: changed ? null : state.date,
         startAt: changed ? null : state.startAt,
         time: changed ? null : state.time,
-        step: "staff",
+        step: action.chooseStaff ? "staff" : "slot",
       };
     }
     case "pickStaff": {
@@ -122,6 +126,7 @@ export function loadDraft(): BookingState | null {
     return {
       ...initialState,
       ...parsed,
+      chooseStaff: Boolean(parsed.chooseStaff),
       details: { ...emptyDetails, ...parsed.details, acceptTerms: false },
     };
   } catch {
@@ -137,18 +142,24 @@ export function clearDraft() {
   }
 }
 
-export function stepIndex(step: StepId) {
-  return STEPS.indexOf(step);
+export function stepIndex(step: StepId, chooseStaff = true) {
+  return flowSteps(chooseStaff).indexOf(step);
+}
+
+export function flowSteps(chooseStaff: boolean): StepId[] {
+  return chooseStaff ? [...STEPS] : STEPS.filter((step) => step !== "staff");
 }
 
 /**
  * Steps the current selection can actually render. Restoring a draft clamps to
  * this so a partial draft never lands on an empty screen.
  */
-export function reachableSteps(state: Pick<BookingState, "serviceId" | "staffPicked" | "startAt">) {
+export function reachableSteps(
+  state: Pick<BookingState, "serviceId" | "staffPicked" | "startAt" | "chooseStaff">,
+) {
   const reachable: StepId[] = ["service"];
-  if (state.serviceId) reachable.push("staff");
-  if (state.staffPicked) reachable.push("slot");
+  if (state.serviceId && state.chooseStaff) reachable.push("staff");
+  if (state.serviceId && (!state.chooseStaff || state.staffPicked)) reachable.push("slot");
   if (state.startAt) reachable.push("summary", "details");
   return reachable;
 }

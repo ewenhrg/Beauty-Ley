@@ -1,5 +1,6 @@
 import { listOverlapping } from "./repo/appointments";
-import { listStaffForService, getService, listStaff, listStaffServices } from "./repo/catalog";
+import { listStaffForService, getService, getCategory, listStaff, listStaffServices } from "./repo/catalog";
+import { publicStaffPool, type BookingAudience } from "./public-staff";
 import {
   listBusinessHours,
   listClosures,
@@ -75,22 +76,30 @@ type Context = {
   timeOffByStaff: Map<string, Interval[]>;
 };
 
-async function loadContext(serviceId: string, staffId?: string): Promise<Context | null> {
+async function loadContext(
+  serviceId: string,
+  staffId?: string,
+  audience: BookingAudience = "internal",
+): Promise<Context | null> {
   const service = await getService(serviceId);
   if (!service || !service.active) return null;
 
-  const [settings, staffForService, hours, closures, schedules, timeOff] = await Promise.all([
+  const [settings, staffForService, hours, closures, schedules, timeOff, category] = await Promise.all([
     getSettings(),
     listStaffForService(serviceId, { activeOnly: true }),
     listBusinessHours(),
     listClosures(),
     listStaffSchedules(),
     listTimeOff({ from: new Date().toISOString() }),
+    getCategory(service.category_id),
   ]);
 
-  const staff = staffId
-    ? staffForService.filter((member) => member.id === staffId)
-    : staffForService;
+  const staff =
+    audience === "public"
+      ? publicStaffPool(category, staffForService, staffId).staff
+      : staffId
+        ? staffForService.filter((member) => member.id === staffId)
+        : staffForService;
   if (!staff.length) return null;
 
   const businessByWeekday = new Map<number, Interval | null>();
@@ -204,7 +213,7 @@ export async function getSlots(
   staffId?: string,
   now: Date = new Date(),
 ): Promise<SlotsResult> {
-  const context = await loadContext(serviceId, staffId);
+  const context = await loadContext(serviceId, staffId, staffId ? "internal" : "public");
   if (!context) return { date: dateKey, slots: [], reason: "off", label: null };
   return computeSlots(context, dateKey, now);
 }
@@ -287,7 +296,7 @@ export async function getAvailabilityRange(
   staffId?: string,
   now: Date = new Date(),
 ): Promise<{ days: DayAvailability[]; maxAdvanceDays: number }> {
-  const context = await loadContext(serviceId, staffId);
+  const context = await loadContext(serviceId, staffId, staffId ? "internal" : "public");
   if (!context) {
     return {
       days: Array.from({ length: days }, (_, index) => ({
@@ -323,7 +332,7 @@ export async function findNextOpenDay(
   now: Date = new Date(),
   horizon = 60,
 ) {
-  const context = await loadContext(serviceId, staffId);
+  const context = await loadContext(serviceId, staffId, staffId ? "internal" : "public");
   if (!context) return null;
   const start = todayKey(now);
   const limit = Math.min(horizon, context.settings.max_advance_days);
@@ -344,11 +353,12 @@ export async function resolveSlot(
   startAtIso: string,
   preferredStaffId?: string,
   now: Date = new Date(),
+  audience: BookingAudience = "internal",
 ): Promise<
   | { ok: true; staffId: string; service: ServiceRow; settings: SettingsRow }
   | { ok: false; reason: "service" | "slot" }
 > {
-  const context = await loadContext(serviceId, preferredStaffId);
+  const context = await loadContext(serviceId, preferredStaffId, audience);
   if (!context) return { ok: false, reason: "service" };
 
   const startMs = Date.parse(startAtIso);
@@ -359,9 +369,14 @@ export async function resolveSlot(
   const slot = slots.find((candidate) => Date.parse(candidate.startAt) === startMs);
   if (!slot || !slot.staffIds.length) return { ok: false, reason: "slot" };
 
-  if (preferredStaffId) {
-    if (!slot.staffIds.includes(preferredStaffId)) return { ok: false, reason: "slot" };
-    return { ok: true, staffId: preferredStaffId, service: context.service, settings: context.settings };
+  const preferred =
+    preferredStaffId && context.staff.some((member) => member.id === preferredStaffId)
+      ? preferredStaffId
+      : undefined;
+
+  if (preferred) {
+    if (!slot.staffIds.includes(preferred)) return { ok: false, reason: "slot" };
+    return { ok: true, staffId: preferred, service: context.service, settings: context.settings };
   }
 
   // "Peu importe": spread the load rather than always picking the first member.

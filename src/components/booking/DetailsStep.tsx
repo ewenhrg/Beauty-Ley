@@ -8,15 +8,17 @@ export function DetailsStep({
   errors,
   terms,
   onChange,
+  stepNumber = 5,
 }: {
   details: CustomerDetails;
   errors: Partial<Record<keyof CustomerDetails | "acceptTerms", string>>;
   terms: string;
   onChange: (patch: Partial<CustomerDetails>) => void;
+  stepNumber?: number;
 }) {
   return (
     <div>
-      <Eyebrow>Étape 5</Eyebrow>
+      <Eyebrow>Étape {stepNumber}</Eyebrow>
       <StepTitle>Vos informations</StepTitle>
       <StepLead>
         Elles nous servent uniquement à confirmer et à gérer votre rendez-vous.

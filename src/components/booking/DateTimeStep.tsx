@@ -20,6 +20,8 @@ export function DateTimeStep({
   date,
   startAt,
   revision,
+  stepNumber = 3,
+  revealStaff = true,
   onSelectDate,
   onSelectSlot,
 }: {
@@ -29,6 +31,9 @@ export function DateTimeStep({
   date: string | null;
   startAt: string | null;
   revision: number;
+  stepNumber?: number;
+  /** When false, slot tooltips do not name who is free. */
+  revealStaff?: boolean;
   onSelectDate: (date: string) => void;
   onSelectSlot: (slot: SlotDto, date: string) => void;
 }) {
@@ -67,7 +72,7 @@ export function DateTimeStep({
 
   return (
     <div>
-      <Eyebrow>Étape 3</Eyebrow>
+      <Eyebrow>Étape {stepNumber}</Eyebrow>
       <StepTitle>Choisissez votre créneau</StepTitle>
       <StepLead>
         Seuls les créneaux réellement disponibles sont affichés, en fonction du planning de
@@ -157,9 +162,9 @@ export function DateTimeStep({
                           onClick={() => onSelectSlot(slot, activeDate)}
                           data-selected={selected}
                           title={
-                            staffId
-                              ? undefined
-                              : `Avec ${slot.staffIds.map(staffName).filter(Boolean).join(", ")}`
+                            revealStaff && !staffId
+                              ? `Avec ${slot.staffIds.map(staffName).filter(Boolean).join(", ")}`
+                              : undefined
                           }
                           className={`pick-card pop-in rounded-xl border py-3 text-sm tracking-wide transition-colors ${
                             selected

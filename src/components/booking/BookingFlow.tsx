@@ -13,8 +13,8 @@ import { ServiceStep } from "./ServiceStep";
 import { StaffStep } from "./StaffStep";
 import { SummaryStep } from "./SummaryStep";
 import {
-  STEPS,
   clearDraft,
+  flowSteps,
   initialState,
   loadDraft,
   reachableSteps,
@@ -24,10 +24,11 @@ import {
 } from "./bookingState";
 import type { CustomerDetails, StepId } from "./bookingState";
 import { ActionButton, Notice, Skeleton } from "./ui";
+import { choosableHairStaff, serviceAllowsStaffChoice } from "@/lib/staff-choice";
 
 const STEP_LABELS: Record<StepId, string> = {
   service: "Prestation",
-  staff: "Équipe",
+  staff: "Coiffeur",
   slot: "Créneau",
   summary: "Récapitulatif",
   details: "Coordonnées",
@@ -76,11 +77,36 @@ export function BookingFlow() {
       Boolean(id && catalog.services.some((service) => service.id === id));
 
     if (requested && known(requested)) {
-      dispatch({ type: "pickService", serviceId: requested });
+      const service = catalog.services.find((item) => item.id === requested);
+      dispatch({
+        type: "pickService",
+        serviceId: requested,
+        chooseStaff: service
+          ? serviceAllowsStaffChoice(service.categoryId, catalog.categories)
+          : false,
+      });
       return;
     }
     if (draft && known(draft.serviceId)) {
-      dispatch({ type: "restore", state: draft });
+      const service = catalog.services.find((item) => item.id === draft.serviceId);
+      const chooseStaff = service
+        ? serviceAllowsStaffChoice(service.categoryId, catalog.categories)
+        : false;
+      const allowedHair = service
+        ? new Set(choosableHairStaff(catalog.staff, service.staffIds).map((member) => member.id))
+        : new Set<string>();
+      const staffId =
+        chooseStaff && draft.staffId && allowedHair.has(draft.staffId) ? draft.staffId : null;
+      dispatch({
+        type: "restore",
+        state: {
+          ...draft,
+          chooseStaff,
+          staffId,
+          staffPicked: chooseStaff ? draft.staffPicked : true,
+          step: draft.step === "staff" && !chooseStaff ? "slot" : draft.step,
+        },
+      });
     }
   }, [catalog, params]);
 
@@ -103,11 +129,12 @@ export function BookingFlow() {
 
   const goto = useCallback(
     (step: StepId) => {
-      setDirection(stepIndex(step) >= stepIndex(state.step) ? "forward" : "back");
+      const chooseStaff = state.chooseStaff;
+      setDirection(stepIndex(step, chooseStaff) >= stepIndex(state.step, chooseStaff) ? "forward" : "back");
       dispatch({ type: "goto", step });
       scrollToTop();
     },
-    [scrollToTop, state.step],
+    [scrollToTop, state.chooseStaff, state.step],
   );
 
   const validateDetails = useCallback((): FieldErrors => {
@@ -199,12 +226,20 @@ export function BookingFlow() {
           ? Boolean(state.startAt)
           : true;
 
-  const previousStep: StepId | null =
-    stepIndex(state.step) > 0 ? STEPS[stepIndex(state.step) - 1] : null;
+  const previousStep: StepId | null = (() => {
+    const steps = flowSteps(state.chooseStaff);
+    const index = steps.indexOf(state.step);
+    return index > 0 ? steps[index - 1] : null;
+  })();
 
   return (
     <div ref={topRef} className="scroll-mt-28">
-      <Progress current={state.step} onJump={goto} reachable={reachableSteps(state)} />
+      <Progress
+        current={state.step}
+        chooseStaff={state.chooseStaff}
+        onJump={goto}
+        reachable={reachableSteps(state)}
+      />
 
       {submitError ? (
         <div className="mt-6">
@@ -222,7 +257,11 @@ export function BookingFlow() {
             selectedId={state.serviceId}
             onSelect={(picked) => {
               setDirection("forward");
-              dispatch({ type: "pickService", serviceId: picked.id });
+              dispatch({
+                type: "pickService",
+                serviceId: picked.id,
+                chooseStaff: serviceAllowsStaffChoice(picked.categoryId, catalog.categories),
+              });
               scrollToTop();
             }}
           />
@@ -249,6 +288,8 @@ export function BookingFlow() {
             date={state.date}
             startAt={state.startAt}
             revision={revision}
+            stepNumber={state.chooseStaff ? 3 : 2}
+            revealStaff={state.chooseStaff}
             onSelectDate={(date) => dispatch({ type: "pickDate", date })}
             onSelectSlot={(slot, day) => {
               setDirection("forward");
@@ -269,6 +310,7 @@ export function BookingFlow() {
               startAt: state.startAt,
             }}
             policy={catalog.policy}
+            chooseStaff={state.chooseStaff}
             onEditService={() => goto("service")}
             onEditStaff={() => goto("staff")}
             onEditSlot={() => goto("slot")}
@@ -279,7 +321,7 @@ export function BookingFlow() {
           <>
             <MiniRecap
               service={service.name}
-              staff={staffMember?.name ?? "Peu importe"}
+              staff={state.chooseStaff ? (staffMember?.name ?? "Peu importe") : null}
               when={`${formatDateKey(state.date ?? "")} · ${state.time}`}
               price={priceLabel(service.price, service.priceKind)}
               duration={formatDuration(service.duration)}
@@ -290,6 +332,7 @@ export function BookingFlow() {
                 details={state.details}
                 errors={fieldErrors}
                 terms={catalog.policy.terms}
+                stepNumber={state.chooseStaff ? 5 : 4}
                 onChange={(patch) => {
                   dispatch({ type: "setDetails", patch });
                   setFieldErrors({});
@@ -324,7 +367,11 @@ export function BookingFlow() {
             </span>
           ) : (
             <ActionButton
-              onClick={() => goto(STEPS[stepIndex(state.step) + 1])}
+              onClick={() => {
+                const steps = flowSteps(state.chooseStaff);
+                const next = steps[steps.indexOf(state.step) + 1];
+                if (next) goto(next);
+              }}
               disabled={!canContinue}
               className="min-h-12 flex-1 sm:flex-none"
             >
@@ -339,18 +386,21 @@ export function BookingFlow() {
 
 function Progress({
   current,
+  chooseStaff,
   reachable,
   onJump,
 }: {
   current: StepId;
+  chooseStaff: boolean;
   reachable: StepId[];
   onJump: (step: StepId) => void;
 }) {
-  const currentIndex = stepIndex(current);
+  const steps = flowSteps(chooseStaff);
+  const currentIndex = steps.indexOf(current);
   return (
     <nav aria-label="Étapes de réservation">
       <ol className="no-scrollbar -mx-5 flex items-center gap-1 overflow-x-auto px-5 sm:mx-0 sm:gap-2 sm:px-0">
-        {STEPS.map((step, index) => {
+        {steps.map((step, index) => {
           const done = index < currentIndex;
           const active = step === current;
           const enabled = reachable.includes(step);
@@ -382,7 +432,7 @@ function Progress({
                 </span>
                 <span className="hidden sm:inline">{STEP_LABELS[step]}</span>
               </button>
-              {index < STEPS.length - 1 ? (
+              {index < steps.length - 1 ? (
                 <span
                   aria-hidden="true"
                   className={`h-px w-4 sm:w-6 ${done ? "bg-terracotta/50" : "bg-line"}`}
@@ -408,7 +458,7 @@ function MiniRecap({
   onEdit,
 }: {
   service: string;
-  staff: string;
+  staff: string | null;
   when: string;
   price: string;
   duration: string;
@@ -419,7 +469,8 @@ function MiniRecap({
       <div className="min-w-0">
         <p className="text-[15px] font-medium text-ink">{service}</p>
         <p className="mt-0.5 text-[13px] text-ink-soft">
-          {staff} · {when} · {duration}
+          {staff ? `${staff} · ` : null}
+          {when} · {duration}
         </p>
       </div>
       <div className="flex items-center gap-4">

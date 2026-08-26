@@ -19,6 +19,7 @@ import { planFor } from "./payments";
 import { listCategories, listServices, listStaff, listStaffServices, staffDisplayName } from "./repo/catalog";
 import { getSettings } from "./repo/settings";
 import { formatDateKey, instantToWall, minutesToLabel } from "@/lib/time";
+import { choosableHairStaff, isHairCategorySlug } from "@/lib/staff-choice";
 
 export function toCategoryDto(row: ServiceCategoryRow): CategoryDto {
   return {
@@ -77,13 +78,21 @@ export async function buildCatalog(): Promise<CatalogDto> {
   }
 
   const order = new Map(staff.map((member, index) => [member.id, index]));
+  const staffDtos = staff.map(toStaffDto);
+  const hairIdsByCategory = new Map(
+    categories.filter((row) => isHairCategorySlug(row.slug)).map((row) => [row.id, true] as const),
+  );
   const visibleCategories = new Set<string>();
   const serviceDtos: ServiceDto[] = [];
 
   for (const service of services) {
-    const ids = (staffByService.get(service.id) ?? []).sort(
+    let ids = (staffByService.get(service.id) ?? []).sort(
       (a, b) => (order.get(a) ?? 0) - (order.get(b) ?? 0),
     );
+    if (hairIdsByCategory.has(service.category_id)) {
+      const choosable = choosableHairStaff(staffDtos, ids).map((member) => member.id);
+      if (choosable.length) ids = choosable;
+    }
     // A service with nobody assigned can never be booked, so it stays hidden.
     if (!ids.length) continue;
     serviceDtos.push(toServiceDto(service, ids));
@@ -95,7 +104,7 @@ export async function buildCatalog(): Promise<CatalogDto> {
   return {
     categories: categories.filter((row) => visibleCategories.has(row.id)).map(toCategoryDto),
     services: serviceDtos,
-    staff: staff.map(toStaffDto),
+    staff: staffDtos,
     policy: {
       cancellationWindowHours: settings.cancellation_window_hours,
       maxAdvanceDays: settings.max_advance_days,
