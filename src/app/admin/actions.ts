@@ -62,10 +62,7 @@ import {
   ValidationError,
 } from "@/server/validation";
 import { labelToMinutes, wallToInstant } from "@/lib/time";
-
-export type ActionState = { ok: boolean; message: string | null };
-
-export const idleState: ActionState = { ok: false, message: null };
+import type { ActionState } from "./action-state";
 
 async function guard() {
   if (!(await isAdmin())) redirect("/admin/login");

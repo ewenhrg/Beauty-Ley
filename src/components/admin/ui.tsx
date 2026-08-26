@@ -3,8 +3,8 @@
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import type { ReactNode } from "react";
-import type { ActionState } from "@/app/admin/actions";
-import { idleState } from "@/app/admin/actions";
+import type { ActionState } from "@/app/admin/action-state";
+import { idleState } from "@/app/admin/action-state";
 import type { AppointmentStatus } from "@/server/db/types";
 import { Spinner } from "@/components/booking/ui";
 
