@@ -51,7 +51,7 @@ export function Header() {
           <Logo inverted={light} compact />
         </Link>
 
-        <nav className="hidden items-center gap-8 lg:flex" aria-label="Navigation principale">
+        <nav className="hidden items-center gap-5 xl:gap-8 lg:flex" aria-label="Navigation principale">
           {nav.map((item) => {
             const active = pathname === item.href;
             return (

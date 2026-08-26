@@ -28,10 +28,11 @@ export const nav = [
   { href: "/prestations", label: "Prestations" },
   { href: "/tarifs", label: "Tarifs" },
   { href: "/galerie", label: "Galerie" },
+  { href: "/reservation", label: "Réserver" },
   { href: "/contact", label: "Contact" },
 ] as const;
 
 export const booking = {
   label: "Prendre rendez-vous",
-  note: "La réservation se fait via les réseaux sociaux officiels de Beauty Ley.",
+  note: "Réservez en ligne ou contactez Beauty Ley sur ses réseaux officiels.",
 } as const;

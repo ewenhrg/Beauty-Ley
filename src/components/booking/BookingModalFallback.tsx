@@ -44,7 +44,9 @@ export function BookingModalFallback({ reason }: { reason: string }) {
         ))}
       </ul>
 
-      <p className="mt-6 text-xs text-ink-soft/70">{reason}</p>
+      {process.env.NODE_ENV !== "production" ? (
+        <p className="mt-6 text-xs text-ink-soft/70">{reason}</p>
+      ) : null}
     </div>
   );
 }

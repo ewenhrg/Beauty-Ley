@@ -1,13 +1,11 @@
-"use client";
-
 import Link from "next/link";
-import type { ButtonHTMLAttributes } from "react";
-import { useBooking } from "./BookingProvider";
 
-type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
+type Props = {
   variant?: "solid" | "ghost" | "light";
   /** Preselects a prestation in the booking flow. */
   serviceId?: string;
+  className?: string;
+  children?: React.ReactNode;
 };
 
 const VARIANTS = {
@@ -19,40 +17,19 @@ const VARIANTS = {
 const BASE =
   "inline-flex items-center justify-center px-6 py-3 text-[11px] font-medium tracking-[0.22em] uppercase transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.02]";
 
-/**
- * Opens the booking journey. Falls back to the social-network modal when online
- * booking is not configured, so the button always does something useful.
- */
+/** Public CTA that always opens the reservation page. */
 export function BookingButton({
   variant = "solid",
   className = "",
   serviceId,
   children,
-  ...props
 }: Props) {
-  const { openBooking, online } = useBooking();
   const styles = VARIANTS[variant];
-  const label = children ?? "Prendre rendez-vous";
-
-  if (online) {
-    return (
-      <Link
-        href={serviceId ? `/reservation?service=${encodeURIComponent(serviceId)}` : "/reservation"}
-        className={`${BASE} ${styles} ${className}`}
-      >
-        {label}
-      </Link>
-    );
-  }
+  const href = serviceId ? `/reservation?service=${encodeURIComponent(serviceId)}` : "/reservation";
 
   return (
-    <button
-      type="button"
-      onClick={openBooking}
-      className={`${BASE} ${styles} ${className}`}
-      {...props}
-    >
-      {label}
-    </button>
+    <Link href={href} className={`${BASE} ${styles} ${className}`}>
+      {children ?? "Prendre rendez-vous"}
+    </Link>
   );
 }
