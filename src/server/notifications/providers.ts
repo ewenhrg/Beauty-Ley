@@ -92,15 +92,17 @@ class NtfyProvider implements MessageProvider {
 
   async send(message: OutgoingMessage): Promise<DeliveryResult> {
     try {
-      const response = await fetch(`${this.server}/${encodeURIComponent(this.topic)}`, {
+      const response = await fetch(this.server, {
         method: "POST",
-        headers: {
-          Title: message.subject.slice(0, 120),
-          Tags: "nail_care,calendar",
-          Click: staffCalendarUrl(),
-          Priority: "high",
-        },
-        body: message.body,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          topic: this.topic,
+          title: message.subject.slice(0, 120),
+          message: message.body,
+          priority: 4,
+          tags: ["nail_care", "calendar"],
+          click: staffCalendarUrl(),
+        }),
       });
       if (!response.ok) {
         return { status: "failed", error: `ntfy ${response.status}: ${await response.text()}` };

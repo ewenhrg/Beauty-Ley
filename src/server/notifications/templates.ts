@@ -52,17 +52,17 @@ export function buildStaffAlert(kind: NotificationKind, context: NotificationCon
   switch (kind) {
     case "cancellation":
       return {
-        title: `RDV annulé — ${whenLabel}`,
+        title: `RDV annulé - ${whenLabel}`,
         body: [`${client} a annulé.`, "", details].join("\n"),
       };
     case "reschedule":
       return {
-        title: `RDV déplacé — ${whenLabel}`,
+        title: `RDV déplacé - ${whenLabel}`,
         body: [`Nouveau créneau pour ${client}.`, "", details].join("\n"),
       };
     default:
       return {
-        title: `Nouveau RDV — ${whenLabel}`,
+        title: `Nouveau RDV - ${whenLabel}`,
         body: details,
       };
   }
