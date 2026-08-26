@@ -42,12 +42,12 @@ export function PriceList({ groups }: { groups: ServiceGroup[] }) {
           ) : (
             <ul>
               {group.items.map((item) => (
-                <li
-                  key={item.name}
-                  className="flex items-baseline justify-between gap-4 border-b border-line py-3.5 transition-colors hover:bg-blush/15"
-                >
-                  <span className="text-sm tracking-wide text-ink">{item.name}</span>
-                  <span className="price-chip shrink-0 px-2.5 py-1 text-[11px] font-medium tracking-[0.08em] text-cream">
+                    <li
+                      key={item.name}
+                      className="flex flex-col gap-1 border-b border-line py-3.5 transition-colors hover:bg-blush/15 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4"
+                    >
+                      <span className="text-sm tracking-wide text-ink">{item.name}</span>
+                      <span className="price-chip w-fit shrink-0 px-2.5 py-1 text-[11px] font-medium tracking-[0.08em] text-cream">
                     {item.price.kind === "from" ? (
                       <span className="block text-center">
                         <span className="block text-[8px] tracking-[0.14em] uppercase opacity-80">

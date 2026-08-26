@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Outfit } from "next/font/google";
 import { salon } from "@/data/salon";
 import { getSiteUrl } from "@/lib/site";
@@ -18,6 +18,13 @@ const cormorant = Cormorant_Garamond({
 });
 
 const siteUrl = getSiteUrl();
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#f8efe8",
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

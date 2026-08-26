@@ -24,6 +24,7 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: clip;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -51,6 +52,36 @@ body {
   color: var(--color-ink);
   font-family: var(--font-sans);
   text-rendering: optimizeLegibility;
+  overflow-x: clip;
+  -webkit-tap-highlight-color: transparent;
+}
+
+input,
+select,
+textarea {
+  font-size: 1rem;
+}
+
+@media (min-width: 640px) {
+  input,
+  select,
+  textarea {
+    font-size: inherit;
+  }
+}
+
+@media (hover: none) {
+  .hover-lift:hover,
+  .pick-card:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  li:hover > .price-chip,
+  tr:hover .price-chip {
+    transform: none;
+    box-shadow: none;
+  }
 }
 
 ::selection {

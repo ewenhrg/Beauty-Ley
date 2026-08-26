@@ -161,7 +161,7 @@ export default async function AdminAppointmentsPage({ searchParams }: Props) {
 }
 
 const FILTER_INPUT =
-  "w-full rounded-xl border border-line bg-white/80 px-3 py-2.5 text-sm text-ink outline-none transition-colors focus:border-terracotta";
+  "w-full min-h-11 rounded-xl border border-line bg-white/80 px-3 py-2.5 text-base text-ink outline-none transition-colors focus:border-terracotta sm:text-sm";
 
 function Filter({ label, children }: { label: string; children: React.ReactNode }) {
   return (

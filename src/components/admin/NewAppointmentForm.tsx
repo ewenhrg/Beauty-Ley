@@ -29,7 +29,7 @@ export function NewAppointmentForm({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-2 rounded-xl bg-terracotta px-4 py-2.5 text-[10px] font-medium tracking-[0.18em] text-cream uppercase transition-colors hover:bg-rose"
+        className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-terracotta px-4 py-2.5 text-[10px] font-medium tracking-[0.18em] text-cream uppercase transition-colors hover:bg-rose sm:w-auto"
       >
         Nouveau rendez-vous
       </button>

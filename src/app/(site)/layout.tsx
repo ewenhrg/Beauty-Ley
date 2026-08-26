@@ -37,7 +37,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
       </a>
       <BookingProvider online={bookingOnline}>
         <Header />
-        <main id="contenu" className="pb-20 lg:pb-0">
+        <main id="contenu" className="pb-[calc(5.75rem+env(safe-area-inset-bottom))] lg:pb-0">
           {children}
         </main>
         <Footer />

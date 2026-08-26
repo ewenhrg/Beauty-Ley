@@ -300,13 +300,13 @@ export function BookingFlow() {
         ) : null}
       </div>
 
-      <div className="sticky bottom-0 z-20 -mx-5 mt-10 border-t border-line bg-cream/95 px-5 py-4 backdrop-blur-md sm:mx-0 sm:rounded-b-[2rem] sm:px-8">
-        <div className="flex items-center justify-between gap-4">
+      <div className="sticky bottom-0 z-20 -mx-5 mt-10 border-t border-line bg-cream/95 px-5 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-md sm:mx-0 sm:rounded-b-[2rem] sm:px-8 sm:py-4">
+        <div className="flex items-center justify-between gap-3">
           {previousStep ? (
             <button
               type="button"
               onClick={() => goto(previousStep)}
-              className="nav-link text-[11px] tracking-[0.2em] text-ink-soft uppercase transition-colors hover:text-ink"
+              className="nav-link min-h-11 shrink-0 px-1 text-[11px] tracking-[0.2em] text-ink-soft uppercase transition-colors hover:text-ink"
             >
               Retour
             </button>
@@ -315,8 +315,8 @@ export function BookingFlow() {
           )}
 
           {state.step === "details" ? (
-            <ActionButton onClick={submit} loading={submitting}>
-              {submitting ? "Confirmation…" : "Confirmer le rendez-vous"}
+            <ActionButton onClick={submit} loading={submitting} className="min-h-12 flex-1 sm:flex-none">
+              {submitting ? "Confirmation…" : "Confirmer"}
             </ActionButton>
           ) : state.step === "service" ? (
             <span className="text-[11px] tracking-[0.18em] text-ink-soft uppercase">
@@ -326,6 +326,7 @@ export function BookingFlow() {
             <ActionButton
               onClick={() => goto(STEPS[stepIndex(state.step) + 1])}
               disabled={!canContinue}
+              className="min-h-12 flex-1 sm:flex-none"
             >
               Continuer
             </ActionButton>

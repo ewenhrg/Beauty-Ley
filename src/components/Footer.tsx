@@ -8,7 +8,7 @@ export function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="relative overflow-hidden bg-ink text-cream pb-20 lg:pb-0">
+    <footer className="relative overflow-hidden bg-ink text-cream pb-[calc(5.5rem+env(safe-area-inset-bottom))] lg:pb-0">
       <div className="animate-drift pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full bg-terracotta/25 blur-3xl" />
       <div className="animate-drift-slow pointer-events-none absolute -bottom-16 left-10 h-48 w-48 rounded-full bg-rose/20 blur-3xl" />
       <div className="animate-drift pointer-events-none absolute top-1/3 left-1/2 h-40 w-40 rounded-full bg-gold/15 blur-3xl" />

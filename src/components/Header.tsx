@@ -38,7 +38,7 @@ export function Header() {
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-50 isolate transition-colors duration-300 ${
+      className={`fixed inset-x-0 top-0 z-50 isolate pt-[env(safe-area-inset-top)] transition-colors duration-300 ${
         light ? "bg-transparent text-cream" : "bg-cream/92 text-ink shadow-soft backdrop-blur-md"
       }`}
     >
@@ -102,14 +102,14 @@ export function Header() {
       <div
         id="mobile-menu"
         hidden={!open}
-        className="border-t border-line bg-cream lg:hidden"
+        className="max-h-[min(100svh,100dvh)] overflow-y-auto border-t border-line bg-cream pb-[max(6rem,env(safe-area-inset-bottom))] lg:hidden"
       >
         <nav className="flex flex-col px-6 py-8" aria-label="Navigation mobile">
           {nav.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="border-b border-line py-4 text-sm tracking-[0.2em] text-ink uppercase"
+              className="flex min-h-12 items-center border-b border-line py-4 text-sm tracking-[0.2em] text-ink uppercase"
             >
               {item.label}
             </Link>

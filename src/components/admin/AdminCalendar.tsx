@@ -42,20 +42,26 @@ export function AdminCalendar({
 
   return (
     <div>
-      {view === "mois" ? (
-        <MonthGrid date={date} days={days} blocks={blocks} onSelect={setSelected} />
-      ) : (
-        <TimeGrid
-          view={view}
-          days={days}
-          blocks={blocks}
-          staff={staff}
-          staffFilter={staffFilter}
-          gridStart={gridStart}
-          gridEnd={gridEnd}
-          onSelect={setSelected}
-        />
-      )}
+      <div className="lg:hidden">
+        <AgendaList blocks={blocks} staff={staffOptions} groupByDay={view !== "jour"} />
+      </div>
+
+      <div className="hidden lg:block">
+        {view === "mois" ? (
+          <MonthGrid date={date} days={days} blocks={blocks} onSelect={setSelected} />
+        ) : (
+          <TimeGrid
+            view={view}
+            days={days}
+            blocks={blocks}
+            staff={staff}
+            staffFilter={staffFilter}
+            gridStart={gridStart}
+            gridEnd={gridEnd}
+            onSelect={setSelected}
+          />
+        )}
+      </div>
 
       {selectedBlock ? (
         <div className="step-in mt-6">
@@ -289,15 +295,46 @@ function MonthGrid({
 export function AgendaList({
   blocks,
   staff,
+  groupByDay = false,
 }: {
   blocks: CalendarBlock[];
   staff: Array<{ id: string; name: string }>;
+  groupByDay?: boolean;
 }) {
   if (!blocks.length) return <EmptyState>Aucun rendez-vous sur cette période.</EmptyState>;
+
+  const sorted = [...blocks].sort((a, b) => a.startMinutes - b.startMinutes || a.date.localeCompare(b.date));
+
+  if (!groupByDay) {
+    return (
+      <div className="space-y-3">
+        {sorted.map((block) => (
+          <AppointmentCard key={block.id} appointment={block} staff={staff} compact />
+        ))}
+      </div>
+    );
+  }
+
+  const byDay = new Map<string, CalendarBlock[]>();
+  for (const block of sorted) {
+    const list = byDay.get(block.date) ?? [];
+    list.push(block);
+    byDay.set(block.date, list);
+  }
+
   return (
-    <div className="space-y-3">
-      {blocks.map((block) => (
-        <AppointmentCard key={block.id} appointment={block} staff={staff} />
+    <div className="space-y-6">
+      {[...byDay.entries()].map(([day, list]) => (
+        <section key={day}>
+          <h2 className="text-[11px] tracking-[0.2em] text-rose uppercase">
+            {formatDateKey(day, { withYear: true })}
+          </h2>
+          <div className="mt-3 space-y-3">
+            {list.map((block) => (
+              <AppointmentCard key={block.id} appointment={block} staff={staff} compact />
+            ))}
+          </div>
+        </section>
       ))}
     </div>
   );

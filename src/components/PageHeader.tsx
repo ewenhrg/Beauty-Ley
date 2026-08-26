@@ -11,7 +11,7 @@ export function PageHeader({
   children?: ReactNode;
 }) {
   return (
-    <header className="relative overflow-hidden pt-32 pb-20 sm:pt-36 sm:pb-24">
+    <header className="relative overflow-hidden pt-[calc(7.25rem+env(safe-area-inset-top))] pb-14 sm:pt-36 sm:pb-24">
       <img
         src="/images/salon/nail-bar.jpg"
         alt=""
@@ -26,7 +26,7 @@ export function PageHeader({
         <Reveal className="text-gradient-light text-[11px] font-semibold tracking-[0.28em] uppercase">
           {eyebrow}
         </Reveal>
-        <Reveal as="h1" delay={80} className="font-display mt-4 text-5xl text-cream sm:text-6xl">
+        <Reveal as="h1" delay={80} className="font-display mt-4 text-4xl text-cream sm:text-6xl">
           {title}
         </Reveal>
         {children ? (

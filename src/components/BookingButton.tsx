@@ -15,7 +15,7 @@ const VARIANTS = {
 } as const;
 
 const BASE =
-  "inline-flex items-center justify-center px-6 py-3 text-[11px] font-medium tracking-[0.22em] uppercase transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.02]";
+  "inline-flex min-h-11 items-center justify-center px-6 py-3 text-[11px] font-medium tracking-[0.22em] uppercase transition-all duration-300 [@media(hover:hover)]:hover:-translate-y-0.5 [@media(hover:hover)]:hover:scale-[1.02]";
 
 /** Public CTA that always opens the reservation page. */
 export function BookingButton({

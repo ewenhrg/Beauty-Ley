@@ -96,7 +96,7 @@ export default async function AdminCalendarPage({ searchParams }: Props) {
 
   return (
     <div>
-      <header className="flex flex-wrap items-end justify-between gap-4">
+      <header className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
         <div>
           <p className="text-gradient text-[11px] font-semibold tracking-[0.28em] uppercase">
             Calendrier
@@ -115,48 +115,50 @@ export default async function AdminCalendarPage({ searchParams }: Props) {
         />
       </header>
 
-      <div className="mt-6 flex flex-wrap items-center gap-2">
-        <div className="flex overflow-hidden rounded-xl border border-line">
-          {VIEWS.map((option) => (
+      <div className="mt-6 flex flex-col gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex overflow-hidden rounded-xl border border-line">
+            {VIEWS.map((option) => (
+              <Link
+                key={option}
+                href={link({ view: option })}
+                className={`min-h-11 px-3.5 py-2.5 text-[10px] tracking-[0.16em] uppercase transition-colors ${
+                  option === view ? "bg-terracotta text-cream" : "text-ink-soft hover:text-ink"
+                }`}
+              >
+                {option}
+              </Link>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-1">
             <Link
-              key={option}
-              href={link({ view: option })}
-              className={`px-3.5 py-2 text-[10px] tracking-[0.16em] uppercase transition-colors ${
-                option === view ? "bg-terracotta text-cream" : "text-ink-soft hover:text-ink"
-              }`}
+              href={link({ date: previous })}
+              aria-label="Période précédente"
+              className="flex h-11 w-11 items-center justify-center rounded-xl border border-line text-ink-soft transition-colors hover:border-terracotta hover:text-terracotta"
             >
-              {option}
+              ‹
             </Link>
-          ))}
+            <Link
+              href={link({ date: todayKey() })}
+              className="flex min-h-11 items-center rounded-xl border border-line px-3.5 py-2 text-[10px] tracking-[0.16em] text-ink-soft uppercase transition-colors hover:border-terracotta hover:text-ink"
+            >
+              Aujourd&apos;hui
+            </Link>
+            <Link
+              href={link({ date: next })}
+              aria-label="Période suivante"
+              className="flex h-11 w-11 items-center justify-center rounded-xl border border-line text-ink-soft transition-colors hover:border-terracotta hover:text-terracotta"
+            >
+              ›
+            </Link>
+          </div>
         </div>
 
-        <div className="flex items-center gap-1">
-          <Link
-            href={link({ date: previous })}
-            aria-label="Période précédente"
-            className="rounded-xl border border-line px-3 py-2 text-ink-soft transition-colors hover:border-terracotta hover:text-terracotta"
-          >
-            ‹
-          </Link>
-          <Link
-            href={link({ date: todayKey() })}
-            className="rounded-xl border border-line px-3.5 py-2 text-[10px] tracking-[0.16em] text-ink-soft uppercase transition-colors hover:border-terracotta hover:text-ink"
-          >
-            Aujourd&apos;hui
-          </Link>
-          <Link
-            href={link({ date: next })}
-            aria-label="Période suivante"
-            className="rounded-xl border border-line px-3 py-2 text-ink-soft transition-colors hover:border-terracotta hover:text-terracotta"
-          >
-            ›
-          </Link>
-        </div>
-
-        <div className="flex flex-wrap gap-1.5">
+        <div className="no-scrollbar -mx-4 flex gap-1.5 overflow-x-auto px-4 pb-1">
           <Link
             href={link({ staff: "" })}
-            className={`rounded-full border px-3 py-1.5 text-[10px] tracking-[0.14em] uppercase transition-colors ${
+            className={`flex h-10 shrink-0 items-center rounded-full border px-3.5 text-[10px] tracking-[0.14em] uppercase transition-colors ${
               staffFilter
                 ? "border-line text-ink-soft hover:text-ink"
                 : "border-terracotta bg-terracotta text-cream"
@@ -168,7 +170,7 @@ export default async function AdminCalendarPage({ searchParams }: Props) {
             <Link
               key={member.id}
               href={link({ staff: member.id })}
-              className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[10px] tracking-[0.14em] uppercase transition-colors ${
+              className={`flex h-10 shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-[10px] tracking-[0.14em] uppercase transition-colors ${
                 staffFilter === member.id
                   ? "border-terracotta bg-terracotta text-cream"
                   : "border-line text-ink-soft hover:text-ink"
