@@ -23,7 +23,7 @@ export function StaffStep({
       <Eyebrow>Étape 2</Eyebrow>
       <StepTitle>Qui pour votre rendez-vous cheveux ?</StepTitle>
       <StepLead>
-        Choisissez Bebo, David, ou peu importe — le studio attribuera alors le premier disponible.
+        Choisissez votre coiffeur, ou peu importe — le studio attribuera alors le premier disponible.
       </StepLead>
 
       <ul className="mt-8 space-y-3">
@@ -44,8 +44,8 @@ export function StaffStep({
             <span className="min-w-0 flex-1">
               <span className="block text-[15px] font-medium text-ink">Peu importe</span>
               <span className="mt-1 block text-[13px] leading-relaxed text-ink-soft">
-                Nous vous proposons les créneaux de Bebo et de David, puis attribuons celui qui est
-                disponible.
+                Nous vous proposons les créneaux de toute l&apos;équipe coiffure, puis attribuons
+                celui qui est disponible.
               </span>
             </span>
           </button>

@@ -46,8 +46,8 @@ export function ServiceStep({
       <Eyebrow>Étape 1</Eyebrow>
       <StepTitle>Choisissez votre prestation</StepTitle>
       <StepLead>
-        Sélectionnez la prestation souhaitée. Pour les cheveux, vous pourrez choisir Bebo, David
-        ou peu importe. Pour le reste, le studio attribue la professionnelle.
+        Sélectionnez la prestation souhaitée. Pour les cheveux, vous pourrez choisir votre
+        coiffeur ou peu importe. Pour le reste, le studio attribue la professionnelle.
       </StepLead>
 
       <div className="mt-8">

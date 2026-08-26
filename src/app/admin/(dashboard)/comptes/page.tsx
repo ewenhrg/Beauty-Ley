@@ -2,7 +2,6 @@ import { UserForm } from "@/components/admin/UserForm";
 import { Card } from "@/components/admin/ui";
 import { requirePage } from "@/server/access";
 import { ntfySubscribeUrl, ntfyTopicForUser } from "@/server/notifications/providers";
-import { listStaff, staffDisplayName } from "@/server/repo/catalog";
 import { listUsers, publicUser, usersTableReady } from "@/server/repo/users";
 
 export const dynamic = "force-dynamic";
@@ -25,17 +24,7 @@ alter table admin_users enable row level security;`;
 export default async function AdminUsersPage() {
   await requirePage("comptes");
   const ready = await usersTableReady();
-  const [staff, users] = ready
-    ? await Promise.all([
-        listStaff(),
-        listUsers().then((rows) => rows.map(publicUser)),
-      ])
-    : [[], []];
-
-  const staffOptions = staff.map((member) => ({
-    id: member.id,
-    name: staffDisplayName(member),
-  }));
+  const users = ready ? (await listUsers()).map(publicUser) : [];
 
   return (
     <div>
@@ -45,9 +34,9 @@ export default async function AdminUsersPage() {
         </p>
         <h1 className="font-display mt-2 text-3xl text-ink sm:text-4xl">Comptes équipe</h1>
         <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-ink-soft">
-          Votre compte admin voit tout. Chaque compte que vous créez est une personne qui
-          travaille : liez-le au membre de l&apos;équipe correspondant. C&apos;est cette personne
-          qui recevra la notification, uniquement quand vous lui attribuez un rendez-vous.
+          Votre compte admin voit tout. Chaque compte que vous créez est une personne de
+          l&apos;équipe : le nom affiché est celui que les clientes voient, et c&apos;est cette
+          personne qui reçoit la notification quand vous lui attribuez un rendez-vous.
         </p>
       </header>
 
@@ -73,7 +62,6 @@ export default async function AdminUsersPage() {
               </p>
               <UserForm
                 user={user}
-                staff={staffOptions}
                 ntfy={(() => {
                   const topic = ntfyTopicForUser(user.username);
                   return topic && ntfySubscribeUrl(topic)
@@ -84,7 +72,7 @@ export default async function AdminUsersPage() {
             </Card>
           ))}
           <Card title="Nouveau compte">
-            <UserForm staff={staffOptions} />
+            <UserForm />
           </Card>
         </div>
       ) : null}

@@ -8,8 +8,8 @@ import { staffDisplayName } from "./repo/catalog";
 export type BookingAudience = "public" | "internal";
 
 /**
- * Restricts the staff pool for online booking. Hair: Bebo / David only (when
- * they exist). Other services: ignore a client preference — admin assigns.
+ * Restricts the staff pool for online booking. Hair: the salon coiffeurs only
+ * (when they exist). Other services: ignore a client preference — admin assigns.
  */
 export function publicStaffPool(
   category: ServiceCategoryRow | null,

@@ -188,19 +188,11 @@ const STAFF: Array<{
   categories: string[];
 }> = [
   {
-    id: "staff-bebo",
-    first_name: "Bebo",
-    role: "Coiffeur",
-    bio: "Coupes, brushing et colorations — l'un des deux coiffeurs du studio.",
+    id: "staff-ley",
+    first_name: "Ley",
+    role: "Fondatrice · Coiffure & couleur",
+    bio: "Coloriste passionnée, Ley signe les balayages et les coupes du studio depuis son ouverture à Hurghada.",
     color: "#c17a5c",
-    categories: ["cat-coiffure", "cat-coloration"],
-  },
-  {
-    id: "staff-david",
-    first_name: "David",
-    role: "Coiffeur",
-    bio: "Coupes, brushing et colorations — l'un des deux coiffeurs du studio.",
-    color: "#8d6236",
     categories: ["cat-coiffure", "cat-coloration"],
   },
   {
@@ -231,19 +223,7 @@ const STAFF: Array<{
 
 /** Split shifts double as lunch breaks: the gap between two windows is closed. */
 const SCHEDULES: Record<string, Array<[weekday: number, start: string, end: string]>> = {
-  "staff-bebo": [
-    [0, "11:00", "19:00"],
-    [1, "10:00", "14:00"],
-    [1, "15:00", "20:00"],
-    [2, "10:00", "14:00"],
-    [2, "15:00", "20:00"],
-    [3, "10:00", "14:00"],
-    [3, "15:00", "20:00"],
-    [4, "10:00", "14:00"],
-    [4, "15:00", "20:00"],
-    [6, "10:00", "20:00"],
-  ],
-  "staff-david": [
+  "staff-ley": [
     [0, "11:00", "19:00"],
     [1, "10:00", "14:00"],
     [1, "15:00", "20:00"],

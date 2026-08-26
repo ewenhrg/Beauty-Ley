@@ -41,7 +41,7 @@ export function SummaryStep({
         {chooseStaff ? (
           <SummaryRow
             label="Coiffeur"
-            value={staff ? staff.name : "Peu importe — Bebo ou David"}
+            value={staff ? staff.name : "Peu importe — un coiffeur disponible"}
             onEdit={onEditStaff}
           />
         ) : null}

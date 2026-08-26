@@ -1,12 +1,29 @@
 /**
  * Public booking: clients may pick a stylist only for hair services,
- * and only among Bebo, David, or no preference. Everything else is
+ * among the salon coiffeurs or no preference. Everything else is
  * assigned in the admin calendar.
  */
 
 export const HAIR_CATEGORY_SLUGS = ["coiffure", "coloration"] as const;
 
-const HAIR_STYLISTS = ["bebo", "david"] as const;
+export const HAIR_STYLISTS = [
+  { firstName: "Bebo", slugs: ["bebo"] },
+  { firstName: "David", slugs: ["david"] },
+  { firstName: "Mickael", slugs: ["mickael", "michael"] },
+  { firstName: "Melad", slugs: ["melad"] },
+  { firstName: "Mohammed", slugs: ["mohammed", "mohamed"] },
+] as const;
+
+/** Rows the app once auto-inserted. Never recreate; drop on boot if unused. */
+export const INVENTED_STAFF_IDS = [
+  "staff-bebo",
+  "staff-david",
+  "staff-mickael",
+  "staff-melad",
+  "staff-mohammed",
+] as const;
+
+const HAIR_SLUGS = HAIR_STYLISTS.flatMap((stylist) => [...stylist.slugs]);
 
 function keyOf(value: string) {
   return value
@@ -29,22 +46,20 @@ export function serviceAllowsStaffChoice(
 }
 
 export function isChoosableHairStylist(name: string, id?: string) {
-  if (id === "staff-bebo" || id === "staff-david") return true;
+  if (id && (INVENTED_STAFF_IDS as readonly string[]).includes(id)) return true;
   const key = keyOf(name);
-  return HAIR_STYLISTS.some((stylist) => key === stylist || key.startsWith(`${stylist} `));
+  return HAIR_SLUGS.some((stylist) => key === stylist || key.startsWith(`${stylist} `));
 }
 
-function hairRank(name: string, id?: string) {
-  if (id === "staff-bebo") return 0;
-  if (id === "staff-david") return 1;
+function hairRank(name: string) {
   const key = keyOf(name);
-  const index = HAIR_STYLISTS.findIndex(
-    (stylist) => key === stylist || key.startsWith(`${stylist} `),
+  const bySlug = HAIR_STYLISTS.findIndex((stylist) =>
+    stylist.slugs.some((slug) => key === slug || key.startsWith(`${slug} `)),
   );
-  return index === -1 ? 99 : index;
+  return bySlug === -1 ? 99 : bySlug;
 }
 
-/** Hair stylists a client may pick, in display order (Bebo, then David). */
+/** Hair stylists a client may pick, in display order. */
 export function choosableHairStaff<T extends { id: string; name: string }>(
   staff: T[],
   staffIds: string[],
@@ -52,7 +67,5 @@ export function choosableHairStaff<T extends { id: string; name: string }>(
   const allowed = new Set(staffIds);
   return staff
     .filter((member) => allowed.has(member.id) && isChoosableHairStylist(member.name, member.id))
-    .sort(
-      (a, b) => hairRank(a.name, a.id) - hairRank(b.name, b.id) || a.name.localeCompare(b.name),
-    );
+    .sort((a, b) => hairRank(a.name) - hairRank(b.name) || a.name.localeCompare(b.name));
 }

@@ -16,11 +16,9 @@ export type UserEditorValue = {
 
 export function UserForm({
   user,
-  staff,
   ntfy,
 }: {
   user?: UserEditorValue;
-  staff: Array<{ id: string; name: string }>;
   ntfy?: { topic: string; url: string } | null;
 }) {
   return (
@@ -43,7 +41,7 @@ export function UserForm({
               name="displayName"
               required
               defaultValue={user?.display_name ?? ""}
-              placeholder="Sara"
+              placeholder="BEBO"
               className={adminInput}
             />
           </LabelledField>
@@ -56,18 +54,6 @@ export function UserForm({
               placeholder={user ? "Laisser vide pour ne pas changer" : ""}
               className={adminInput}
             />
-          </LabelledField>
-          <LabelledField label="Personne (équipe)" className="sm:col-span-2">
-            <select name="staffId" required defaultValue={user?.staff_id ?? ""} className={adminInput}>
-              <option value="" disabled>
-                Choisir qui est ce compte
-              </option>
-              {staff.map((member) => (
-                <option key={member.id} value={member.id}>
-                  {member.name}
-                </option>
-              ))}
-            </select>
           </LabelledField>
         </div>
 

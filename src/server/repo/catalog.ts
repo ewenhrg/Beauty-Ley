@@ -1,3 +1,4 @@
+import { isChoosableHairStylist, isHairCategorySlug, INVENTED_STAFF_IDS } from "@/lib/staff-choice";
 import { getStore } from "../db";
 import type {
   ServiceCategoryRow,
@@ -5,7 +6,9 @@ import type {
   StaffRow,
   StaffServiceRow,
 } from "../db/types";
+import { newId } from "../ids";
 import { ensureSeeded } from "./bootstrap";
+import { replaceStaffSchedules } from "./schedule";
 
 export async function listCategories(options: { activeOnly?: boolean } = {}) {
   await ensureSeeded();
@@ -159,4 +162,76 @@ export async function deleteStaff(id: string) {
 
 export function staffDisplayName(member: Pick<StaffRow, "first_name" | "last_name">) {
   return [member.first_name, member.last_name].filter(Boolean).join(" ");
+}
+
+function splitDisplayName(displayName: string) {
+  const parts = displayName.trim().split(/\s+/).filter(Boolean);
+  return {
+    first_name: parts[0] ?? displayName.trim(),
+    last_name: parts.length > 1 ? parts.slice(1).join(" ") : null,
+  };
+}
+
+async function hairServiceIds() {
+  const [categories, services] = await Promise.all([listCategories(), listServices()]);
+  const hair = new Set(
+    categories.filter((row) => isHairCategorySlug(row.slug)).map((row) => row.id),
+  );
+  return services.filter((row) => hair.has(row.category_id)).map((row) => row.id);
+}
+
+/** A team login is a working person: create or update their staff profile. */
+export async function upsertStaffFromAccount(existingId: string | null, displayName: string) {
+  const { first_name, last_name } = splitDisplayName(displayName);
+  const name = [first_name, last_name].filter(Boolean).join(" ");
+  const linkedId =
+    existingId && !(INVENTED_STAFF_IDS as readonly string[]).includes(existingId)
+      ? existingId
+      : null;
+  const hair = isChoosableHairStylist(name, linkedId ?? undefined);
+
+  if (linkedId) {
+    const current = await getStaff(linkedId);
+    if (current) {
+      await updateStaff(linkedId, {
+        first_name,
+        last_name,
+        role: hair ? "Coiffeur" : current.role,
+        active: true,
+      });
+      if (hair) {
+        const own = await getStore().select("staff_services", { eq: { staff_id: linkedId } });
+        if (!own.length) await setStaffServices(linkedId, await hairServiceIds());
+      }
+      return linkedId;
+    }
+  }
+
+  const team = await listStaff();
+  const id = newId("stf");
+  await createStaff({
+    id,
+    first_name,
+    last_name,
+    role: hair ? "Coiffeur" : "Équipe",
+    bio: null,
+    photo: null,
+    color: "#c17a5c",
+    sort_order: team.length,
+    active: true,
+  });
+  if (hair) await setStaffServices(id, await hairServiceIds());
+
+  const template = await getStore().select("staff_schedules", { eq: { staff_id: "staff-ley" } });
+  if (template.length) {
+    await replaceStaffSchedules(
+      id,
+      template.map((row) => ({
+        weekday: row.weekday,
+        start_min: row.start_min,
+        end_min: row.end_min,
+      })),
+    );
+  }
+  return id;
 }

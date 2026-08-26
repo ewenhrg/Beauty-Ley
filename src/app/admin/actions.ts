@@ -45,6 +45,8 @@ import {
   updateCategory,
   updateService,
   updateStaff,
+  upsertStaffFromAccount,
+  listStaff,
 } from "@/server/repo/catalog";
 import { deleteAppointment, getAppointment, updateAppointment } from "@/server/repo/appointments";
 import { deleteCustomer, updateCustomer } from "@/server/repo/customers";
@@ -633,24 +635,23 @@ export async function saveUserAction(
       throw new ValidationError("Mot de passe : 6 caractères minimum.");
     }
 
-    const staffId = asString(formData.get("staffId"), "staffId", { max: 80 });
+    const displayName = asString(formData.get("displayName"), "displayName", { max: 80 });
+    await listStaff();
+    const current = id ? await getUser(id) : null;
+    if (id && !current) throw new ValidationError("Compte introuvable.");
+    const staffId = await upsertStaffFromAccount(current?.staff_id ?? null, displayName);
     const patch: Partial<AdminUserRow> = {
       username,
-      display_name: asString(formData.get("displayName"), "displayName", { max: 80 }),
+      display_name: displayName,
       pages: parsePages(formData),
       staff_id: staffId,
       own_agenda: formData.get("ownAgenda") === "on",
       active: formData.get("active") === "on",
       updated_at: new Date().toISOString(),
     };
-    if (patch.own_agenda && !staffId) {
-      throw new ValidationError("Liez le compte à un membre de l'équipe pour limiter son planning.");
-    }
     if (password) patch.password_hash = hashPassword(password);
 
     if (id) {
-      const current = await getUser(id);
-      if (!current) throw new ValidationError("Compte introuvable.");
       await updateUser(id, patch);
       return "Compte mis à jour.";
     }
@@ -658,7 +659,7 @@ export async function saveUserAction(
     await createUser({
       id: newId("usr"),
       username,
-      display_name: patch.display_name as string,
+      display_name: displayName,
       password_hash: patch.password_hash as string,
       pages: patch.pages as AdminPageId[],
       staff_id: staffId,
