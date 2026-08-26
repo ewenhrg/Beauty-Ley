@@ -79,6 +79,7 @@ export async function buildCatalog(): Promise<CatalogDto> {
 
   const order = new Map(staff.map((member, index) => [member.id, index]));
   const staffDtos = staff.map(toStaffDto);
+  const allStaffIds = staff.map((member) => member.id);
   const hairIdsByCategory = new Map(
     categories.filter((row) => isHairCategorySlug(row.slug)).map((row) => [row.id, true] as const),
   );
@@ -90,10 +91,15 @@ export async function buildCatalog(): Promise<CatalogDto> {
       (a, b) => (order.get(a) ?? 0) - (order.get(b) ?? 0),
     );
     if (hairIdsByCategory.has(service.category_id)) {
-      const choosable = choosableHairStaff(staffDtos, ids).map((member) => member.id);
+      const choosable = choosableHairStaff(
+        staffDtos,
+        ids.length ? ids : allStaffIds,
+      ).map((member) => member.id);
       if (choosable.length) ids = choosable;
+    } else if (!ids.length) {
+      // Nails, lashes, etc. are assigned in admin — any teammate can hold the slot.
+      ids = allStaffIds;
     }
-    // A service with nobody assigned can never be booked, so it stays hidden.
     if (!ids.length) continue;
     serviceDtos.push(toServiceDto(service, ids));
     visibleCategories.add(service.category_id);

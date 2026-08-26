@@ -84,7 +84,7 @@ async function loadContext(
   const service = await getService(serviceId);
   if (!service || !service.active) return null;
 
-  const [settings, staffForService, hours, closures, schedules, timeOff, category] = await Promise.all([
+  const [settings, assigned, hours, closures, schedules, timeOff, category, team] = await Promise.all([
     getSettings(),
     listStaffForService(serviceId, { activeOnly: true }),
     listBusinessHours(),
@@ -92,8 +92,10 @@ async function loadContext(
     listStaffSchedules(),
     listTimeOff({ from: new Date().toISOString() }),
     getCategory(service.category_id),
+    listStaff({ activeOnly: true }),
   ]);
 
+  const staffForService = assigned.length ? assigned : team;
   const staff =
     audience === "public"
       ? publicStaffPool(category, staffForService, staffId).staff
