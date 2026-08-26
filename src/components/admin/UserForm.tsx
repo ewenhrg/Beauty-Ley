@@ -125,7 +125,8 @@ export function UserForm({
           <p className="mt-2">
             Cette personne s&apos;abonne dans l&apos;app ntfy au sujet{" "}
             <code className="break-all text-xs">{ntfy.topic}</code>
-            . Elle ne reçoit une alerte que lorsque vous lui attribuez un rendez-vous.
+            . Tant qu&apos;elle reste aussi sur le sujet commun du salon, elle reçoit déjà les
+            alertes quand vous lui attribuez un rendez-vous.
           </p>
           <a
             href={ntfy.url}

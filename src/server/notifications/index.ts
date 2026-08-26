@@ -1,5 +1,5 @@
 import { getStore } from "../db";
-import type { NotificationRow } from "../db/types";
+import type { AdminUserRow, NotificationRow, StaffRow } from "../db/types";
 import { newId } from "../ids";
 import {
   getEmailProvider,
@@ -14,6 +14,7 @@ import {
 import type { MessageProvider } from "./providers";
 import { buildEmail, buildStaffAlert } from "./templates";
 import type { NotificationContext, NotificationKind } from "./templates";
+import { staffDisplayName } from "../repo/catalog";
 import { listUsers } from "../repo/users";
 
 export type { NotificationContext, NotificationKind } from "./templates";
@@ -109,38 +110,68 @@ export async function notifyAppointment(kind: NotificationKind, context: Notific
 }
 
 /**
- * Pushes to the team member whose account is linked to this appointment's
- * staff profile. The shared salon topic is never used: a booking only alerts
- * someone after you assign them in admin.
+ * Pushes when you assign someone in admin. Goes to that person's ntfy subject
+ * (account username) and also to the salon subject phones already listen to,
+ * so the alert is not lost if they have not switched topics yet.
  */
 export async function notifyStaff(kind: NotificationKind, context: NotificationContext) {
   if (kind === "reminder") return;
   const alert = buildStaffAlert(kind, context);
-  const staffId = context.staff.id;
 
-  let users: Awaited<ReturnType<typeof listUsers>> = [];
+  let users: AdminUserRow[] = [];
   try {
     users = (await listUsers()).filter(
-      (user) => user.active && user.staff_id === staffId,
+      (user) => user.active && accountMatchesStaff(user, context.staff),
     );
-  } catch {
-    users = [];
+  } catch (error) {
+    console.error("[staff-notify] could not load team accounts", error);
   }
 
+  const topics = new Map<string, string>();
   for (const user of users) {
-    const topic = ntfyTopicForUser(user.username);
-    const ntfy = topic ? getNtfyProvider(topic) : null;
+    const personal = ntfyTopicForUser(user.username);
+    if (personal) topics.set(personal, user.username);
+  }
+  const shared = ntfyTopic();
+  if (shared) {
+    topics.set(shared, users[0]?.username ?? "équipe (ntfy)");
+  }
+
+  if (!topics.size) {
+    console.error("[staff-notify] NTFY_TOPIC is not set; nothing to send");
+    return;
+  }
+
+  for (const [topic, recipient] of topics) {
+    const ntfy = getNtfyProvider(topic);
     if (!ntfy) continue;
     await dispatch({
       appointmentId: context.appointment.id,
       channel: "sms",
       kind,
-      recipient: user.username,
+      recipient,
       subject: alert.title,
       body: alert.body,
       provider: ntfy,
     });
   }
+}
+
+function accountMatchesStaff(user: AdminUserRow, staff: StaffRow) {
+  if (user.staff_id === staff.id) return true;
+  const staffKey = fold(staffDisplayName(staff));
+  const first = fold(staff.first_name);
+  const username = fold(user.username);
+  const display = fold(user.display_name);
+  return username === first || username === staffKey || display === first || display === staffKey;
+}
+
+function fold(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
 }
 
 export async function listNotifications(limit = 100) {
