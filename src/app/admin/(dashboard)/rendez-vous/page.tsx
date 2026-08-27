@@ -8,8 +8,9 @@ import { toAppointmentView } from "@/server/admin-view";
 import { APPOINTMENT_STATUSES } from "@/server/db/types";
 import type { AppointmentStatus } from "@/server/db/types";
 import { listServices, listStaff, staffDisplayName } from "@/server/repo/catalog";
-import { STATUS_LABELS } from "@/components/admin/ui";
 import { addDays, formatDateKey, isValidDateKey, todayKey } from "@/lib/time";
+import { getT } from "@/i18n/server";
+import { statusKey } from "@/i18n/keys";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +26,7 @@ type Props = {
 };
 
 export default async function AdminAppointmentsPage({ searchParams }: Props) {
+  const t = await getT();
   const session = await requirePage("rendez-vous");
   const lockedStaff = agendaStaffId(session);
   const params = await searchParams;
@@ -111,7 +113,7 @@ export default async function AdminAppointmentsPage({ searchParams }: Props) {
               <option value="">Tous</option>
               {APPOINTMENT_STATUSES.map((value) => (
                 <option key={value} value={value}>
-                  {STATUS_LABELS[value]}
+                  {t(statusKey(value))}
                 </option>
               ))}
             </select>

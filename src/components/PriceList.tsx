@@ -1,9 +1,15 @@
+"use client";
+
 import type { ServiceGroup } from "@/data/services";
 import { formatPrice } from "@/lib/format";
 import { ColorPriceTable } from "./ColorPriceTable";
 import { Reveal } from "./Reveal";
+import { useT } from "@/i18n/I18nProvider";
 
 export function PriceList({ groups }: { groups: ServiceGroup[] }) {
+  const t = useT();
+  const labels = { from: t("price.from"), quote: t("price.quote"), range: t("price.range") };
+
   return (
     <div className="grid gap-12 lg:grid-cols-2 lg:gap-x-16 lg:gap-y-14">
       {groups.map((group, index) => (
@@ -33,7 +39,7 @@ export function PriceList({ groups }: { groups: ServiceGroup[] }) {
                     >
                       <span className="text-sm tracking-wide text-ink">{item.name}</span>
                       <span className="price-chip shrink-0 bg-ink px-2.5 py-1 text-[11px] font-medium tracking-[0.08em] text-cream">
-                        {formatPrice(item.price)}
+                        {formatPrice(item.price, labels)}
                       </span>
                     </li>
                   ))}
@@ -51,12 +57,12 @@ export function PriceList({ groups }: { groups: ServiceGroup[] }) {
                     {item.price.kind === "from" ? (
                       <span className="block text-center">
                         <span className="block text-[8px] tracking-[0.14em] uppercase opacity-80">
-                          À partir de
+                          {t("price.from")}
                         </span>
                         {item.price.value} EGP
                       </span>
                     ) : (
-                      formatPrice(item.price)
+                      formatPrice(item.price, labels)
                     )}
                   </span>
                 </li>

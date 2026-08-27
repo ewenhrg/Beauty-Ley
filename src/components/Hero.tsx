@@ -1,15 +1,19 @@
+"use client";
+
 import Link from "next/link";
 import { BookingButton } from "./BookingButton";
 import { salon } from "@/data/salon";
+import { useT } from "@/i18n/I18nProvider";
 
 export function Hero() {
+  const t = useT();
   return (
     <section className="relative flex min-h-[100svh] items-end overflow-hidden">
       <picture>
         <source srcSet="/images/hero.webp" type="image/webp" />
         <img
           src="/images/hero.jpg"
-          alt="Espace manucure et pédicure de Beauty Ley à Hurghada"
+          alt={t("hero.alt")}
           className="absolute inset-0 h-full w-full object-cover"
           fetchPriority="high"
         />
@@ -24,7 +28,7 @@ export function Hero() {
           Beauty Ley
         </h1>
         <p className="reveal mt-6 max-w-md text-base leading-relaxed text-cream/90 sm:text-lg">
-          Studio de beauté à Hurghada.
+          {t("hero.lead")}
         </p>
         <div className="reveal mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
           <BookingButton variant="light" className="min-h-12 w-full sm:w-auto" />
@@ -32,7 +36,7 @@ export function Hero() {
             href="/prestations"
             className="inline-flex min-h-12 items-center justify-center px-6 py-3 text-[11px] font-medium tracking-[0.22em] text-cream uppercase ring-1 ring-cream/45 transition-colors hover:bg-cream/10"
           >
-            Découvrir nos prestations
+            {t("hero.discover")}
           </Link>
         </div>
       </div>

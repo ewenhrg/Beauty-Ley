@@ -1,10 +1,10 @@
 "use client";
 
 import type { DayDto } from "@/lib/booking-types";
-import { addDays, diffDays, monthLabel, todayKey, weekdayOfKey } from "@/lib/time";
+import { addDays, diffDays, monthLabel, todayKey, weekdayOfKey, weekdayLabel } from "@/lib/time";
 import { Skeleton } from "./ui";
-
-const WEEKDAY_HEADERS = ["L", "M", "M", "J", "V", "S", "D"];
+import { useT, useLocale } from "@/i18n/I18nProvider";
+import { intlLocale } from "@/i18n/config";
 
 /** Monday-first column index for a date key. */
 function columnOf(dateKey: string) {
@@ -45,6 +45,12 @@ export function BookingCalendar({
   onSelect,
   onMonthChange,
 }: Props) {
+  const t = useT();
+  const locale = useLocale();
+  const intl = intlLocale(locale);
+  const weekdayHeaders = [1, 2, 3, 4, 5, 6, 0].map((day) =>
+    weekdayLabel(day, true, intl).slice(0, 2),
+  );
   const today = todayKey();
   const start = monthStart(monthKey);
   const [year, month] = start.split("-").map(Number);
@@ -66,19 +72,19 @@ export function BookingCalendar({
           type="button"
           onClick={() => onMonthChange(previousMonth)}
           disabled={!canGoBack}
-          aria-label="Mois précédent"
+          aria-label={t("calendar.prev")}
           className="flex h-10 w-10 items-center justify-center rounded-full border border-line text-ink-soft transition-colors hover:border-terracotta hover:text-terracotta disabled:opacity-30 disabled:hover:border-line disabled:hover:text-ink-soft"
         >
           <Chevron direction="left" />
         </button>
         <p className="font-display text-lg text-ink capitalize">
-          {monthLabel(month)} {year}
+          {monthLabel(month, intl)} {year}
         </p>
         <button
           type="button"
           onClick={() => onMonthChange(nextMonth)}
           disabled={!canGoForward}
-          aria-label="Mois suivant"
+          aria-label={t("calendar.next")}
           className="flex h-10 w-10 items-center justify-center rounded-full border border-line text-ink-soft transition-colors hover:border-terracotta hover:text-terracotta disabled:opacity-30 disabled:hover:border-line disabled:hover:text-ink-soft"
         >
           <Chevron direction="right" />
@@ -86,7 +92,7 @@ export function BookingCalendar({
       </div>
 
       <div className="mt-5 grid grid-cols-7 gap-1 text-center">
-        {WEEKDAY_HEADERS.map((label, index) => (
+        {weekdayHeaders.map((label, index) => (
           <span key={index} className="pb-1 text-[10px] tracking-[0.16em] text-ink-soft/70 uppercase">
             {label}
           </span>
@@ -130,10 +136,10 @@ export function BookingCalendar({
 
       <p className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] tracking-[0.14em] text-ink-soft/80 uppercase">
         <span className="flex items-center gap-1.5">
-          <span className="h-1.5 w-1.5 rounded-full bg-gold" /> Disponible
+          <span className="h-1.5 w-1.5 rounded-full bg-gold" /> {t("calendar.available")}
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="h-1.5 w-1.5 rounded-full bg-ink-soft/25" /> Complet ou fermé
+          <span className="h-1.5 w-1.5 rounded-full bg-ink-soft/25" /> {t("calendar.full")}
         </span>
       </p>
     </div>

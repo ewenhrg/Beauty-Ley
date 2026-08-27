@@ -1,8 +1,10 @@
 import { BookingButton } from "./BookingButton";
 import { getStoreStatus } from "@/server/db";
 import { Reveal } from "./Reveal";
+import { getT } from "@/i18n/server";
 
-export function BookingCta() {
+export async function BookingCta() {
+  const t = await getT();
   const online = getStoreStatus().ready;
 
   return (
@@ -28,15 +30,13 @@ export function BookingCta() {
       />
       <div className="relative z-10 mx-auto max-w-4xl px-5 py-24 text-center sm:px-8 lg:py-28">
         <Reveal className="text-gradient-light text-[11px] font-semibold tracking-[0.28em] uppercase">
-          Rendez-vous
+          {t("cta.eyebrow")}
         </Reveal>
         <Reveal as="h2" delay={80} className="font-display mt-5 text-4xl text-cream sm:text-5xl">
-          Prendre rendez-vous
+          {t("cta.title")}
         </Reveal>
         <Reveal as="p" delay={160} className="mx-auto mt-6 max-w-md text-sm leading-relaxed text-cream/85">
-          {online
-            ? "Choisissez votre prestation, votre professionnelle et votre créneau. Confirmation immédiate."
-            : "Contactez Beauty Ley sur Instagram, Facebook ou Snapchat pour réserver une prestation."}
+          {online ? t("cta.online") : t("cta.offline")}
         </Reveal>
         <Reveal delay={240} className="mt-10">
           <BookingButton variant="light" />

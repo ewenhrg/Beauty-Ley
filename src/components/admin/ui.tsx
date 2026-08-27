@@ -7,6 +7,8 @@ import type { ActionState } from "@/app/admin/action-state";
 import { idleState } from "@/app/admin/action-state";
 import type { AppointmentStatus } from "@/server/db/types";
 import { Spinner } from "@/components/booking/ui";
+import { useT } from "@/i18n/I18nProvider";
+import { statusKey } from "@/i18n/keys";
 
 export const STATUS_LABELS: Record<AppointmentStatus, string> = {
   PENDING: "En attente",
@@ -25,11 +27,12 @@ const STATUS_STYLES: Record<AppointmentStatus, string> = {
 };
 
 export function StatusPill({ status }: { status: AppointmentStatus }) {
+  const t = useT();
   return (
     <span
       className={`inline-flex shrink-0 items-center rounded-full border px-2.5 py-1 text-[10px] tracking-[0.14em] uppercase ${STATUS_STYLES[status]}`}
     >
-      {STATUS_LABELS[status]}
+      {t(statusKey(status))}
     </span>
   );
 }

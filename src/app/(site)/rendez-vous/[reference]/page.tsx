@@ -6,11 +6,15 @@ import { BookingError, describeAppointment, loadForCustomer } from "@/server/boo
 import { getStoreStatus } from "@/server/db";
 import type { AppointmentDto } from "@/lib/booking-types";
 import { toAppointmentDto } from "@/server/presenters";
+import { getT } from "@/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Mon rendez-vous",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return {
+    title: t("page.manage.title"),
+    robots: { index: false, follow: false },
+  };
+}
 
 export const dynamic = "force-dynamic";
 
@@ -24,21 +28,18 @@ type Loaded =
   | { ok: false; message: string };
 
 async function load(reference: string, token?: string): Promise<Loaded> {
+  const t = await getT();
   const status = getStoreStatus();
   if (!status.ready) return { ok: false, message: status.reason };
   if (!token) {
-    return {
-      ok: false,
-      message:
-        "Ce lien est incomplet. Utilisez le lien reçu par email pour accéder à votre rendez-vous.",
-    };
+    return { ok: false, message: t("manage.incomplete") };
   }
 
   try {
     const appointment = await loadForCustomer(reference, token);
     const described = await describeAppointment(appointment);
     if (!described.service || !described.staff || !described.customer) {
-      return { ok: false, message: "Rendez-vous introuvable." };
+      return { ok: false, message: t("page.manage.missing") };
     }
     return {
       ok: true,
@@ -58,20 +59,21 @@ async function load(reference: string, token?: string): Promise<Loaded> {
 }
 
 export default async function AppointmentPage({ params, searchParams }: Props) {
-  const [{ reference }, { t }] = await Promise.all([params, searchParams]);
-  const result = await load(reference, t);
+  const t = await getT();
+  const [{ reference }, { t: token }] = await Promise.all([params, searchParams]);
+  const result = await load(reference, token);
 
   return (
     <>
-      <PageHeader eyebrow="Beauty Ley" title="Mon rendez-vous">
-        <p>Consultez, déplacez ou annulez votre rendez-vous.</p>
+      <PageHeader eyebrow="Beauty Ley" title={t("page.manage.title")}>
+        <p>{t("page.manage.lead")}</p>
       </PageHeader>
       <section className="relative">
         <div className="mx-auto max-w-3xl px-5 py-14 sm:px-8 lg:py-20">
           {result.ok ? (
             <ManageAppointment
               appointment={result.appointment}
-              token={t as string}
+              token={token as string}
               cancellationWindowHours={result.cancellationWindowHours}
             />
           ) : (

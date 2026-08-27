@@ -2,12 +2,14 @@
 
 import { login } from "@/app/admin/actions";
 import { ActionForm, SubmitButton, adminInput, adminLabel } from "./ui";
+import { useT } from "@/i18n/I18nProvider";
 
 export function LoginForm() {
+  const t = useT();
   return (
     <ActionForm action={login}>
       <label className="block">
-        <span className={adminLabel}>Identifiant</span>
+        <span className={adminLabel}>{t("admin.login.username")}</span>
         <input
           name="username"
           autoComplete="username"
@@ -16,7 +18,7 @@ export function LoginForm() {
         />
       </label>
       <label className="mt-4 block">
-        <span className={adminLabel}>Mot de passe</span>
+        <span className={adminLabel}>{t("admin.login.password")}</span>
         <input
           type="password"
           name="password"
@@ -25,11 +27,8 @@ export function LoginForm() {
           className={`${adminInput} mt-1.5`}
         />
       </label>
-      <p className="mt-3 text-xs leading-relaxed text-ink-soft">
-        Compte studio : identifiant <code>admin</code> et le mot de passe administrateur. Les
-        membres de l&apos;équipe utilisent l&apos;identifiant créé pour eux.
-      </p>
-      <SubmitButton className="mt-5 w-full">Se connecter</SubmitButton>
+      <p className="mt-3 text-xs leading-relaxed text-ink-soft">{t("admin.login.hint")}</p>
+      <SubmitButton className="mt-5 w-full">{t("admin.login.submit")}</SubmitButton>
     </ActionForm>
   );
 }

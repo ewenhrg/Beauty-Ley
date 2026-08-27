@@ -1,4 +1,8 @@
+"use client";
+
 import Link from "next/link";
+
+import { useT } from "@/i18n/I18nProvider";
 
 type Props = {
   variant?: "solid" | "ghost" | "light";
@@ -24,12 +28,13 @@ export function BookingButton({
   serviceId,
   children,
 }: Props) {
+  const t = useT();
   const styles = VARIANTS[variant];
   const href = serviceId ? `/reservation?service=${encodeURIComponent(serviceId)}` : "/reservation";
 
   return (
     <Link href={href} className={`${BASE} ${styles} ${className}`}>
-      {children ?? "Prendre rendez-vous"}
+      {children ?? t("cta.book")}
     </Link>
   );
 }

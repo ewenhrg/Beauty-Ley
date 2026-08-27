@@ -6,12 +6,8 @@ import { addDays, formatDateKey, todayKey } from "@/lib/time";
 import { BookingCalendar } from "./BookingCalendar";
 import { useMonthAvailability, useSlots } from "./useAvailability";
 import { Eyebrow, Notice, Skeleton, StepLead, StepTitle } from "./ui";
-
-const PERIODS = [
-  { id: "morning", label: "Matin", from: 0, to: 12 * 60 },
-  { id: "afternoon", label: "Après-midi", from: 12 * 60, to: 17 * 60 },
-  { id: "evening", label: "Soirée", from: 17 * 60, to: 24 * 60 },
-] as const;
+import { useT, useLocale } from "@/i18n/I18nProvider";
+import { intlLocale } from "@/i18n/config";
 
 export function DateTimeStep({
   service,
@@ -37,6 +33,14 @@ export function DateTimeStep({
   onSelectDate: (date: string) => void;
   onSelectSlot: (slot: SlotDto, date: string) => void;
 }) {
+  const t = useT();
+  const locale = useLocale();
+  const intl = intlLocale(locale);
+  const PERIODS = [
+    { id: "morning" as const, label: t("booking.slot.morning"), from: 0, to: 12 * 60 },
+    { id: "afternoon" as const, label: t("booking.slot.afternoon"), from: 12 * 60, to: 17 * 60 },
+    { id: "evening" as const, label: t("booking.slot.evening"), from: 17 * 60, to: 24 * 60 },
+  ];
   const today = todayKey();
   const [monthKey, setMonthKey] = useState(() => (date ?? today).slice(0, 7));
   const month = useMonthAvailability(service.id, staffId, monthKey, revision);
@@ -59,8 +63,8 @@ export function DateTimeStep({
   );
 
   const quickDays = [
-    { date: today, label: "Aujourd'hui" },
-    { date: addDays(today, 1), label: "Demain" },
+    { date: today, label: t("booking.slot.today") },
+    { date: addDays(today, 1), label: t("booking.slot.tomorrow") },
   ].filter((entry) => month.days.get(entry.date)?.open);
 
   const jumpTo = (next: string) => {
@@ -72,12 +76,9 @@ export function DateTimeStep({
 
   return (
     <div>
-      <Eyebrow>Étape {stepNumber}</Eyebrow>
-      <StepTitle>Choisissez votre créneau</StepTitle>
-      <StepLead>
-        Seuls les créneaux réellement disponibles sont affichés, en fonction du planning de
-        l&apos;équipe et de la durée de votre prestation.
-      </StepLead>
+      <Eyebrow>{t("booking.step", { n: stepNumber })}</Eyebrow>
+      <StepTitle>{t("booking.slot.title")}</StepTitle>
+      <StepLead>{t("booking.slot.lead")}</StepLead>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,340px)_1fr] lg:gap-8">
         <div>
@@ -94,7 +95,7 @@ export function DateTimeStep({
               {month.nextOpenDay && !quickDays.some((entry) => entry.date === month.nextOpenDay) ? (
                 <QuickChip
                   active={activeDate === month.nextOpenDay}
-                  label={`Prochaine dispo · ${formatDateKey(month.nextOpenDay)}`}
+                  label={t("booking.slot.next", { date: formatDateKey(month.nextOpenDay, { locale: intl }) })}
                   onClick={() => jumpTo(month.nextOpenDay as string)}
                 />
               ) : null}
@@ -120,7 +121,7 @@ export function DateTimeStep({
 
         <div>
           <p className="font-display text-xl text-ink">
-            {activeDate ? formatDateKey(activeDate) : "Sélectionnez une date"}
+            {activeDate ? formatDateKey(activeDate, { locale: intl }) : t("booking.slot.pickDate")}
           </p>
 
           {slots.loading ? (
@@ -135,16 +136,16 @@ export function DateTimeStep({
             </div>
           ) : !activeDate ? (
             <p className="mt-5 rounded-2xl border border-line bg-blush/20 px-4 py-8 text-center text-sm text-ink-soft">
-              Choisissez un jour dans le calendrier pour voir les horaires libres.
+              {t("booking.slot.pickDay")}
             </p>
           ) : grouped.length === 0 ? (
             <div className="mt-5">
               <Notice>
                 {slots.reason === "closed"
-                  ? (slots.label ?? "Le studio est fermé ce jour-là.")
+                  ? (slots.label ?? t("booking.slot.closed"))
                   : slots.reason === "off"
-                    ? "Aucune professionnelle ne travaille ce jour-là pour cette prestation."
-                    : "Plus aucun créneau libre ce jour-là. Essayez une autre date."}
+                    ? t("booking.slot.off")
+                    : t("booking.slot.full")}
               </Notice>
             </div>
           ) : (
@@ -163,7 +164,9 @@ export function DateTimeStep({
                           data-selected={selected}
                           title={
                             revealStaff && !staffId
-                              ? `Avec ${slot.staffIds.map(staffName).filter(Boolean).join(", ")}`
+                              ? t("booking.slot.with", {
+                                  names: slot.staffIds.map(staffName).filter(Boolean).join(", "),
+                                })
                               : undefined
                           }
                           className={`pick-card pop-in rounded-xl border py-3 text-sm tracking-wide transition-colors ${

@@ -14,12 +14,13 @@ import { formatDateKey, formatDuration } from "@/lib/time";
 import {
   ActionForm,
   Money,
-  STATUS_LABELS,
   StatusPill,
   SubmitButton,
   adminInput,
   adminLabel,
 } from "./ui";
+import { useT } from "@/i18n/I18nProvider";
+import { statusKey } from "@/i18n/keys";
 
 export type AppointmentView = {
   id: string;
@@ -214,6 +215,7 @@ export function AppointmentCard({
 
 /** Radio group carrying the status value submitted by the buttons above. */
 function StatusRadios({ current }: { current: AppointmentStatus }) {
+  const t = useT();
   return (
     <fieldset className="mt-3">
       <legend className="sr-only">Nouveau statut</legend>
@@ -230,7 +232,7 @@ function StatusRadios({ current }: { current: AppointmentStatus }) {
               defaultChecked={status === current}
               className="accent-[#c17a5c]"
             />
-            {STATUS_LABELS[status]}
+            {t(statusKey(status))}
           </label>
         ))}
       </div>

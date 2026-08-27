@@ -5,26 +5,23 @@ import { BookingModalFallback } from "@/components/booking/BookingModalFallback"
 import { PageHeader } from "@/components/PageHeader";
 import { Skeleton } from "@/components/booking/ui";
 import { getStoreStatus } from "@/server/db";
+import { getT } from "@/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Réserver",
-  description:
-    "Réservez votre rendez-vous chez Beauty Ley à Hurghada : prestation, professionnelle, date et créneau en quelques étapes.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t("page.book.title"), description: t("page.book.meta") };
+}
 
 export const dynamic = "force-dynamic";
 
-export default function ReservationPage() {
+export default async function ReservationPage() {
+  const t = await getT();
   const status = getStoreStatus();
 
   return (
     <>
-      <PageHeader eyebrow="Beauty Ley" title="Réserver">
-        <p>
-          {status.ready
-            ? "Choisissez votre prestation, votre professionnelle et votre créneau. Confirmation immédiate."
-            : "Beauty & Wellness Studio à Hurghada. Contactez le studio pour convenir d'un rendez-vous."}
-        </p>
+      <PageHeader eyebrow="Beauty Ley" title={t("page.book.title")}>
+        <p>{status.ready ? t("page.book.leadOnline") : t("page.book.leadOffline")}</p>
       </PageHeader>
 
       <section className="relative">

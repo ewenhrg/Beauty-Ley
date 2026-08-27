@@ -1,21 +1,28 @@
 import type { Price } from "@/data/services";
 
-export function formatPrice(price: Price) {
+export function formatPrice(
+  price: Price,
+  labels: { from: string; quote: string; range: string } = {
+    from: "From",
+    quote: "On request",
+    range: "{min} to {max} EGP",
+  },
+) {
   switch (price.kind) {
     case "fixed":
       return `${price.value} EGP`;
     case "from":
-      return `À partir de ${price.value} EGP`;
+      return `${labels.from} ${price.value} EGP`;
     case "range":
-      return `${price.min} à ${price.max} EGP`;
+      return labels.range.replace("{min}", String(price.min)).replace("{max}", String(price.max));
     case "supplement":
       return `+${price.value} EGP`;
     case "quote":
-      return "Sur devis";
+      return labels.quote;
   }
 }
 
-export function formatPriceShort(price: Price) {
+export function formatPriceShort(price: Price, quote = "Quote") {
   switch (price.kind) {
     case "fixed":
       return `${price.value}`;
@@ -26,6 +33,6 @@ export function formatPriceShort(price: Price) {
     case "supplement":
       return `+${price.value}`;
     case "quote":
-      return "Devis";
+      return quote;
   }
 }

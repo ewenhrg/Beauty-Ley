@@ -106,8 +106,8 @@ export function formatEgp(value: number) {
   return `${new Intl.NumberFormat("fr-FR").format(value)} EGP`;
 }
 
-export function priceLabel(price: number, kind: "fixed" | "from") {
-  return kind === "from" ? `À partir de ${formatEgp(price)}` : formatEgp(price);
+export function priceLabel(price: number, kind: "fixed" | "from", fromLabel = "From") {
+  return kind === "from" ? `${fromLabel} ${formatEgp(price)}` : formatEgp(price);
 }
 
 export function initialsOf(name: string) {

@@ -7,6 +7,9 @@ import type { ReactNode } from "react";
 import { logout } from "@/app/admin/actions";
 import { Logo } from "@/components/Logo";
 import { ADMIN_NAV, type AdminPageId } from "@/server/admin-pages";
+import { LanguageSwitcher } from "@/i18n/LanguageSwitcher";
+import { useT } from "@/i18n/I18nProvider";
+import { adminNavKey } from "@/i18n/keys";
 
 export function AdminShell({
   children,
@@ -20,6 +23,7 @@ export function AdminShell({
   homeHref: string;
 }) {
   const pathname = usePathname();
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [lastPathname, setLastPathname] = useState(pathname);
   const allowed = new Set(pages);
@@ -49,7 +53,7 @@ export function AdminShell({
           <Logo compact />
         </Link>
         <p className="min-w-0 truncate text-[11px] tracking-[0.16em] text-ink-soft uppercase">
-          {current?.label ?? "Admin"}
+          {current ? t(adminNavKey(current.id)) : "Admin"}
         </p>
         <button
           type="button"
@@ -58,14 +62,14 @@ export function AdminShell({
           aria-controls="admin-nav"
           className="flex h-11 min-w-11 items-center justify-center rounded-xl border border-line px-3 text-[10px] tracking-[0.18em] text-ink uppercase"
         >
-          {open ? "Fermer" : "Menu"}
+          {open ? t("admin.close") : t("admin.menu")}
         </button>
       </header>
 
       {open ? (
         <button
           type="button"
-          aria-label="Fermer le menu"
+          aria-label={t("admin.closeMenu")}
           onClick={() => setOpen(false)}
           className="fixed inset-0 z-40 bg-ink/40 lg:hidden"
         />
@@ -73,7 +77,7 @@ export function AdminShell({
 
       <nav
         id="admin-nav"
-        aria-label="Navigation administration"
+        aria-label={t("admin.navAria")}
         className={`fixed inset-y-0 left-0 z-50 flex w-[min(19rem,86vw)] flex-col overflow-y-auto border-r border-line bg-cream px-4 py-5 pt-[max(1.25rem,env(safe-area-inset-top))] pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-soft transition-transform duration-300 lg:static lg:z-auto lg:h-svh lg:w-64 lg:shrink-0 lg:translate-x-0 lg:px-5 lg:py-7 lg:shadow-none ${
           open ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
@@ -101,7 +105,7 @@ export function AdminShell({
                   }`}
                 >
                   <NavIcon name={link.icon} />
-                  {link.label}
+                  {t(adminNavKey(link.id))}
                 </Link>
               </li>
             );
@@ -109,19 +113,22 @@ export function AdminShell({
         </ul>
 
         <div className="mt-auto space-y-1 border-t border-line pt-5">
+          <div className="px-1 pb-3">
+            <LanguageSwitcher compact />
+          </div>
           <Link
             href="/"
             onClick={() => setOpen(false)}
             className="flex min-h-12 items-center gap-3 rounded-xl px-3.5 py-3 text-[12px] tracking-[0.16em] text-ink-soft uppercase transition-colors hover:text-ink"
           >
-            Voir le site
+            {t("admin.viewSite")}
           </Link>
           <form action={logout}>
             <button
               type="submit"
               className="flex min-h-12 w-full items-center gap-3 rounded-xl px-3.5 py-3 text-left text-[12px] tracking-[0.16em] text-ink-soft uppercase transition-colors hover:text-rose"
             >
-              Se déconnecter
+              {t("admin.logout")}
             </button>
           </form>
         </div>

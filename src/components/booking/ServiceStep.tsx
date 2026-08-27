@@ -5,6 +5,8 @@ import type { CatalogDto, ServiceDto } from "@/lib/booking-types";
 import { priceLabel } from "@/lib/booking-types";
 import { formatDuration } from "@/lib/time";
 import { Eyebrow, StepLead, StepTitle, inputClass } from "./ui";
+import { useT } from "@/i18n/I18nProvider";
+import { categoryKey } from "@/i18n/keys";
 
 function normalise(value: string) {
   return value
@@ -22,6 +24,7 @@ export function ServiceStep({
   selectedId: string | null;
   onSelect: (service: ServiceDto) => void;
 }) {
+  const t = useT();
   const [categoryId, setCategoryId] = useState<string | null>(
     () => catalog.categories[0]?.id ?? null,
   );
@@ -38,21 +41,22 @@ export function ServiceStep({
     return catalog.services.filter((service) => service.categoryId === categoryId);
   }, [catalog.services, categoryId, query, searching]);
 
-  const categoryName = (id: string) =>
-    catalog.categories.find((category) => category.id === id)?.name ?? "";
+  const categoryName = (id: string) => {
+    const category = catalog.categories.find((item) => item.id === id);
+    if (!category) return "";
+    const key = categoryKey(category.slug);
+    return key ? t(key) : category.name;
+  };
 
   return (
     <div>
-      <Eyebrow>Étape 1</Eyebrow>
-      <StepTitle>Choisissez votre prestation</StepTitle>
-      <StepLead>
-        Sélectionnez la prestation souhaitée. Pour les cheveux, vous pourrez choisir votre
-        coiffeur ou peu importe. Pour le reste, le studio attribue la professionnelle.
-      </StepLead>
+      <Eyebrow>{t("booking.step", { n: 1 })}</Eyebrow>
+      <StepTitle>{t("booking.service.title")}</StepTitle>
+      <StepLead>{t("booking.service.lead")}</StepLead>
 
       <div className="mt-8">
         <label className="sr-only" htmlFor="service-search">
-          Rechercher une prestation
+          {t("booking.service.search")}
         </label>
         <div className="relative">
           <SearchIcon />
@@ -61,7 +65,7 @@ export function ServiceStep({
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Rechercher une prestation…"
+            placeholder={t("booking.service.searchPlaceholder")}
             className={`${inputClass} pl-11`}
           />
         </div>
@@ -83,7 +87,7 @@ export function ServiceStep({
                     : "border-line bg-white/55 text-ink-soft hover:border-terracotta/50 hover:text-ink"
                 }`}
               >
-                {category.name}
+                {categoryName(category.id)}
               </button>
             );
           })}
@@ -128,7 +132,7 @@ export function ServiceStep({
                 </span>
                 <span className="shrink-0 text-right">
                   <span className="font-display block text-lg text-terracotta">
-                    {priceLabel(service.price, service.priceKind)}
+                    {priceLabel(service.price, service.priceKind, t("price.from"))}
                   </span>
                 </span>
               </button>
@@ -139,7 +143,7 @@ export function ServiceStep({
 
       {visible.length === 0 ? (
         <p className="mt-8 rounded-2xl border border-line bg-blush/20 px-4 py-6 text-center text-sm text-ink-soft">
-          Aucune prestation ne correspond à votre recherche.
+          {t("booking.service.empty")}
         </p>
       ) : null}
     </div>

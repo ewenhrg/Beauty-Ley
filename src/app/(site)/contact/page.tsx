@@ -3,18 +3,19 @@ import { PageHeader } from "@/components/PageHeader";
 import { ContactSection } from "@/components/ContactSection";
 import { SocialSection } from "@/components/SocialSection";
 import { BookingCta } from "@/components/BookingCta";
+import { getT } from "@/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Contact",
-  description:
-    "Contacter Beauty Ley à Hurghada. Réservation en ligne ou via Instagram, Facebook et Snapchat.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t("page.contact.title"), description: t("page.contact.meta") };
+}
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const t = await getT();
   return (
     <>
-      <PageHeader eyebrow="Beauty Ley" title="Contact">
-        <p>Beauty & Wellness Studio à Hurghada. Réservez en ligne ou via les réseaux officiels.</p>
+      <PageHeader eyebrow="Beauty Ley" title={t("page.contact.title")}>
+        <p>{t("page.contact.lead")}</p>
       </PageHeader>
       <ContactSection />
       <SocialSection />

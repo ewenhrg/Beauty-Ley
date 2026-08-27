@@ -3,6 +3,7 @@
 import type { ServiceDto, StaffDto } from "@/lib/booking-types";
 import { choosableHairStaff } from "@/lib/staff-choice";
 import { Avatar, Eyebrow, StepLead, StepTitle } from "./ui";
+import { useT } from "@/i18n/I18nProvider";
 
 export function StaffStep({
   service,
@@ -17,14 +18,13 @@ export function StaffStep({
   onSelect: (staffId: string | null) => void;
 }) {
   const eligible = choosableHairStaff(staff, service.staffIds);
+  const t = useT();
 
   return (
     <div>
-      <Eyebrow>Étape 2</Eyebrow>
-      <StepTitle>Qui pour votre rendez-vous cheveux ?</StepTitle>
-      <StepLead>
-        Choisissez votre coiffeur, ou peu importe — le studio attribuera alors le premier disponible.
-      </StepLead>
+      <Eyebrow>{t("booking.step", { n: 2 })}</Eyebrow>
+      <StepTitle>{t("booking.staff.title")}</StepTitle>
+      <StepLead>{t("booking.staff.lead")}</StepLead>
 
       <ul className="mt-8 space-y-3">
         <li className="pop-in">
@@ -42,10 +42,9 @@ export function StaffStep({
               <SparkIcon />
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block text-[15px] font-medium text-ink">Peu importe</span>
+              <span className="block text-[15px] font-medium text-ink">{t("booking.staff.any")}</span>
               <span className="mt-1 block text-[13px] leading-relaxed text-ink-soft">
-                Nous vous proposons les créneaux de toute l&apos;équipe coiffure, puis attribuons
-                celui qui est disponible.
+                {t("booking.staff.anyHint")}
               </span>
             </span>
           </button>

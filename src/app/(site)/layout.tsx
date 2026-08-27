@@ -5,6 +5,7 @@ import { MobileBookingBar } from "@/components/MobileBookingBar";
 import { salon } from "@/data/salon";
 import { getSiteUrl } from "@/lib/site";
 import { getStoreStatus } from "@/server/db";
+import { getT } from "@/i18n/server";
 
 const siteUrl = getSiteUrl();
 
@@ -23,7 +24,8 @@ const jsonLd = {
   sameAs: [salon.social.instagram.href, salon.social.facebook.href, salon.social.snapchat.href],
 };
 
-export default function SiteLayout({ children }: { children: React.ReactNode }) {
+export default async function SiteLayout({ children }: { children: React.ReactNode }) {
+  const t = await getT();
   const bookingOnline = getStoreStatus().ready;
 
   return (
@@ -33,7 +35,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <a className="skip-link" href="#contenu">
-        Aller au contenu
+        {t("skip.content")}
       </a>
       <BookingProvider online={bookingOnline}>
         <Header />

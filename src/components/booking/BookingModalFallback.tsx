@@ -1,12 +1,16 @@
+"use client";
+
 import { salon } from "@/data/salon";
 import { FacebookIcon, InstagramIcon, SnapchatIcon } from "../SocialIcons";
 import { Eyebrow, StepLead, StepTitle } from "./ui";
+import { useT } from "@/i18n/I18nProvider";
 
 /**
  * Shown when online booking has no datastore configured. Rather than a broken
  * form, the client gets the studio's original booking channels.
  */
 export function BookingModalFallback({ reason }: { reason: string }) {
+  const t = useT();
   const networks = [
     { ...salon.social.instagram, icon: InstagramIcon },
     { ...salon.social.facebook, icon: FacebookIcon },
@@ -15,12 +19,9 @@ export function BookingModalFallback({ reason }: { reason: string }) {
 
   return (
     <div>
-      <Eyebrow>Réservation</Eyebrow>
-      <StepTitle>Prendre rendez-vous</StepTitle>
-      <StepLead>
-        La réservation en ligne n&apos;est pas encore activée. Contactez Beauty Ley sur ses réseaux
-        officiels, l&apos;équipe vous répond directement.
-      </StepLead>
+      <Eyebrow>{t("booking.fallback.eyebrow")}</Eyebrow>
+      <StepTitle>{t("booking.fallback.title")}</StepTitle>
+      <StepLead>{t("booking.fallback.lead")}</StepLead>
 
       <ul className="mt-8 space-y-3">
         {networks.map((network) => (
@@ -38,7 +39,9 @@ export function BookingModalFallback({ reason }: { reason: string }) {
                   <span className="text-ink-soft">{network.handle}</span>
                 </span>
               </span>
-              <span className="text-[11px] tracking-[0.18em] text-gold uppercase">Ouvrir</span>
+              <span className="text-[11px] tracking-[0.18em] text-gold uppercase">
+                {t("booking.fallback.open")}
+              </span>
             </a>
           </li>
         ))}

@@ -2,6 +2,9 @@ import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Outfit } from "next/font/google";
 import { salon } from "@/data/salon";
 import { getSiteUrl } from "@/lib/site";
+import { I18nProvider } from "@/i18n/I18nProvider";
+import { LOCALE_META } from "@/i18n/config";
+import { getLocale, getT } from "@/i18n/server";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -19,6 +22,8 @@ const cormorant = Cormorant_Garamond({
 
 const siteUrl = getSiteUrl();
 
+export const dynamic = "force-dynamic";
+
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
@@ -26,47 +31,49 @@ export const viewport: Viewport = {
   themeColor: "#f8efe8",
 };
 
-export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
-  title: {
-    default: "Beauty Ley — Beauty & Wellness Studio | Hurghada",
-    template: "%s · Beauty Ley Hurghada",
-  },
-  description:
-    "Beauty Ley, Beauty & Wellness Studio à Hurghada. Cheveux, manucure, pédicure, cils, sourcils, maquillage permanent, épilation et soins du corps.",
-  keywords: [
-    "Beauty Ley",
-    "Beauty Ley Hurghada",
-    "salon de beauté Hurghada",
-    "manucure Hurghada",
-    "extensions de cils Hurghada",
-    "coiffure Hurghada",
-    "Beauty & Wellness Studio",
-  ],
-  openGraph: {
-    type: "website",
-    locale: "fr_FR",
-    url: siteUrl,
-    siteName: salon.name,
-    title: "Beauty Ley — Beauty & Wellness Studio | Hurghada",
-    description:
-      "Beauty Ley, Beauty & Wellness Studio à Hurghada. Cheveux, ongles, cils, maquillage permanent et soins.",
-    images: [{ url: "/images/og.jpg", width: 1200, height: 630, alt: "Beauty Ley, Hurghada" }],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Beauty Ley — Beauty & Wellness Studio | Hurghada",
-    description: "Salon de beauté Beauty Ley à Hurghada. Prestations, tarifs et galerie.",
-    images: ["/images/og.jpg"],
-  },
-  robots: { index: true, follow: true },
-  alternates: { canonical: "/" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const [t, locale] = await Promise.all([getT(), getLocale()]);
+  return {
+    metadataBase: new URL(siteUrl),
+    title: {
+      default: t("meta.defaultTitle"),
+      template: "%s · Beauty Ley Hurghada",
+    },
+    description: t("meta.description"),
+    keywords: [
+      "Beauty Ley",
+      "Beauty Ley Hurghada",
+      "salon de beauté Hurghada",
+      "beauty salon Hurghada",
+      "Beauty & Wellness Studio",
+    ],
+    openGraph: {
+      type: "website",
+      locale: LOCALE_META[locale].og,
+      url: siteUrl,
+      siteName: salon.name,
+      title: t("meta.defaultTitle"),
+      description: t("meta.ogDescription"),
+      images: [{ url: "/images/og.jpg", width: 1200, height: 630, alt: "Beauty Ley, Hurghada" }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t("meta.defaultTitle"),
+      description: t("meta.twDescription"),
+      images: ["/images/og.jpg"],
+    },
+    robots: { index: true, follow: true },
+    alternates: { canonical: "/" },
+  };
+}
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const locale = await getLocale();
   return (
-    <html lang="fr" className={`${outfit.variable} ${cormorant.variable}`}>
-      <body className="font-sans antialiased">{children}</body>
+    <html lang={LOCALE_META[locale].html} className={`${outfit.variable} ${cormorant.variable}`}>
+      <body className="font-sans antialiased">
+        <I18nProvider locale={locale}>{children}</I18nProvider>
+      </body>
     </html>
   );
 }

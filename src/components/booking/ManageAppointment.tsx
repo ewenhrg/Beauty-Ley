@@ -14,14 +14,9 @@ import { googleCalendarUrl, icsDataUrl } from "@/lib/calendar-links";
 import { formatDateKey, formatDuration } from "@/lib/time";
 import { DateTimeStep } from "./DateTimeStep";
 import { ActionButton, Notice, Skeleton, SummaryRow } from "./ui";
-
-const STATUS_LABELS: Record<AppointmentDto["status"], string> = {
-  PENDING: "En attente de confirmation",
-  CONFIRMED: "Confirmé",
-  COMPLETED: "Terminé",
-  CANCELLED: "Annulé",
-  NO_SHOW: "Non honoré",
-};
+import { useT, useLocale } from "@/i18n/I18nProvider";
+import { statusKey } from "@/i18n/keys";
+import { intlLocale } from "@/i18n/config";
 
 export function ManageAppointment({
   appointment: initial,
@@ -32,6 +27,8 @@ export function ManageAppointment({
   token: string;
   cancellationWindowHours: number;
 }) {
+  const t = useT();
+  const locale = useLocale();
   const [appointment, setAppointment] = useState(initial);
   const [mode, setMode] = useState<"view" | "reschedule" | "confirm-cancel">("view");
   const [catalog, setCatalog] = useState<CatalogDto | null>(null);
@@ -97,7 +94,7 @@ export function ManageAppointment({
               : "bg-terracotta text-cream"
           }`}
         >
-          {STATUS_LABELS[appointment.status]}
+          {t(statusKey(appointment.status))}
         </span>
         <span className="text-[11px] tracking-[0.18em] text-ink-soft uppercase">
           Réf. {appointment.reference}
@@ -118,7 +115,10 @@ export function ManageAppointment({
       <dl className="mt-6 rounded-[1.75rem] border border-line bg-white/60 px-5 py-2 sm:px-7">
         <SummaryRow label="Prestation" value={appointment.serviceName} />
         <SummaryRow label="Professionnelle" value={appointment.staffName} />
-        <SummaryRow label="Date" value={formatDateKey(appointment.date, { withYear: true })} />
+        <SummaryRow
+          label={t("booking.summary.date")}
+          value={formatDateKey(appointment.date, { withYear: true, locale: intlLocale(locale) })}
+        />
         <SummaryRow label="Heure" value={appointment.time} />
         <SummaryRow label="Durée" value={formatDuration(appointment.duration)} />
         <SummaryRow

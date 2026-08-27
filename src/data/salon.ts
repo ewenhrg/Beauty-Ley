@@ -24,12 +24,12 @@ export const salon = {
 } as const;
 
 export const nav = [
-  { href: "/", label: "Accueil" },
-  { href: "/prestations", label: "Prestations" },
-  { href: "/tarifs", label: "Tarifs" },
-  { href: "/galerie", label: "Galerie" },
-  { href: "/reservation", label: "Réserver" },
-  { href: "/contact", label: "Contact" },
+  { href: "/", key: "nav.home" },
+  { href: "/prestations", key: "nav.services" },
+  { href: "/tarifs", key: "nav.prices" },
+  { href: "/galerie", key: "nav.gallery" },
+  { href: "/reservation", key: "nav.book" },
+  { href: "/contact", key: "nav.contact" },
 ] as const;
 
 export const booking = {

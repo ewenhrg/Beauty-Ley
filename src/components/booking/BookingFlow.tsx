@@ -25,18 +25,15 @@ import {
 import type { CustomerDetails, StepId } from "./bookingState";
 import { ActionButton, Notice, Skeleton } from "./ui";
 import { choosableHairStaff, serviceAllowsStaffChoice } from "@/lib/staff-choice";
-
-const STEP_LABELS: Record<StepId, string> = {
-  service: "Prestation",
-  staff: "Coiffeur",
-  slot: "Créneau",
-  summary: "Récapitulatif",
-  details: "Coordonnées",
-};
+import { useT, useLocale } from "@/i18n/I18nProvider";
+import { bookingStepKey } from "@/i18n/keys";
+import { intlLocale } from "@/i18n/config";
 
 type FieldErrors = Partial<Record<keyof CustomerDetails | "acceptTerms", string>>;
 
 export function BookingFlow() {
+  const t = useT();
+  const locale = useLocale();
   const params = useSearchParams();
   const [state, dispatch] = useReducer(reducer, initialState);
   const [catalog, setCatalog] = useState<CatalogDto | null>(null);
@@ -58,9 +55,7 @@ export function BookingFlow() {
       .catch((error: unknown) => {
         if (controller.signal.aborted) return;
         setCatalogError(
-          error instanceof BookingApiError
-            ? error.message
-            : "Impossible de charger les prestations.",
+          error instanceof BookingApiError ? error.message : t("booking.loadError"),
         );
       });
     return () => controller.abort();
@@ -140,15 +135,15 @@ export function BookingFlow() {
   const validateDetails = useCallback((): FieldErrors => {
     const errors: FieldErrors = {};
     const { firstName, lastName, phone, email, acceptTerms } = state.details;
-    if (!firstName.trim()) errors.firstName = "Champ obligatoire.";
-    if (!lastName.trim()) errors.lastName = "Champ obligatoire.";
-    if (phone.replace(/\D/g, "").length < 8) errors.phone = "Numéro de téléphone invalide.";
+    if (!firstName.trim()) errors.firstName = t("booking.required");
+    if (!lastName.trim()) errors.lastName = t("booking.required");
+    if (phone.replace(/\D/g, "").length < 8) errors.phone = t("booking.phoneInvalid");
     if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim())) {
-      errors.email = "Adresse email invalide.";
+      errors.email = t("booking.emailInvalid");
     }
-    if (!acceptTerms) errors.acceptTerms = "Merci d'accepter les conditions de réservation.";
+    if (!acceptTerms) errors.acceptTerms = t("booking.termsRequired");
     return errors;
-  }, [state.details]);
+  }, [state.details, t]);
 
   const submit = useCallback(async () => {
     if (!service || !state.startAt) return;
@@ -177,9 +172,7 @@ export function BookingFlow() {
       if (error instanceof BookingApiError) {
         if (error.code === "SLOT_TAKEN") {
           setRevision((value) => value + 1);
-          setSubmitError(
-            "Nous sommes désolés, ce créneau vient d'être réservé. Voici les prochains créneaux disponibles.",
-          );
+          setSubmitError(t("booking.slotTaken"));
           goto("slot");
           setSubmitting(false);
           return;
@@ -187,12 +180,12 @@ export function BookingFlow() {
         if (error.field) setFieldErrors({ [error.field]: error.message } as FieldErrors);
         setSubmitError(error.message);
       } else {
-        setSubmitError("Une erreur est survenue. Merci de réessayer.");
+        setSubmitError(t("booking.error"));
       }
     } finally {
       setSubmitting(false);
     }
-  }, [goto, scrollToTop, service, state.details, state.staffId, state.startAt, validateDetails]);
+  }, [goto, scrollToTop, service, state.details, state.staffId, state.startAt, t, validateDetails]);
 
   if (confirmed) {
     return (
@@ -208,7 +201,7 @@ export function BookingFlow() {
         <Notice tone="error">{catalogError}</Notice>
         <div className="mt-5 text-center">
           <ActionButton variant="ghost" onClick={() => window.location.reload()}>
-            Réessayer
+            {t("booking.retry")}
           </ActionButton>
         </div>
       </div>
@@ -321,9 +314,9 @@ export function BookingFlow() {
           <>
             <MiniRecap
               service={service.name}
-              staff={state.chooseStaff ? (staffMember?.name ?? "Peu importe") : null}
-              when={`${formatDateKey(state.date ?? "")} · ${state.time}`}
-              price={priceLabel(service.price, service.priceKind)}
+              staff={state.chooseStaff ? (staffMember?.name ?? t("booking.any")) : null}
+              when={`${formatDateKey(state.date ?? "", { locale: intlLocale(locale) })} · ${state.time}`}
+              price={priceLabel(service.price, service.priceKind, t("price.from"))}
               duration={formatDuration(service.duration)}
               onEdit={() => goto("summary")}
             />
@@ -351,7 +344,7 @@ export function BookingFlow() {
               onClick={() => goto(previousStep)}
               className="nav-link min-h-11 shrink-0 px-1 text-[11px] tracking-[0.2em] text-ink-soft uppercase transition-colors hover:text-ink"
             >
-              Retour
+              {t("booking.back")}
             </button>
           ) : (
             <span />
@@ -359,11 +352,11 @@ export function BookingFlow() {
 
           {state.step === "details" ? (
             <ActionButton onClick={submit} loading={submitting} className="min-h-12 flex-1 sm:flex-none">
-              {submitting ? "Confirmation…" : "Confirmer"}
+              {submitting ? t("booking.confirming") : t("booking.confirm")}
             </ActionButton>
           ) : state.step === "service" ? (
             <span className="text-[11px] tracking-[0.18em] text-ink-soft uppercase">
-              Sélectionnez une prestation
+              {t("booking.selectService")}
             </span>
           ) : (
             <ActionButton
@@ -375,7 +368,7 @@ export function BookingFlow() {
               disabled={!canContinue}
               className="min-h-12 flex-1 sm:flex-none"
             >
-              Continuer
+              {t("booking.continue")}
             </ActionButton>
           )}
         </div>
@@ -395,10 +388,11 @@ function Progress({
   reachable: StepId[];
   onJump: (step: StepId) => void;
 }) {
+  const t = useT();
   const steps = flowSteps(chooseStaff);
   const currentIndex = steps.indexOf(current);
   return (
-    <nav aria-label="Étapes de réservation">
+    <nav aria-label={t("booking.stepsAria")}>
       <ol className="no-scrollbar -mx-5 flex items-center gap-1 overflow-x-auto px-5 sm:mx-0 sm:gap-2 sm:px-0">
         {steps.map((step, index) => {
           const done = index < currentIndex;
@@ -430,7 +424,7 @@ function Progress({
                 >
                   {done ? "✓" : index + 1}
                 </span>
-                <span className="hidden sm:inline">{STEP_LABELS[step]}</span>
+                <span className="hidden sm:inline">{t(bookingStepKey(step))}</span>
               </button>
               {index < steps.length - 1 ? (
                 <span
@@ -443,7 +437,7 @@ function Progress({
         })}
       </ol>
       <p className="mt-3 text-[11px] tracking-[0.18em] text-ink-soft uppercase sm:hidden">
-        {STEP_LABELS[current]}
+        {t(bookingStepKey(current))}
       </p>
     </nav>
   );
@@ -464,6 +458,7 @@ function MiniRecap({
   duration: string;
   onEdit: () => void;
 }) {
+  const t = useT();
   return (
     <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 rounded-2xl border border-line bg-blush/25 px-4 py-3.5 sm:px-5">
       <div className="min-w-0">
@@ -480,7 +475,7 @@ function MiniRecap({
           onClick={onEdit}
           className="nav-link text-[10px] tracking-[0.2em] text-ink-soft uppercase hover:text-rose"
         >
-          Modifier
+          {t("booking.mini.edit")}
         </button>
       </div>
     </div>

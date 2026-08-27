@@ -1,8 +1,12 @@
+"use client";
+
 import Link from "next/link";
 import { gallery } from "@/data/gallery";
 import { Reveal } from "./Reveal";
+import { useT } from "@/i18n/I18nProvider";
 
 export function GalleryPreview() {
+  const t = useT();
   const preview = gallery.slice(0, 9);
 
   return (
@@ -11,17 +15,17 @@ export function GalleryPreview() {
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <div>
             <Reveal className="text-gradient text-[11px] font-semibold tracking-[0.28em] uppercase">
-              Galerie
+              {t("gallery.eyebrow")}
             </Reveal>
             <Reveal as="h2" delay={80} className="font-display mt-4 text-4xl text-ink sm:text-5xl">
-              Le salon & les réalisations
+              {t("gallery.title")}
             </Reveal>
           </div>
           <Link
             href="/galerie"
             className="nav-link text-[11px] tracking-[0.22em] text-rose uppercase underline-offset-4 hover:text-ink"
           >
-            Voir la galerie
+            {t("gallery.see")}
           </Link>
         </div>
 

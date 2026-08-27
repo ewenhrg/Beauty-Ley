@@ -1,10 +1,15 @@
+"use client";
+
 import Link from "next/link";
 import { Logo } from "./Logo";
 import { BookingButton } from "./BookingButton";
 import { nav, salon } from "@/data/salon";
 import { InstagramIcon, FacebookIcon, SnapchatIcon } from "./SocialIcons";
+import { LanguageSwitcher } from "@/i18n/LanguageSwitcher";
+import { useT } from "@/i18n/I18nProvider";
 
 export function Footer() {
+  const t = useT();
   const year = new Date().getFullYear();
 
   return (
@@ -26,7 +31,7 @@ export function Footer() {
         </div>
 
         <div>
-          <p className="text-[11px] tracking-[0.28em] text-gold-soft uppercase">Navigation</p>
+          <p className="text-[11px] tracking-[0.28em] text-gold-soft uppercase">{t("footer.nav")}</p>
           <ul className="mt-5 space-y-3">
             {nav.map((item) => (
               <li key={item.href}>
@@ -34,7 +39,7 @@ export function Footer() {
                   href={item.href}
                   className="text-sm text-cream/75 transition-all duration-300 hover:translate-x-1 hover:text-cream"
                 >
-                  {item.label}
+                  {t(item.key)}
                 </Link>
               </li>
             ))}
@@ -42,7 +47,7 @@ export function Footer() {
         </div>
 
         <div>
-          <p className="text-[11px] tracking-[0.28em] text-gold-soft uppercase">Réseaux</p>
+          <p className="text-[11px] tracking-[0.28em] text-gold-soft uppercase">{t("footer.social")}</p>
           <ul className="mt-5 space-y-4">
             <li>
               <a
@@ -78,6 +83,9 @@ export function Footer() {
               </a>
             </li>
           </ul>
+          <div className="mt-8">
+            <LanguageSwitcher light />
+          </div>
         </div>
       </div>
       <div className="border-t border-white/10">

@@ -140,48 +140,37 @@ export function formatDuration(minutes: number) {
   return `${hours} h ${pad(rest)}`;
 }
 
-const WEEKDAY_LABELS = [
-  "Dimanche",
-  "Lundi",
-  "Mardi",
-  "Mercredi",
-  "Jeudi",
-  "Vendredi",
-  "Samedi",
-] as const;
-
-const MONTH_LABELS = [
-  "janvier",
-  "février",
-  "mars",
-  "avril",
-  "mai",
-  "juin",
-  "juillet",
-  "août",
-  "septembre",
-  "octobre",
-  "novembre",
-  "décembre",
-] as const;
-
-export function weekdayLabel(weekday: number, short = false) {
-  const label = WEEKDAY_LABELS[weekday] ?? "";
-  return short ? label.slice(0, 3) : label;
+export function weekdayLabel(weekday: number, short = false, locale = "en-GB") {
+  const date = new Date(Date.UTC(2024, 0, 7 + weekday));
+  return date.toLocaleDateString(locale, {
+    weekday: short ? "short" : "long",
+    timeZone: "UTC",
+  });
 }
 
-export function monthLabel(month: number) {
-  return MONTH_LABELS[month - 1] ?? "";
+export function monthLabel(month: number, locale = "en-GB") {
+  return new Date(Date.UTC(2024, month - 1, 1)).toLocaleDateString(locale, {
+    month: "long",
+    timeZone: "UTC",
+  });
 }
 
-/** "Samedi 29 août" — the format used across the booking flow. */
-export function formatDateKey(dateKey: string, options: { withYear?: boolean } = {}) {
+/** Localized calendar date — the format used across the booking flow. */
+export function formatDateKey(
+  dateKey: string,
+  options: { withYear?: boolean; locale?: string } = {},
+) {
   const [year, month, day] = dateKey.split("-").map(Number);
-  const base = `${weekdayLabel(weekdayOfKey(dateKey))} ${day} ${monthLabel(month)}`;
-  return options.withYear ? `${base} ${year}` : base;
+  return new Date(Date.UTC(year, month - 1, day)).toLocaleDateString(options.locale ?? "en-GB", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    ...(options.withYear ? { year: "numeric" as const } : {}),
+    timeZone: "UTC",
+  });
 }
 
-export function formatDateKeyShort(dateKey: string) {
+export function formatDateKeyShort(dateKey: string, locale = "en-GB") {
   const [, month, day] = dateKey.split("-").map(Number);
-  return `${day} ${monthLabel(month).slice(0, 4)}.`;
+  return `${day} ${monthLabel(month, locale).slice(0, 4)}.`;
 }
