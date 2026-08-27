@@ -183,14 +183,18 @@ async function hairServiceIds() {
 }
 
 /** A team login is a working person: create or update their staff profile. */
-export async function upsertStaffFromAccount(existingId: string | null, displayName: string) {
+export async function upsertStaffFromAccount(
+  existingId: string | null,
+  displayName: string,
+  options: { hair?: boolean } = {},
+) {
   const { first_name, last_name } = splitDisplayName(displayName);
   const name = [first_name, last_name].filter(Boolean).join(" ");
   const linkedId =
     existingId && !(AUTO_CREATED_STAFF_IDS as readonly string[]).includes(existingId)
       ? existingId
       : null;
-  const hair = isChoosableHairStylist(name, linkedId ?? undefined);
+  const hair = Boolean(options.hair) || isChoosableHairStylist(name, linkedId ?? undefined);
 
   if (linkedId) {
     const current = await getStaff(linkedId);
@@ -203,7 +207,12 @@ export async function upsertStaffFromAccount(existingId: string | null, displayN
       });
       if (hair) {
         const own = await getStore().select("staff_services", { eq: { staff_id: linkedId } });
-        if (!own.length) await setStaffServices(linkedId, await hairServiceIds());
+        const hairIds = await hairServiceIds();
+        const have = new Set(own.map((link) => link.service_id));
+        const missing = hairIds.filter((serviceId) => !have.has(serviceId));
+        if (missing.length) {
+          await setStaffServices(linkedId, [...own.map((link) => link.service_id), ...missing]);
+        }
       }
       return linkedId;
     }

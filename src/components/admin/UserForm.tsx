@@ -17,13 +17,15 @@ export type UserEditorValue = {
 export function UserForm({
   user,
   ntfy,
+  hairStylist = false,
 }: {
   user?: UserEditorValue;
   ntfy?: { topic: string; url: string } | null;
+  hairStylist?: boolean;
 }) {
   return (
     <>
-      <ActionForm action={saveUserAction}>
+      <ActionForm action={saveUserAction} resetOnSuccess={!user}>
         {user ? <input type="hidden" name="id" value={user.id} /> : null}
         <div className="grid gap-3 sm:grid-cols-2">
           <LabelledField label="Identifiant">
@@ -84,6 +86,15 @@ export function UserForm({
         </fieldset>
 
         <label className="mt-4 flex items-center gap-2 text-sm text-ink">
+          <input
+            type="checkbox"
+            name="hairStylist"
+            defaultChecked={hairStylist}
+            className="h-4 w-4 accent-[#c17a5c]"
+          />
+          Coiffeur — les clientes peuvent le choisir en ligne
+        </label>
+        <label className="mt-2 flex items-center gap-2 text-sm text-ink">
           <input
             type="checkbox"
             name="ownAgenda"

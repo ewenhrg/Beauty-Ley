@@ -432,17 +432,15 @@ export async function saveScheduleAction(
 
     for (let weekday = 0; weekday < 7; weekday += 1) {
       if (formData.get(`off-${weekday}`) === "on") continue;
-      for (const suffix of ["a", "b"]) {
-        const start = String(formData.get(`start-${weekday}-${suffix}`) ?? "");
-        const end = String(formData.get(`end-${weekday}-${suffix}`) ?? "");
-        if (!start || !end) continue;
-        const startMin = labelToMinutes(start);
-        const endMin = labelToMinutes(end);
-        if (endMin <= startMin) {
-          throw new ValidationError("L'heure de fin doit suivre l'heure de début.");
-        }
-        windows.push({ weekday, start_min: startMin, end_min: endMin });
+      const start = String(formData.get(`start-${weekday}`) ?? "");
+      const end = String(formData.get(`end-${weekday}`) ?? "");
+      if (!start || !end) continue;
+      const startMin = labelToMinutes(start);
+      const endMin = labelToMinutes(end);
+      if (endMin <= startMin) {
+        throw new ValidationError("L'heure de fin doit suivre l'heure de début.");
       }
+      windows.push({ weekday, start_min: startMin, end_min: endMin });
     }
 
     await replaceStaffSchedules(staffId, windows);
@@ -593,7 +591,7 @@ export async function saveSettingsAction(
 /* -------------------------------------------------------------------------- */
 
 function parseUsername(value: FormDataEntryValue | null) {
-  const username = asString(value, "username", { min: 3, max: 32 }).toLowerCase();
+  const username = asString(value, "username", { min: 2, max: 32 }).toLowerCase();
   if (OWNER_USERNAMES.has(username)) {
     throw new ValidationError("Cet identifiant est réservé au compte administrateur.");
   }
@@ -639,7 +637,8 @@ export async function saveUserAction(
     await listStaff();
     const current = id ? await getUser(id) : null;
     if (id && !current) throw new ValidationError("Compte introuvable.");
-    const staffId = await upsertStaffFromAccount(current?.staff_id ?? null, displayName);
+    const hair = formData.get("hairStylist") === "on";
+    const staffId = await upsertStaffFromAccount(current?.staff_id ?? null, displayName, { hair });
     const patch: Partial<AdminUserRow> = {
       username,
       display_name: displayName,
@@ -669,7 +668,7 @@ export async function saveUserAction(
       updated_at: new Date().toISOString(),
     });
     return "Compte créé.";
-  }, ["/admin/comptes"]);
+  }, ["/admin/comptes", "/admin/equipe", "/reservation"]);
 }
 
 export async function deleteUserAction(

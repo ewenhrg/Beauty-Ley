@@ -64,8 +64,7 @@ create index if not exists staff_services_staff_idx on staff_services (staff_id)
 -- Availability
 -- ---------------------------------------------------------------------------
 
--- Several rows for the same weekday describe a split shift: the gap between
--- two windows is the break, and it is never offered to clients.
+-- One work window per weekday. A day without a row is a day off.
 create table if not exists staff_schedules (
   id        text primary key,
   staff_id  text    not null references staff (id) on delete cascade,

@@ -68,8 +68,7 @@ export type StaffServiceRow = {
 };
 
 /**
- * One work window. Several rows for the same weekday describe a split shift,
- * which is how lunch breaks are represented (09:00-13:00 + 14:00-19:00).
+ * One work window per weekday. A day without a row is a day off.
  */
 export type StaffScheduleRow = {
   id: string;

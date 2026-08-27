@@ -19,7 +19,7 @@ import { planFor } from "./payments";
 import { listCategories, listServices, listStaff, listStaffServices, staffDisplayName } from "./repo/catalog";
 import { getSettings } from "./repo/settings";
 import { formatDateKey, instantToWall, minutesToLabel } from "@/lib/time";
-import { choosableHairStaff, isHairCategorySlug } from "@/lib/staff-choice";
+import { choosableHairStaff, isChoosableHairStylist, isHairCategorySlug } from "@/lib/staff-choice";
 
 export function toCategoryDto(row: ServiceCategoryRow): CategoryDto {
   return {
@@ -91,10 +91,12 @@ export async function buildCatalog(): Promise<CatalogDto> {
       (a, b) => (order.get(a) ?? 0) - (order.get(b) ?? 0),
     );
     if (hairIdsByCategory.has(service.category_id)) {
-      const choosable = choosableHairStaff(
-        staffDtos,
-        ids.length ? ids : allStaffIds,
-      ).map((member) => member.id);
+      if (!ids.length) {
+        ids = staffDtos
+          .filter((member) => isChoosableHairStylist(member.name, member.id))
+          .map((member) => member.id);
+      }
+      const choosable = choosableHairStaff(staffDtos, ids).map((member) => member.id);
       if (choosable.length) ids = choosable;
     } else if (!ids.length) {
       // Nails, lashes, etc. are assigned in admin — any teammate can hold the slot.

@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef } from "react";
 import { useFormStatus } from "react-dom";
 import type { ReactNode } from "react";
 import type { ActionState } from "@/app/admin/action-state";
@@ -147,15 +147,22 @@ export function ActionForm({
   children,
   className = "",
   id,
+  resetOnSuccess = false,
 }: {
   action: (state: ActionState, formData: FormData) => Promise<ActionState>;
   children: ReactNode;
   className?: string;
   id?: string;
+  /** Clears fields after a successful create so another row can be added immediately. */
+  resetOnSuccess?: boolean;
 }) {
   const [state, formAction] = useActionState(action, idleState);
+  const formRef = useRef<HTMLFormElement>(null);
+  useEffect(() => {
+    if (resetOnSuccess && state.ok) formRef.current?.reset();
+  }, [resetOnSuccess, state]);
   return (
-    <form action={formAction} className={className} id={id}>
+    <form ref={formRef} action={formAction} className={className} id={id}>
       {children}
       {state.message ? (
         <p

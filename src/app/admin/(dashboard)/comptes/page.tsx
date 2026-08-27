@@ -2,6 +2,8 @@ import { UserForm } from "@/components/admin/UserForm";
 import { Card } from "@/components/admin/ui";
 import { requirePage } from "@/server/access";
 import { ntfySubscribeUrl, ntfyTopicForUser } from "@/server/notifications/providers";
+import { isChoosableHairStylist } from "@/lib/staff-choice";
+import { listStaff, staffDisplayName } from "@/server/repo/catalog";
 import { listUsers, publicUser, usersTableReady } from "@/server/repo/users";
 
 export const dynamic = "force-dynamic";
@@ -25,6 +27,8 @@ export default async function AdminUsersPage() {
   await requirePage("comptes");
   const ready = await usersTableReady();
   const users = ready ? (await listUsers()).map(publicUser) : [];
+  const team = ready ? await listStaff() : [];
+  const staffById = new Map(team.map((member) => [member.id, member]));
 
   return (
     <div>
@@ -35,8 +39,9 @@ export default async function AdminUsersPage() {
         <h1 className="font-display mt-2 text-3xl text-ink sm:text-4xl">Comptes équipe</h1>
         <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-ink-soft">
           Votre compte admin voit tout. Chaque compte que vous créez est une personne de
-          l&apos;équipe : le nom affiché est celui que les clientes voient, et c&apos;est cette
-          personne qui reçoit la notification quand vous lui attribuez un rendez-vous.
+          l&apos;équipe : autant que vous voulez, sans limite. Le nom affiché est celui que les
+          clientes voient, et c&apos;est cette personne qui reçoit la notification quand vous lui
+          attribuez un rendez-vous.
         </p>
       </header>
 
@@ -52,31 +57,43 @@ export default async function AdminUsersPage() {
       )}
 
       {ready ? (
-        <div className="mt-8 grid gap-6 xl:grid-cols-2">
+        <div className="mt-8 space-y-6">
           <Card title="Ajouter un compte">
             <p className="mb-4 text-sm leading-relaxed text-ink-soft">
-              Autant de personnes que vous voulez. Le nom affiché devient le profil équipe.
+              Créez une personne, enregistrez, puis recommencez autant de fois que nécessaire.
             </p>
             <UserForm />
           </Card>
-          {users.map((user) => (
-            <Card key={user.id} title={user.display_name}>
-              <p className="mb-4 text-xs text-ink-soft">
-                @{user.username}
-                {user.active ? "" : " · inactif"}
-                {user.own_agenda ? " · planning personnel" : ""}
-              </p>
-              <UserForm
-                user={user}
-                ntfy={(() => {
-                  const topic = ntfyTopicForUser(user.username);
-                  return topic && ntfySubscribeUrl(topic)
-                    ? { topic, url: ntfySubscribeUrl(topic)! }
-                    : null;
-                })()}
-              />
-            </Card>
-          ))}
+          {users.length ? (
+            <div className="grid gap-6 xl:grid-cols-2">
+              {users.map((user) => {
+                const member = user.staff_id ? staffById.get(user.staff_id) : undefined;
+                const hairStylist = member
+                  ? isChoosableHairStylist(staffDisplayName(member), member.id) ||
+                    (member.role ?? "").toLowerCase().includes("coif")
+                  : isChoosableHairStylist(user.display_name);
+                return (
+                  <Card key={user.id} title={user.display_name}>
+                    <p className="mb-4 text-xs text-ink-soft">
+                      @{user.username}
+                      {user.active ? "" : " · inactif"}
+                      {user.own_agenda ? " · planning personnel" : ""}
+                    </p>
+                    <UserForm
+                      user={user}
+                      hairStylist={hairStylist}
+                      ntfy={(() => {
+                        const topic = ntfyTopicForUser(user.username);
+                        return topic && ntfySubscribeUrl(topic)
+                          ? { topic, url: ntfySubscribeUrl(topic)! }
+                          : null;
+                      })()}
+                    />
+                  </Card>
+                );
+              })}
+            </div>
+          ) : null}
         </div>
       ) : null}
     </div>

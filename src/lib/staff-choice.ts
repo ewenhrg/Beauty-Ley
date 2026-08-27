@@ -73,13 +73,14 @@ function hairRank(name: string) {
   return bySlug === -1 ? 99 : bySlug;
 }
 
-/** Hair stylists a client may pick, in display order. */
+/** Hair stylists a client may pick, in display order. Anyone assigned to the service. */
 export function choosableHairStaff<T extends { id: string; name: string }>(
   staff: T[],
   staffIds: string[],
 ) {
   const allowed = new Set(staffIds);
+  const hidden = new Set<string>(AUTO_CREATED_STAFF_IDS);
   return staff
-    .filter((member) => allowed.has(member.id) && isChoosableHairStylist(member.name, member.id))
+    .filter((member) => allowed.has(member.id) && !hidden.has(member.id))
     .sort((a, b) => hairRank(a.name) - hairRank(b.name) || a.name.localeCompare(b.name));
 }

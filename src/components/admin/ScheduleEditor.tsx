@@ -33,14 +33,16 @@ export function ScheduleEditor({
         <input type="hidden" name="staffId" value={staffId} />
         <p className={adminLabel}>Semaine type</p>
         <p className="mt-1.5 text-xs leading-relaxed text-ink-soft">
-          Deux plages par jour permettent de réserver une pause : l&apos;intervalle entre les deux
-          est automatiquement fermé à la réservation.
+          Cochez un jour pour le marquer comme repos. Sinon, indiquez l&apos;heure de début et de
+          fin.
         </p>
 
         <div className="mt-4 space-y-2">
           {WEEK_ORDER.map((weekday) => {
             const windows = byWeekday.get(weekday) ?? [];
             const off = windows.length === 0;
+            const start = windows[0]?.start_min;
+            const end = windows.length ? windows[windows.length - 1]?.end_min : undefined;
             return (
               <div
                 key={weekday}
@@ -55,20 +57,7 @@ export function ScheduleEditor({
                   />
                   <span className="w-16 shrink-0">{weekdayLabel(weekday)}</span>
                 </label>
-                <div className="grid gap-2 sm:grid-cols-2">
-                  <TimeRange
-                    weekday={weekday}
-                    suffix="a"
-                    start={windows[0]?.start_min}
-                    end={windows[0]?.end_min}
-                  />
-                  <TimeRange
-                    weekday={weekday}
-                    suffix="b"
-                    start={windows[1]?.start_min}
-                    end={windows[1]?.end_min}
-                  />
-                </div>
+                <TimeRange weekday={weekday} start={start} end={end} />
               </div>
             );
           })}
@@ -160,12 +149,10 @@ export function ScheduleEditor({
 
 function TimeRange({
   weekday,
-  suffix,
   start,
   end,
 }: {
   weekday: number;
-  suffix: string;
   start?: number;
   end?: number;
 }) {
@@ -173,22 +160,22 @@ function TimeRange({
     <span className="flex items-center gap-2">
       <input
         type="time"
-        name={`start-${weekday}-${suffix}`}
+        name={`start-${weekday}`}
         step={300}
         defaultValue={start === undefined ? "" : minutesToLabel(start)}
         className={adminInput}
-        aria-label={`Début ${weekdayLabel(weekday)} plage ${suffix}`}
+        aria-label={`Début ${weekdayLabel(weekday)}`}
       />
       <span aria-hidden="true" className="text-ink-soft">
         →
       </span>
       <input
         type="time"
-        name={`end-${weekday}-${suffix}`}
+        name={`end-${weekday}`}
         step={300}
         defaultValue={end === undefined ? "" : minutesToLabel(end)}
         className={adminInput}
-        aria-label={`Fin ${weekdayLabel(weekday)} plage ${suffix}`}
+        aria-label={`Fin ${weekdayLabel(weekday)}`}
       />
     </span>
   );

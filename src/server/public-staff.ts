@@ -1,15 +1,11 @@
-import {
-  isChoosableHairStylist,
-  isHairCategorySlug,
-} from "@/lib/staff-choice";
+import { AUTO_CREATED_STAFF_IDS, isHairCategorySlug } from "@/lib/staff-choice";
 import type { ServiceCategoryRow, StaffRow } from "./db/types";
-import { staffDisplayName } from "./repo/catalog";
 
 export type BookingAudience = "public" | "internal";
 
 /**
- * Restricts the staff pool for online booking. Hair: the salon coiffeurs only
- * (when they exist). Other services: ignore a client preference — admin assigns.
+ * Restricts the staff pool for online booking. Hair: people assigned to that
+ * service. Other services: ignore a client preference — admin assigns.
  */
 export function publicStaffPool(
   category: ServiceCategoryRow | null,
@@ -19,15 +15,14 @@ export function publicStaffPool(
   const hair = Boolean(category && isHairCategorySlug(category.slug));
   if (!hair) return { staff, preferredId: undefined };
 
-  const choosable = staff.filter((member) =>
-    isChoosableHairStylist(staffDisplayName(member), member.id),
-  );
-  const pool = choosable.length ? choosable : staff;
-  if (preferredId && pool.some((member) => member.id === preferredId)) {
+  const hidden = new Set<string>(AUTO_CREATED_STAFF_IDS);
+  const pool = staff.filter((member) => !hidden.has(member.id));
+  const usable = pool.length ? pool : staff;
+  if (preferredId && usable.some((member) => member.id === preferredId)) {
     return {
-      staff: pool.filter((member) => member.id === preferredId),
+      staff: usable.filter((member) => member.id === preferredId),
       preferredId,
     };
   }
-  return { staff: pool, preferredId: undefined };
+  return { staff: usable, preferredId: undefined };
 }
