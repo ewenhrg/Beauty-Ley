@@ -1,4 +1,4 @@
-export const LOCALES = ["en", "fr", "de", "it", "es", "ru"] as const;
+export const LOCALES = ["en", "fr", "de", "it", "es", "ru", "zh"] as const;
 
 export type Locale = (typeof LOCALES)[number];
 
@@ -16,6 +16,7 @@ export const LOCALE_META: Record<
   it: { label: "Italiano", short: "IT", html: "it", og: "it_IT", intl: "it-IT" },
   es: { label: "Español", short: "ES", html: "es", og: "es_ES", intl: "es-ES" },
   ru: { label: "Русский", short: "RU", html: "ru", og: "ru_RU", intl: "ru-RU" },
+  zh: { label: "中文", short: "中文", html: "zh-CN", og: "zh_CN", intl: "zh-CN" },
 };
 
 export function parseLocale(value: string | undefined | null): Locale {
