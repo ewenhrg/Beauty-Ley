@@ -31,7 +31,7 @@ export function LanguageSwitcher({
               type="button"
               onClick={() => pick(code)}
               aria-pressed={selected}
-              className={`inline-flex h-9 min-w-9 items-center justify-center rounded-full border px-2.5 text-[10px] tracking-[0.16em] uppercase transition-colors ${
+              className={`inline-flex h-9 min-w-9 items-center justify-center rounded-full border px-2.5 text-[10px] tracking-wide transition-colors ${
                 selected
                   ? light
                     ? "border-cream bg-cream text-terracotta"
@@ -60,7 +60,7 @@ export function LanguageSwitcher({
             onClick={() => pick(code)}
             aria-pressed={selected}
             title={LOCALE_META[code].label}
-            className={`inline-flex h-9 items-center justify-center rounded-full px-2.5 text-[10px] tracking-[0.16em] uppercase transition-colors ${
+            className={`inline-flex h-9 items-center justify-center rounded-full px-2.5 text-[10px] tracking-wide transition-colors ${
               selected
                 ? light
                   ? "bg-cream text-terracotta"

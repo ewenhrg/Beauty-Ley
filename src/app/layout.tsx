@@ -70,7 +70,11 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const locale = await getLocale();
   return (
-    <html lang={LOCALE_META[locale].html} className={`${outfit.variable} ${cormorant.variable}`}>
+    <html
+      lang={LOCALE_META[locale].html}
+      dir={LOCALE_META[locale].dir}
+      className={`${outfit.variable} ${cormorant.variable}`}
+    >
       <body className="font-sans antialiased">
         <I18nProvider locale={locale}>{children}</I18nProvider>
       </body>
