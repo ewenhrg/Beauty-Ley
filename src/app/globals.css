@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 @theme {
-  --font-display: var(--font-cormorant), "Noto Naskh Arabic", "Amiri", "Songti SC", "Noto Serif SC", ui-serif, Georgia, serif;
-  --font-sans: var(--font-outfit), "Segoe UI", "Tahoma", "Geeza Pro", "Noto Naskh Arabic", "PingFang SC", "Microsoft YaHei", "Noto Sans SC", ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-cormorant), "Songti SC", "Noto Serif SC", ui-serif, Georgia, serif;
+  --font-sans: var(--font-outfit), "PingFang SC", "Microsoft YaHei", "Noto Sans SC", ui-sans-serif, system-ui, sans-serif;
 
   --color-cream: #f8efe8;
   --color-cream-deep: #f1ddd1;
