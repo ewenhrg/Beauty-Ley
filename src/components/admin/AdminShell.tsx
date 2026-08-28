@@ -96,6 +96,7 @@ export function AdminShell({
               <li key={link.href}>
                 <Link
                   href={link.href}
+                  prefetch={false}
                   onClick={() => setOpen(false)}
                   aria-current={active ? "page" : undefined}
                   className={`flex min-h-12 items-center gap-3 rounded-xl px-3.5 py-3 text-[12px] tracking-[0.16em] uppercase transition-colors ${

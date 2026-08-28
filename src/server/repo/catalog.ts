@@ -7,7 +7,7 @@ import type {
   StaffServiceRow,
 } from "../db/types";
 import { newId } from "../ids";
-import { ensureSeeded } from "./bootstrap";
+import { ensureSeeded, syncStaffFromAccounts } from "./bootstrap";
 import { replaceStaffSchedules } from "./schedule";
 
 export async function listCategories(options: { activeOnly?: boolean } = {}) {
@@ -41,12 +41,21 @@ export async function getCategory(id: string) {
 
 export async function listStaff(options: { activeOnly?: boolean } = {}) {
   await ensureSeeded();
+  await syncStaffFromAccounts();
   const hidden = new Set<string>(AUTO_CREATED_STAFF_IDS);
-  const rows = await getStore().select("staff", {
+  const store = getStore();
+  const rows = await store.select("staff", {
     ...(options.activeOnly ? { eq: { active: true } } : {}),
     order: { column: "sort_order" },
   });
-  return rows.filter((row) => !hidden.has(row.id));
+  let linked = new Set<string>();
+  try {
+    const users = await store.select("admin_users");
+    linked = new Set(users.map((user) => user.staff_id).filter((id): id is string => Boolean(id)));
+  } catch {
+    // admin_users may not exist yet
+  }
+  return rows.filter((row) => !hidden.has(row.id) || linked.has(row.id));
 }
 
 export async function getStaff(id: string) {

@@ -42,7 +42,7 @@ async function run() {
     }
 
     await removeAutoCreatedStaff(store);
-    await ensureStaffForAccounts(store);
+    await syncStaffFromAccounts(store);
   });
 }
 
@@ -94,7 +94,7 @@ async function removeAutoCreatedStaff(store: Store) {
  * Each team login is a working person. If a compte has no staff profile yet,
  * create one from the display name — never invent extra salon members.
  */
-async function ensureStaffForAccounts(store: Store) {
+export async function syncStaffFromAccounts(store: Store = getStore()) {
   let users: Array<{ id: string; display_name: string; staff_id: string | null }> = [];
   try {
     users = await store.select("admin_users");
@@ -104,10 +104,9 @@ async function ensureStaffForAccounts(store: Store) {
 
   const staff = await store.select("staff");
   const present = new Set(staff.map((row) => row.id));
-  const autoCreated = new Set<string>(AUTO_CREATED_STAFF_IDS);
 
   for (const user of users) {
-    if (user.staff_id && present.has(user.staff_id) && !autoCreated.has(user.staff_id)) continue;
+    if (user.staff_id && present.has(user.staff_id)) continue;
     const { first_name, last_name } = splitName(user.display_name || "Équipe");
     const name = [first_name, last_name].filter(Boolean).join(" ");
     const hair = isChoosableHairStylist(name);

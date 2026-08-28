@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useRef } from "react";
 import { useFormStatus } from "react-dom";
+import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import type { ActionState } from "@/app/admin/action-state";
 import { idleState } from "@/app/admin/action-state";
@@ -158,9 +159,12 @@ export function ActionForm({
 }) {
   const [state, formAction] = useActionState(action, idleState);
   const formRef = useRef<HTMLFormElement>(null);
+  const router = useRouter();
   useEffect(() => {
-    if (resetOnSuccess && state.ok) formRef.current?.reset();
-  }, [resetOnSuccess, state]);
+    if (!state.ok) return;
+    if (resetOnSuccess) formRef.current?.reset();
+    router.refresh();
+  }, [resetOnSuccess, router, state.ok, state.message]);
   return (
     <form ref={formRef} action={formAction} className={className} id={id}>
       {children}

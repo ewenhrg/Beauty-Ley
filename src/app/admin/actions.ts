@@ -98,7 +98,11 @@ async function assertOwnAppointment(session: Awaited<ReturnType<typeof guard>>, 
 async function run(fn: () => Promise<string | void>, paths: string[]): Promise<ActionState> {
   try {
     const message = await fn();
-    for (const path of paths) revalidatePath(path);
+    for (const path of paths) {
+      revalidatePath(path);
+      revalidatePath(path, "layout");
+    }
+    revalidatePath("/admin", "layout");
     return { ok: true, message: message ?? null };
   } catch (error) {
     if (error instanceof ValidationError || error instanceof BookingError || error instanceof UsersTableMissingError) {
@@ -668,7 +672,7 @@ export async function saveUserAction(
       updated_at: new Date().toISOString(),
     });
     return "Compte créé.";
-  }, ["/admin/comptes", "/admin/equipe", "/reservation"]);
+  }, ["/admin/comptes", "/admin/equipe", "/admin/calendrier", "/admin/rendez-vous", "/reservation"]);
 }
 
 export async function deleteUserAction(
