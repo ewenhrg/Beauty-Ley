@@ -1,11 +1,9 @@
 import { BookingButton } from "./BookingButton";
-import { getStoreStatus } from "@/server/db";
 import { Reveal } from "./Reveal";
 import { getT } from "@/i18n/server";
 
 export async function BookingCta() {
   const t = await getT();
-  const online = getStoreStatus().ready;
 
   return (
     <section className="relative overflow-hidden">
@@ -36,7 +34,7 @@ export async function BookingCta() {
           {t("cta.title")}
         </Reveal>
         <Reveal as="p" delay={160} className="mx-auto mt-6 max-w-md text-sm leading-relaxed text-cream/85">
-          {online ? t("cta.online") : t("cta.offline")}
+          {t("cta.online")}
         </Reveal>
         <Reveal delay={240} className="mt-10">
           <BookingButton variant="light" />

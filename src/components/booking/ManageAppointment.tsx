@@ -17,6 +17,7 @@ import { ActionButton, Notice, Skeleton, SummaryRow } from "./ui";
 import { useT, useLocale } from "@/i18n/I18nProvider";
 import { statusKey } from "@/i18n/keys";
 import { intlLocale } from "@/i18n/config";
+import { whatsappBookingUrl } from "@/lib/whatsapp";
 
 export function ManageAppointment({
   appointment: initial,
@@ -134,12 +135,14 @@ export function ManageAppointment({
 
       {cancelled ? (
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-          <Link
-            href="/reservation"
+          <a
+            href={whatsappBookingUrl(t("cta.whatsappMessage"))}
+            target="_blank"
+            rel="noreferrer"
             className="inline-flex items-center justify-center bg-terracotta px-6 py-3.5 text-[11px] font-medium tracking-[0.22em] text-cream uppercase shadow-soft transition-all duration-300 hover:-translate-y-0.5 hover:bg-rose"
           >
             Reprendre rendez-vous
-          </Link>
+          </a>
           <Link
             href="/"
             className="inline-flex items-center justify-center border border-line px-6 py-3.5 text-[11px] font-medium tracking-[0.22em] text-ink-soft uppercase transition-all duration-300 hover:-translate-y-0.5 hover:text-ink"

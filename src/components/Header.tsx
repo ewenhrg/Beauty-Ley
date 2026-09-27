@@ -56,16 +56,26 @@ export function Header() {
 
         <nav className="hidden items-center gap-5 xl:gap-8 lg:flex" aria-label={t("header.navAria")}>
           {nav.map((item) => {
-            const active = pathname === item.href;
-            return (
-              <Link
+            const external = "external" in item && item.external;
+            const className = `nav-link text-[11px] tracking-[0.22em] uppercase transition-colors ${
+              !external && pathname === item.href
+                ? "text-terracotta"
+                : light
+                  ? "text-cream/80 hover:text-cream"
+                  : "text-ink-soft hover:text-rose"
+            }`;
+            return external ? (
+              <a
                 key={item.href}
                 href={item.href}
-                data-active={active}
-                className={`nav-link text-[11px] tracking-[0.22em] uppercase transition-colors ${
-                  active ? "text-terracotta" : light ? "text-cream/80 hover:text-cream" : "text-ink-soft hover:text-rose"
-                }`}
+                target="_blank"
+                rel="noreferrer"
+                className={className}
               >
+                {t(item.key)}
+              </a>
+            ) : (
+              <Link key={item.href} href={item.href} data-active={pathname === item.href} className={className}>
                 {t(item.key)}
               </Link>
             );
@@ -115,15 +125,19 @@ export function Header() {
         className="max-h-[min(100svh,100dvh)] overflow-y-auto border-t border-line bg-cream pb-[max(6rem,env(safe-area-inset-bottom))] lg:hidden"
       >
         <nav className="flex flex-col px-6 py-8" aria-label={t("header.mobileNavAria")}>
-          {nav.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="flex min-h-12 items-center border-b border-line py-4 text-sm tracking-[0.2em] text-ink uppercase"
-            >
-              {t(item.key)}
-            </Link>
-          ))}
+          {nav.map((item) => {
+            const className =
+              "flex min-h-12 items-center border-b border-line py-4 text-sm tracking-[0.2em] text-ink uppercase";
+            return "external" in item && item.external ? (
+              <a key={item.href} href={item.href} target="_blank" rel="noreferrer" className={className}>
+                {t(item.key)}
+              </a>
+            ) : (
+              <Link key={item.href} href={item.href} className={className}>
+                {t(item.key)}
+              </Link>
+            );
+          })}
           <div className="pt-8">
             <BookingButton className="w-full" />
           </div>

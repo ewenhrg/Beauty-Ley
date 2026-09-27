@@ -1,16 +1,17 @@
 "use client";
 
 import { salon } from "@/data/salon";
-import { InstagramIcon, FacebookIcon, SnapchatIcon } from "./SocialIcons";
+import { InstagramIcon, FacebookIcon, SnapchatIcon, WhatsAppIcon } from "./SocialIcons";
 import { Reveal } from "./Reveal";
 import { useT } from "@/i18n/I18nProvider";
 
 export function SocialSection() {
   const t = useT();
   const networks = [
-    { ...salon.social.instagram, icon: InstagramIcon, tone: "bg-blush/40" },
-    { ...salon.social.snapchat, icon: SnapchatIcon, tone: "bg-gold/20" },
-    { ...salon.social.facebook, icon: FacebookIcon, tone: "bg-rose/15" },
+    { ...salon.social.whatsapp, icon: WhatsAppIcon, tone: "bg-blush/40" },
+    { ...salon.social.instagram, icon: InstagramIcon, tone: "bg-gold/20" },
+    { ...salon.social.snapchat, icon: SnapchatIcon, tone: "bg-rose/15" },
+    { ...salon.social.facebook, icon: FacebookIcon, tone: "bg-blush/25" },
   ];
 
   return (
@@ -22,7 +23,7 @@ export function SocialSection() {
         <Reveal as="h2" delay={80} className="font-display mt-4 text-4xl text-ink sm:text-5xl">
           {t("social.title")}
         </Reveal>
-        <ul className="mt-12 grid gap-4 md:grid-cols-3">
+        <ul className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {networks.map((network, index) => (
             <Reveal as="li" key={network.label} delay={160 + index * 90}>
               <a

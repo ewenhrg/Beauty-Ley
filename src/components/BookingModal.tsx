@@ -2,7 +2,8 @@
 
 import { useEffect } from "react";
 import { salon, booking } from "@/data/salon";
-import { InstagramIcon, SnapchatIcon, FacebookIcon } from "./SocialIcons";
+import { InstagramIcon, SnapchatIcon, FacebookIcon, WhatsAppIcon } from "./SocialIcons";
+import { whatsappBookingUrl } from "@/lib/whatsapp";
 
 type Props = {
   open: boolean;
@@ -26,6 +27,7 @@ export function BookingModal({ open, onClose }: Props) {
   if (!open) return null;
 
   const networks = [
+    { ...salon.social.whatsapp, href: whatsappBookingUrl(), icon: WhatsAppIcon },
     { ...salon.social.instagram, icon: InstagramIcon },
     { ...salon.social.facebook, icon: FacebookIcon },
     { ...salon.social.snapchat, icon: SnapchatIcon },

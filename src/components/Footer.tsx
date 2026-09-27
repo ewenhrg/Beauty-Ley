@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Logo } from "./Logo";
 import { BookingButton } from "./BookingButton";
 import { nav, salon } from "@/data/salon";
-import { InstagramIcon, FacebookIcon, SnapchatIcon } from "./SocialIcons";
+import { InstagramIcon, FacebookIcon, SnapchatIcon, WhatsAppIcon } from "./SocialIcons";
 import { LanguageSwitcher } from "@/i18n/LanguageSwitcher";
 import { useT } from "@/i18n/I18nProvider";
 
@@ -33,22 +33,40 @@ export function Footer() {
         <div>
           <p className="text-[11px] tracking-[0.28em] text-gold-soft uppercase">{t("footer.nav")}</p>
           <ul className="mt-5 space-y-3">
-            {nav.map((item) => (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  className="text-sm text-cream/75 transition-all duration-300 hover:translate-x-1 hover:text-cream"
-                >
-                  {t(item.key)}
-                </Link>
-              </li>
-            ))}
+            {nav.map((item) => {
+              const className =
+                "text-sm text-cream/75 transition-all duration-300 hover:translate-x-1 hover:text-cream";
+              return (
+                <li key={item.href}>
+                  {"external" in item && item.external ? (
+                    <a href={item.href} target="_blank" rel="noreferrer" className={className}>
+                      {t(item.key)}
+                    </a>
+                  ) : (
+                    <Link href={item.href} className={className}>
+                      {t(item.key)}
+                    </Link>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </div>
 
         <div>
           <p className="text-[11px] tracking-[0.28em] text-gold-soft uppercase">{t("footer.social")}</p>
           <ul className="mt-5 space-y-4">
+            <li>
+              <a
+                href={salon.social.whatsapp.href}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-3 text-sm text-cream/75 transition-all duration-300 hover:translate-x-1 hover:text-cream"
+              >
+                <WhatsAppIcon className="h-4 w-4" />
+                WhatsApp · {salon.social.whatsapp.handle}
+              </a>
+            </li>
             <li>
               <a
                 href={salon.social.instagram.href}

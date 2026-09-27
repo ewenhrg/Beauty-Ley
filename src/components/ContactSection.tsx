@@ -1,13 +1,11 @@
 import { salon } from "@/data/salon";
 import { BookingButton } from "./BookingButton";
-import { InstagramIcon, FacebookIcon, SnapchatIcon } from "./SocialIcons";
+import { InstagramIcon, FacebookIcon, SnapchatIcon, WhatsAppIcon } from "./SocialIcons";
 import { Reveal } from "./Reveal";
-import { getStoreStatus } from "@/server/db";
 import { getT } from "@/i18n/server";
 
 export async function ContactSection() {
   const t = await getT();
-  const online = getStoreStatus().ready;
 
   return (
     <section className="relative">
@@ -27,13 +25,20 @@ export async function ContactSection() {
             </Reveal>
             <Reveal as="div" delay={260}>
               <dt className="text-[11px] tracking-[0.2em] text-rose uppercase">{t("contact.booking")}</dt>
-              <dd className="mt-2 max-w-sm text-ink-soft">
-                {online ? t("contact.bookingOnline") : t("contact.bookingSocial")}
-              </dd>
+              <dd className="mt-2 max-w-sm text-ink-soft">{t("contact.bookingOnline")}</dd>
             </Reveal>
             <Reveal as="div" delay={320}>
               <dt className="text-[11px] tracking-[0.2em] text-rose uppercase">{t("contact.networks")}</dt>
               <dd className="mt-4 flex gap-4">
+                <a
+                  href={salon.social.whatsapp.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="WhatsApp"
+                  className="text-terracotta transition-transform duration-300 hover:-translate-y-0.5 hover:text-rose"
+                >
+                  <WhatsAppIcon className="h-5 w-5" />
+                </a>
                 <a
                   href={salon.social.instagram.href}
                   target="_blank"

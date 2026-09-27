@@ -1,9 +1,10 @@
 "use client";
 
 import { salon } from "@/data/salon";
-import { FacebookIcon, InstagramIcon, SnapchatIcon } from "../SocialIcons";
+import { FacebookIcon, InstagramIcon, SnapchatIcon, WhatsAppIcon } from "../SocialIcons";
 import { Eyebrow, StepLead, StepTitle } from "./ui";
 import { useT } from "@/i18n/I18nProvider";
+import { whatsappBookingUrl } from "@/lib/whatsapp";
 
 /**
  * Shown when online booking has no datastore configured. Rather than a broken
@@ -12,6 +13,7 @@ import { useT } from "@/i18n/I18nProvider";
 export function BookingModalFallback({ reason }: { reason: string }) {
   const t = useT();
   const networks = [
+    { ...salon.social.whatsapp, href: whatsappBookingUrl(t("cta.whatsappMessage")), icon: WhatsAppIcon },
     { ...salon.social.instagram, icon: InstagramIcon },
     { ...salon.social.facebook, icon: FacebookIcon },
     { ...salon.social.snapchat, icon: SnapchatIcon },

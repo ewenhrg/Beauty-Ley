@@ -20,6 +20,11 @@ export const salon = {
       handle: "Beauty Ley",
       href: "https://www.facebook.com/share/1BT7hYnN94/",
     },
+    whatsapp: {
+      label: "WhatsApp",
+      handle: "+20 128 134 3424",
+      href: "https://wa.me/201281343424",
+    },
   },
 } as const;
 
@@ -28,11 +33,11 @@ export const nav = [
   { href: "/prestations", key: "nav.services" },
   { href: "/tarifs", key: "nav.prices" },
   { href: "/galerie", key: "nav.gallery" },
-  { href: "/reservation", key: "nav.book" },
+  { href: salon.social.whatsapp.href, key: "nav.book", external: true },
   { href: "/contact", key: "nav.contact" },
 ] as const;
 
 export const booking = {
   label: "Prendre rendez-vous",
-  note: "Réservez en ligne ou contactez Beauty Ley sur ses réseaux officiels.",
+  note: "Réservez sur WhatsApp ou contactez Beauty Ley sur ses réseaux officiels.",
 } as const;
