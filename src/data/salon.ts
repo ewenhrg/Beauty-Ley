@@ -33,11 +33,11 @@ export const nav = [
   { href: "/prestations", key: "nav.services" },
   { href: "/tarifs", key: "nav.prices" },
   { href: "/galerie", key: "nav.gallery" },
-  { href: salon.social.whatsapp.href, key: "nav.book", external: true },
+  { href: "/reservation", key: "nav.book" },
   { href: "/contact", key: "nav.contact" },
 ] as const;
 
 export const booking = {
   label: "Prendre rendez-vous",
-  note: "Réservez sur WhatsApp ou contactez Beauty Ley sur ses réseaux officiels.",
+  note: "Choisissez votre prestation sur le site, puis finalisez sur WhatsApp.",
 } as const;

@@ -5,7 +5,7 @@ import { BookingButton } from "./BookingButton";
 
 export function MobileBookingBar() {
   const pathname = usePathname();
-  if (pathname.startsWith("/rendez-vous")) return null;
+  if (pathname.startsWith("/rendez-vous") || pathname.startsWith("/reservation")) return null;
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-cream/95 px-3 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-md lg:hidden">

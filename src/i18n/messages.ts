@@ -70,7 +70,7 @@ const en = {
 
   "cta.eyebrow": "Appointments",
   "cta.title": "Book an appointment",
-  "cta.online": "Message Beauty Ley on WhatsApp to choose your service and time.",
+  "cta.online": "Choose your service, then message Beauty Ley on WhatsApp to confirm the time.",
   "cta.offline": "Message Beauty Ley on WhatsApp to book a service.",
 
   "page.services.title": "Services",
@@ -92,7 +92,8 @@ const en = {
     "Beauty & Wellness Studio in Hurghada. Book on WhatsApp or through our official social pages.",
   "page.book.title": "Book",
   "page.book.meta": "Book your appointment at Beauty Ley in Hurghada on WhatsApp.",
-  "page.book.leadOnline": "Message the studio on WhatsApp to book your appointment.",
+  "page.book.leadOnline":
+    "Choose your service, then open WhatsApp with a ready-to-send booking message.",
   "page.book.leadOffline":
     "Beauty & Wellness Studio in Hurghada. Message us on WhatsApp to arrange an appointment.",
   "page.manage.title": "My appointment",
@@ -115,10 +116,13 @@ const en = {
   "booking.step": "Step {n}",
   "booking.service.title": "Choose your service",
   "booking.service.lead":
-    "Select the treatment you would like. For hair, you can choose your stylist or no preference. For everything else, the studio assigns the professional.",
+    "Select the treatment you want. We will open WhatsApp with a message ready to send to the studio.",
   "booking.service.search": "Search a service",
   "booking.service.searchPlaceholder": "Search a service…",
   "booking.service.empty": "No service matches your search.",
+  "booking.whatsapp.forService": "Hello Beauty Ley, I would like to book for {service}.",
+  "booking.whatsapp.cta": "Book on WhatsApp",
+  "booking.whatsapp.pick": "Select a service to continue.",
   "booking.staff.title": "Who for your hair appointment?",
   "booking.staff.lead":
     "Choose your stylist, or no preference — the studio will then assign the first available.",
@@ -301,7 +305,7 @@ const fr: Record<MessageKey, string> = {
   "contact.altStyling": "Poste de coiffage Beauty Ley, lumière naturelle à Hurghada",
   "cta.eyebrow": "Rendez-vous",
   "cta.title": "Prendre rendez-vous",
-  "cta.online": "Écrivez à Beauty Ley sur WhatsApp pour choisir votre prestation et votre horaire.",
+  "cta.online": "Choisissez votre prestation, puis écrivez à Beauty Ley sur WhatsApp pour confirmer l'horaire.",
   "cta.offline": "Écrivez à Beauty Ley sur WhatsApp pour réserver une prestation.",
   "page.services.title": "Prestations",
   "page.services.meta":
@@ -321,7 +325,8 @@ const fr: Record<MessageKey, string> = {
   "page.contact.lead": "Beauty & Wellness Studio à Hurghada. Réservez sur WhatsApp ou via les réseaux officiels.",
   "page.book.title": "Réserver",
   "page.book.meta": "Réservez votre rendez-vous chez Beauty Ley à Hurghada sur WhatsApp.",
-  "page.book.leadOnline": "Écrivez au studio sur WhatsApp pour prendre rendez-vous.",
+  "page.book.leadOnline":
+    "Choisissez votre prestation, puis ouvrez WhatsApp avec un message de réservation déjà rédigé.",
   "page.book.leadOffline":
     "Beauty & Wellness Studio à Hurghada. Écrivez-nous sur WhatsApp pour convenir d'un rendez-vous.",
   "page.manage.title": "Mon rendez-vous",
@@ -341,10 +346,13 @@ const fr: Record<MessageKey, string> = {
   "booking.step": "Étape {n}",
   "booking.service.title": "Choisissez votre prestation",
   "booking.service.lead":
-    "Sélectionnez la prestation souhaitée. Pour les cheveux, vous pourrez choisir votre coiffeur ou peu importe. Pour le reste, le studio attribue la professionnelle.",
+    "Sélectionnez la prestation souhaitée. Nous ouvrirons WhatsApp avec un message prêt à envoyer au studio.",
   "booking.service.search": "Rechercher une prestation",
   "booking.service.searchPlaceholder": "Rechercher une prestation…",
   "booking.service.empty": "Aucune prestation ne correspond à votre recherche.",
+  "booking.whatsapp.forService": "Bonjour Beauty Ley, je voudrais réserver pour {service}.",
+  "booking.whatsapp.cta": "Réserver sur WhatsApp",
+  "booking.whatsapp.pick": "Sélectionnez une prestation pour continuer.",
   "booking.staff.title": "Qui pour votre rendez-vous cheveux ?",
   "booking.staff.lead":
     "Choisissez votre coiffeur, ou peu importe — le studio attribuera alors le premier disponible.",
@@ -545,7 +553,8 @@ const de: Record<MessageKey, string> = {
   "page.book.title": "Buchen",
   "page.book.meta":
     "Buchen Sie Ihren Termin bei Beauty Ley in Hurghada: Leistung, Stylist, Datum und Uhrzeit in wenigen Schritten.",
-  "page.book.leadOnline": "Schreiben Sie dem Studio auf WhatsApp, um einen Termin zu buchen.",
+  "page.book.leadOnline":
+    "Wählen Sie Ihre Leistung, dann öffnet sich WhatsApp mit einer fertigen Buchungsnachricht.",
   "page.book.leadOffline":
     "Beauty & Wellness Studio in Hurghada. Kontaktieren Sie das Studio für einen Termin.",
   "page.manage.title": "Mein Termin",
@@ -565,10 +574,13 @@ const de: Record<MessageKey, string> = {
   "booking.step": "Schritt {n}",
   "booking.service.title": "Wählen Sie Ihre Leistung",
   "booking.service.lead":
-    "Wählen Sie die gewünschte Behandlung. Bei Haaren können Sie Ihren Stylisten oder keine Präferenz wählen. Für alles andere teilt das Studio die Fachkraft zu.",
+    "Wählen Sie die gewünschte Behandlung. Wir öffnen WhatsApp mit einer Nachricht, die Sie nur noch senden.",
   "booking.service.search": "Leistung suchen",
   "booking.service.searchPlaceholder": "Leistung suchen…",
   "booking.service.empty": "Keine Leistung entspricht Ihrer Suche.",
+  "booking.whatsapp.forService": "Hallo Beauty Ley, ich möchte für {service} buchen.",
+  "booking.whatsapp.cta": "Über WhatsApp buchen",
+  "booking.whatsapp.pick": "Wählen Sie eine Leistung, um fortzufahren.",
   "booking.staff.title": "Wer für Ihren Haar-Termin?",
   "booking.staff.lead":
     "Wählen Sie Ihren Stylisten oder keine Präferenz — das Studio vergibt dann den ersten Verfügbaren.",
@@ -769,7 +781,8 @@ const it: Record<MessageKey, string> = {
   "page.book.title": "Prenota",
   "page.book.meta":
     "Prenota il tuo appuntamento da Beauty Ley a Hurghada: servizio, stilista, data e orario in pochi passaggi.",
-  "page.book.leadOnline": "Scrivi allo studio su WhatsApp per prenotare un appuntamento.",
+  "page.book.leadOnline":
+    "Scegli il servizio, poi apri WhatsApp con un messaggio di prenotazione già pronto.",
   "page.book.leadOffline":
     "Beauty & Wellness Studio a Hurghada. Contatta lo studio per fissare un appuntamento.",
   "page.manage.title": "Il mio appuntamento",
@@ -789,10 +802,13 @@ const it: Record<MessageKey, string> = {
   "booking.step": "Passo {n}",
   "booking.service.title": "Scegli il servizio",
   "booking.service.lead":
-    "Seleziona il trattamento. Per i capelli puoi scegliere lo stilista o nessuna preferenza. Per il resto, lo studio assegna la professionista.",
+    "Seleziona il trattamento desiderato. Apriremo WhatsApp con un messaggio pronto da inviare allo studio.",
   "booking.service.search": "Cerca un servizio",
   "booking.service.searchPlaceholder": "Cerca un servizio…",
   "booking.service.empty": "Nessun servizio corrisponde alla ricerca.",
+  "booking.whatsapp.forService": "Ciao Beauty Ley, vorrei prenotare per {service}.",
+  "booking.whatsapp.cta": "Prenota su WhatsApp",
+  "booking.whatsapp.pick": "Seleziona un servizio per continuare.",
   "booking.staff.title": "Chi per l’appuntamento capelli?",
   "booking.staff.lead":
     "Scegli lo stilista, o nessuna preferenza — lo studio assegnerà il primo disponibile.",
@@ -993,7 +1009,8 @@ const es: Record<MessageKey, string> = {
   "page.book.title": "Reservar",
   "page.book.meta":
     "Reserva tu cita en Beauty Ley en Hurghada: servicio, estilista, fecha y hora en unos pasos.",
-  "page.book.leadOnline": "Escribe al estudio por WhatsApp para reservar una cita.",
+  "page.book.leadOnline":
+    "Elige tu servicio y abre WhatsApp con un mensaje de reserva ya escrito.",
   "page.book.leadOffline":
     "Beauty & Wellness Studio en Hurghada. Contacta el estudio para concertar una cita.",
   "page.manage.title": "Mi cita",
@@ -1013,10 +1030,13 @@ const es: Record<MessageKey, string> = {
   "booking.step": "Paso {n}",
   "booking.service.title": "Elige tu servicio",
   "booking.service.lead":
-    "Selecciona el tratamiento. Para el cabello puedes elegir tu estilista o sin preferencia. Para el resto, el estudio asigna a la profesional.",
+    "Selecciona el tratamiento que deseas. Abriremos WhatsApp con un mensaje listo para enviar al estudio.",
   "booking.service.search": "Buscar un servicio",
   "booking.service.searchPlaceholder": "Buscar un servicio…",
   "booking.service.empty": "Ningún servicio coincide con tu búsqueda.",
+  "booking.whatsapp.forService": "Hola Beauty Ley, quiero reservar para {service}.",
+  "booking.whatsapp.cta": "Reservar por WhatsApp",
+  "booking.whatsapp.pick": "Selecciona un servicio para continuar.",
   "booking.staff.title": "¿Quién para tu cita de cabello?",
   "booking.staff.lead":
     "Elige tu estilista, o sin preferencia — el estudio asignará al primero disponible.",
@@ -1217,7 +1237,8 @@ const ru: Record<MessageKey, string> = {
   "page.book.title": "Запись",
   "page.book.meta":
     "Запишитесь в Beauty Ley в Хургаде: услуга, мастер, дата и время за несколько шагов.",
-  "page.book.leadOnline": "Напишите студии в WhatsApp, чтобы записаться.",
+  "page.book.leadOnline":
+    "Выберите услугу — откроется WhatsApp с готовым сообщением для записи.",
   "page.book.leadOffline":
     "Beauty & Wellness Studio в Хургаде. Свяжитесь со студией, чтобы записаться.",
   "page.manage.title": "Моя запись",
@@ -1237,10 +1258,13 @@ const ru: Record<MessageKey, string> = {
   "booking.step": "Шаг {n}",
   "booking.service.title": "Выберите услугу",
   "booking.service.lead":
-    "Выберите процедуру. Для волос можно выбрать мастера или «без предпочтений». Для остальных услуг студия назначает специалиста.",
+    "Выберите нужную услугу. Мы откроем WhatsApp с готовым сообщением для студии.",
   "booking.service.search": "Найти услугу",
   "booking.service.searchPlaceholder": "Найти услугу…",
   "booking.service.empty": "Нет услуг по вашему запросу.",
+  "booking.whatsapp.forService": "Здравствуйте, Beauty Ley, хочу записаться на {service}.",
+  "booking.whatsapp.cta": "Записаться в WhatsApp",
+  "booking.whatsapp.pick": "Выберите услугу, чтобы продолжить.",
   "booking.staff.title": "Кто сделает укладку или стрижку?",
   "booking.staff.lead":
     "Выберите мастера или «без предпочтений» — студия назначит первого свободного.",
@@ -1436,7 +1460,7 @@ const zh: Record<MessageKey, string> = {
   "page.contact.lead": "赫尔格达 Beauty & Wellness Studio。在线预约，或通过官方社交账号联系。",
   "page.book.title": "预约",
   "page.book.meta": "在赫尔格达 Beauty Ley 预约：几步选择项目、造型师、日期与时间。",
-  "page.book.leadOnline": "通过 WhatsApp 联系工作室预约。",
+  "page.book.leadOnline": "选择项目后，将打开 WhatsApp 并预填预约消息。",
   "page.book.leadOffline": "赫尔格达 Beauty & Wellness Studio。请联系工作室安排预约。",
   "page.manage.title": "我的预约",
   "page.notFound.title": "页面未找到",
@@ -1454,11 +1478,13 @@ const zh: Record<MessageKey, string> = {
   "price.fromNote": "所示为起步价。",
   "booking.step": "第 {n} 步",
   "booking.service.title": "选择项目",
-  "booking.service.lead":
-    "请选择您需要的护理。美发可自选造型师或无偏好；其他项目由工作室安排专业人员。",
+  "booking.service.lead": "请选择您需要的项目。我们将打开 WhatsApp，并预填好发给工作室的消息。",
   "booking.service.search": "搜索项目",
   "booking.service.searchPlaceholder": "搜索项目…",
   "booking.service.empty": "没有符合搜索的项目。",
+  "booking.whatsapp.forService": "您好 Beauty Ley，我想预约 {service}。",
+  "booking.whatsapp.cta": "通过 WhatsApp 预约",
+  "booking.whatsapp.pick": "请先选择一个项目。",
   "booking.staff.title": "美发由谁来做？",
   "booking.staff.lead": "选择造型师，或选择无偏好——工作室将安排首位有空的老师。",
   "booking.staff.any": "无偏好",

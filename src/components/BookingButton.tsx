@@ -1,7 +1,7 @@
 "use client";
 
+import Link from "next/link";
 import { useT } from "@/i18n/I18nProvider";
-import { whatsappBookingUrl } from "@/lib/whatsapp";
 
 type Props = {
   variant?: "solid" | "ghost" | "light";
@@ -18,19 +18,14 @@ const VARIANTS = {
 const BASE =
   "inline-flex min-h-11 items-center justify-center px-6 py-3 text-[11px] font-medium tracking-[0.22em] uppercase transition-all duration-300 [@media(hover:hover)]:hover:-translate-y-0.5 [@media(hover:hover)]:hover:scale-[1.02]";
 
-/** Public CTA: opens the salon WhatsApp instead of the online calendar. */
+/** Public CTA: opens the service picker, then WhatsApp with a prefilled message. */
 export function BookingButton({ variant = "solid", className = "", children }: Props) {
   const t = useT();
   const styles = VARIANTS[variant];
 
   return (
-    <a
-      href={whatsappBookingUrl(t("cta.whatsappMessage"))}
-      target="_blank"
-      rel="noreferrer"
-      className={`${BASE} ${styles} ${className}`}
-    >
+    <Link href="/reservation" className={`${BASE} ${styles} ${className}`}>
       {children ?? t("cta.book")}
-    </a>
+    </Link>
   );
 }
