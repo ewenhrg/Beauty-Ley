@@ -6,6 +6,9 @@ export type Price =
   | { kind: "quote" };
 
 export type ServiceItem = {
+  /** Stable id used for translations (`item.{groupId}.{id}`). */
+  id: string;
+  /** French fallback label when a translation is missing. */
   name: string;
   price: Price;
 };
@@ -13,6 +16,7 @@ export type ServiceItem = {
 export type ServiceGroup = {
   id: string;
   title: string;
+  /** Catalog note keys (`note.{key}`). */
   notes?: string[];
   items: ServiceItem[];
 };
@@ -37,50 +41,50 @@ export const categories: ServiceCategory[] = [
       {
         id: "shampoo-brushing",
         title: "Shampoing + brushing",
-        notes: ["Tarifs indiqués à partir de."],
+        notes: ["from-price"],
         items: [
-          { name: "Cheveux court", price: { kind: "from", value: 600 } },
-          { name: "Cheveux mi-longs", price: { kind: "from", value: 750 } },
-          { name: "Cheveux longs", price: { kind: "from", value: 900 } },
-          { name: "Cheveux extra longs", price: { kind: "from", value: 1100 } },
-          { name: "Supp wavy", price: { kind: "supplement", value: 150 } },
-          { name: "Soins", price: { kind: "from", value: 300 } },
-          { name: "Coupe", price: { kind: "from", value: 500 } },
-          { name: "Frange", price: { kind: "from", value: 300 } },
-          { name: "Coupe homme", price: { kind: "from", value: 900 } },
-          { name: "Barbe", price: { kind: "from", value: 500 } },
-          { name: "Coupe homme + barbe", price: { kind: "from", value: 1200 } },
-          { name: "Tresses / rasta", price: { kind: "from", value: 1000 } },
+          { id: "short", name: "Cheveux court", price: { kind: "from", value: 600 } },
+          { id: "medium", name: "Cheveux mi-longs", price: { kind: "from", value: 750 } },
+          { id: "long", name: "Cheveux longs", price: { kind: "from", value: 900 } },
+          { id: "extra-long", name: "Cheveux extra longs", price: { kind: "from", value: 1100 } },
+          { id: "wavy-extra", name: "Supp wavy", price: { kind: "supplement", value: 150 } },
+          { id: "treatment", name: "Soins", price: { kind: "from", value: 300 } },
+          { id: "cut", name: "Coupe", price: { kind: "from", value: 500 } },
+          { id: "bangs", name: "Frange", price: { kind: "from", value: 300 } },
+          { id: "mens-cut", name: "Coupe homme", price: { kind: "from", value: 900 } },
+          { id: "beard", name: "Barbe", price: { kind: "from", value: 500 } },
+          { id: "mens-cut-beard", name: "Coupe homme + barbe", price: { kind: "from", value: 1200 } },
+          { id: "braids", name: "Tresses / rasta", price: { kind: "from", value: 1000 } },
         ],
       },
       {
         id: "couleur",
         title: "Couleur : shampoing + brushing",
-        notes: ["Tarifs indiqués à partir de."],
+        notes: ["from-price"],
         items: [
-          { name: "Cheveux court", price: { kind: "from", value: 2300 } },
-          { name: "Cheveux mi-longs", price: { kind: "from", value: 3100 } },
-          { name: "Cheveux longs", price: { kind: "from", value: 4500 } },
-          { name: "Racine", price: { kind: "from", value: 2000 } },
-          { name: "Décoration racine", price: { kind: "from", value: 3500 } },
-          { name: "Patine", price: { kind: "from", value: 1800 } },
+          { id: "short", name: "Cheveux court", price: { kind: "from", value: 2300 } },
+          { id: "medium", name: "Cheveux mi-longs", price: { kind: "from", value: 3100 } },
+          { id: "long", name: "Cheveux longs", price: { kind: "from", value: 4500 } },
+          { id: "roots", name: "Racine", price: { kind: "from", value: 2000 } },
+          { id: "root-decoration", name: "Décoration racine", price: { kind: "from", value: 3500 } },
+          { id: "toner", name: "Patine", price: { kind: "from", value: 1800 } },
         ],
       },
       {
         id: "coloration-avancee",
         title: "Ombré · Balayage · Highlight",
-        notes: ["Tarifs indiqués à partir de."],
+        notes: ["from-price"],
         items: [
-          { name: "Cheveux court — ombré", price: { kind: "from", value: 4500 } },
-          { name: "Cheveux court — balayage", price: { kind: "from", value: 5000 } },
-          { name: "Cheveux court — highlight", price: { kind: "from", value: 7000 } },
-          { name: "Cheveux mi-longs — ombré", price: { kind: "from", value: 5500 } },
-          { name: "Cheveux mi-longs — balayage", price: { kind: "from", value: 6000 } },
-          { name: "Cheveux mi-longs — highlight", price: { kind: "from", value: 8500 } },
-          { name: "Cheveux longs — ombré", price: { kind: "from", value: 6000 } },
-          { name: "Cheveux longs — balayage", price: { kind: "from", value: 7000 } },
-          { name: "Cheveux longs — highlight", price: { kind: "from", value: 9500 } },
-          { name: "Extensions", price: { kind: "quote" } },
+          { id: "short-ombre", name: "Cheveux court — ombré", price: { kind: "from", value: 4500 } },
+          { id: "short-balayage", name: "Cheveux court — balayage", price: { kind: "from", value: 5000 } },
+          { id: "short-highlight", name: "Cheveux court — highlight", price: { kind: "from", value: 7000 } },
+          { id: "medium-ombre", name: "Cheveux mi-longs — ombré", price: { kind: "from", value: 5500 } },
+          { id: "medium-balayage", name: "Cheveux mi-longs — balayage", price: { kind: "from", value: 6000 } },
+          { id: "medium-highlight", name: "Cheveux mi-longs — highlight", price: { kind: "from", value: 8500 } },
+          { id: "long-ombre", name: "Cheveux longs — ombré", price: { kind: "from", value: 6000 } },
+          { id: "long-balayage", name: "Cheveux longs — balayage", price: { kind: "from", value: 7000 } },
+          { id: "long-highlight", name: "Cheveux longs — highlight", price: { kind: "from", value: 9500 } },
+          { id: "extensions", name: "Extensions", price: { kind: "quote" } },
         ],
       },
     ],
@@ -95,36 +99,36 @@ export const categories: ServiceCategory[] = [
       {
         id: "manucure",
         title: "Manucure & onglerie",
-        notes: ["Remplissage max 3 semaines."],
+        notes: ["fill-max-3-weeks"],
         items: [
-          { name: "Manucure simple", price: { kind: "fixed", value: 1100 } },
-          { name: "Manucure semi-permanent", price: { kind: "fixed", value: 1500 } },
-          { name: "Manucure gel", price: { kind: "fixed", value: 1750 } },
-          { name: "Manucure extensions", price: { kind: "fixed", value: 2050 } },
-          { name: "Remplissage", price: { kind: "fixed", value: 1800 } },
-          { name: "Dépose semi-permanent", price: { kind: "fixed", value: 400 } },
-          { name: "Dépose gel", price: { kind: "fixed", value: 600 } },
-          { name: "Babyboomer / French", price: { kind: "fixed", value: 250 } },
-          { name: "Nail arts", price: { kind: "range", min: 50, max: 150 } },
-          { name: "Ongle cassé (réparation)", price: { kind: "fixed", value: 150 } },
-          { name: "Manucure homme", price: { kind: "fixed", value: 1500 } },
+          { id: "simple", name: "Manucure simple", price: { kind: "fixed", value: 1100 } },
+          { id: "semi", name: "Manucure semi-permanent", price: { kind: "fixed", value: 1500 } },
+          { id: "gel", name: "Manucure gel", price: { kind: "fixed", value: 1750 } },
+          { id: "extensions", name: "Manucure extensions", price: { kind: "fixed", value: 2050 } },
+          { id: "fill", name: "Remplissage", price: { kind: "fixed", value: 1800 } },
+          { id: "remove-semi", name: "Dépose semi-permanent", price: { kind: "fixed", value: 400 } },
+          { id: "remove-gel", name: "Dépose gel", price: { kind: "fixed", value: 600 } },
+          { id: "babyboomer", name: "Babyboomer / French", price: { kind: "fixed", value: 250 } },
+          { id: "nail-art", name: "Nail arts", price: { kind: "range", min: 50, max: 150 } },
+          { id: "broken-nail", name: "Ongle cassé (réparation)", price: { kind: "fixed", value: 150 } },
+          { id: "mens", name: "Manucure homme", price: { kind: "fixed", value: 1500 } },
         ],
       },
       {
         id: "pedicure",
         title: "Pédicure",
         items: [
-          { name: "Pédicure simple", price: { kind: "fixed", value: 1100 } },
-          { name: "Pédicure semi-permanent", price: { kind: "fixed", value: 1500 } },
-          { name: "Pédicure gel", price: { kind: "fixed", value: 1700 } },
-          { name: "Spa pédicure", price: { kind: "fixed", value: 1500 } },
-          { name: "Spa pédicure + semi-permanent", price: { kind: "fixed", value: 1900 } },
-          { name: "Spa pédicure + gel", price: { kind: "fixed", value: 2200 } },
-          { name: "Dépose semi-permanent", price: { kind: "fixed", value: 200 } },
-          { name: "Dépose gel", price: { kind: "fixed", value: 400 } },
-          { name: "Extensions", price: { kind: "fixed", value: 150 } },
-          { name: "Pédicure homme", price: { kind: "fixed", value: 1600 } },
-          { name: "Spa pédicure homme", price: { kind: "fixed", value: 2200 } },
+          { id: "simple", name: "Pédicure simple", price: { kind: "fixed", value: 1100 } },
+          { id: "semi", name: "Pédicure semi-permanent", price: { kind: "fixed", value: 1500 } },
+          { id: "gel", name: "Pédicure gel", price: { kind: "fixed", value: 1700 } },
+          { id: "spa", name: "Spa pédicure", price: { kind: "fixed", value: 1500 } },
+          { id: "spa-semi", name: "Spa pédicure + semi-permanent", price: { kind: "fixed", value: 1900 } },
+          { id: "spa-gel", name: "Spa pédicure + gel", price: { kind: "fixed", value: 2200 } },
+          { id: "remove-semi", name: "Dépose semi-permanent", price: { kind: "fixed", value: 200 } },
+          { id: "remove-gel", name: "Dépose gel", price: { kind: "fixed", value: 400 } },
+          { id: "extensions", name: "Extensions", price: { kind: "fixed", value: 150 } },
+          { id: "mens", name: "Pédicure homme", price: { kind: "fixed", value: 1600 } },
+          { id: "spa-mens", name: "Spa pédicure homme", price: { kind: "fixed", value: 2200 } },
         ],
       },
     ],
@@ -139,40 +143,38 @@ export const categories: ServiceCategory[] = [
       {
         id: "pose-complete",
         title: "Pose complète",
-        notes: ["Remplissage maximum : 21 jours (3 semaines)."],
+        notes: ["fill-max-21-days"],
         items: [
-          { name: "Cil à cil", price: { kind: "fixed", value: 1900 } },
-          { name: "Mix volume", price: { kind: "fixed", value: 2100 } },
-          { name: "Volume russe (2 & 3D)", price: { kind: "fixed", value: 2400 } },
-          { name: "Volume russe (4 & 5D)", price: { kind: "fixed", value: 2600 } },
-          { name: "Méga volume (6 & 7D)", price: { kind: "fixed", value: 2800 } },
-          { name: "Extra méga volume (8D et plus)", price: { kind: "fixed", value: 3100 } },
-          { name: "Dépose beauté", price: { kind: "fixed", value: 300 } },
-          { name: "Dépose extérieure", price: { kind: "fixed", value: 500 } },
+          { id: "classic", name: "Cil à cil", price: { kind: "fixed", value: 1900 } },
+          { id: "mix", name: "Mix volume", price: { kind: "fixed", value: 2100 } },
+          { id: "russian-2-3", name: "Volume russe (2 & 3D)", price: { kind: "fixed", value: 2400 } },
+          { id: "russian-4-5", name: "Volume russe (4 & 5D)", price: { kind: "fixed", value: 2600 } },
+          { id: "mega-6-7", name: "Méga volume (6 & 7D)", price: { kind: "fixed", value: 2800 } },
+          { id: "extra-mega-8", name: "Extra méga volume (8D et plus)", price: { kind: "fixed", value: 3100 } },
+          { id: "remove-studio", name: "Dépose beauté", price: { kind: "fixed", value: 300 } },
+          { id: "remove-external", name: "Dépose extérieure", price: { kind: "fixed", value: 500 } },
         ],
       },
       {
         id: "comblage",
         title: "Comblage",
-        notes: [
-          "Cils colorés, courbure L, effet mouillé ou effet Kim K : +400 EGP.",
-        ],
+        notes: ["lash-extras"],
         items: [
-          { name: "Cil à cil", price: { kind: "fixed", value: 1700 } },
-          { name: "Mix volume", price: { kind: "fixed", value: 1900 } },
-          { name: "Volume russe (2 & 3D)", price: { kind: "fixed", value: 2200 } },
-          { name: "Volume russe (4 & 5D)", price: { kind: "fixed", value: 2400 } },
-          { name: "Méga volume (6 & 7D)", price: { kind: "fixed", value: 2600 } },
-          { name: "Extra méga volume (8D et plus)", price: { kind: "fixed", value: 2900 } },
+          { id: "classic", name: "Cil à cil", price: { kind: "fixed", value: 1700 } },
+          { id: "mix", name: "Mix volume", price: { kind: "fixed", value: 1900 } },
+          { id: "russian-2-3", name: "Volume russe (2 & 3D)", price: { kind: "fixed", value: 2200 } },
+          { id: "russian-4-5", name: "Volume russe (4 & 5D)", price: { kind: "fixed", value: 2400 } },
+          { id: "mega-6-7", name: "Méga volume (6 & 7D)", price: { kind: "fixed", value: 2600 } },
+          { id: "extra-mega-8", name: "Extra méga volume (8D et plus)", price: { kind: "fixed", value: 2900 } },
         ],
       },
       {
         id: "lash-brow",
         title: "Lash & brow",
         items: [
-          { name: "Browlift", price: { kind: "fixed", value: 1500 } },
-          { name: "Teinture", price: { kind: "fixed", value: 500 } },
-          { name: "Rehaussement de cils", price: { kind: "fixed", value: 1500 } },
+          { id: "browlift", name: "Browlift", price: { kind: "fixed", value: 1500 } },
+          { id: "tint", name: "Teinture", price: { kind: "fixed", value: 500 } },
+          { id: "lash-lift", name: "Rehaussement de cils", price: { kind: "fixed", value: 1500 } },
         ],
       },
     ],
@@ -187,12 +189,12 @@ export const categories: ServiceCategory[] = [
       {
         id: "pmu",
         title: "Maquillage permanent",
-        notes: ["Après 2 mois — tarif complet."],
+        notes: ["after-2-months-full"],
         items: [
-          { name: "Microblading sourcils", price: { kind: "fixed", value: 9900 } },
-          { name: "Candy lips", price: { kind: "fixed", value: 9000 } },
-          { name: "Inter-cils", price: { kind: "fixed", value: 6000 } },
-          { name: "Retouche dans les 2 mois", price: { kind: "fixed", value: 5000 } },
+          { id: "microblading", name: "Microblading sourcils", price: { kind: "fixed", value: 9900 } },
+          { id: "candy-lips", name: "Candy lips", price: { kind: "fixed", value: 9000 } },
+          { id: "inter-lash", name: "Inter-cils", price: { kind: "fixed", value: 6000 } },
+          { id: "touch-up", name: "Retouche dans les 2 mois", price: { kind: "fixed", value: 5000 } },
         ],
       },
     ],
@@ -207,25 +209,26 @@ export const categories: ServiceCategory[] = [
       {
         id: "epilation",
         title: "Esthétique & épilation",
-        notes: ["Prestations hommes +20 %."],
+        notes: ["men-plus-20"],
         items: [
-          { name: "Épilation sourcils", price: { kind: "fixed", value: 450 } },
-          { name: "Épilation lèvres", price: { kind: "fixed", value: 300 } },
-          { name: "Épilation joues", price: { kind: "fixed", value: 500 } },
+          { id: "brows", name: "Épilation sourcils", price: { kind: "fixed", value: 450 } },
+          { id: "lips", name: "Épilation lèvres", price: { kind: "fixed", value: 300 } },
+          { id: "cheeks", name: "Épilation joues", price: { kind: "fixed", value: 500 } },
           {
+            id: "full-face",
             name: "Épilation visage complet (sourcils, lèvres, joues, menton)",
             price: { kind: "fixed", value: 1300 },
           },
-          { name: "Épilation aisselles", price: { kind: "fixed", value: 450 } },
-          { name: "Épilation demi-bras", price: { kind: "fixed", value: 650 } },
-          { name: "Épilation bras complets", price: { kind: "fixed", value: 1000 } },
-          { name: "Épilation jambes complètes", price: { kind: "fixed", value: 1200 } },
-          { name: "Épilation demi-jambes", price: { kind: "fixed", value: 700 } },
-          { name: "Épilation maillot simple", price: { kind: "fixed", value: 1200 } },
-          { name: "Épilation brésilienne", price: { kind: "fixed", value: 700 } },
-          { name: "Épilation maillot intégral", price: { kind: "fixed", value: 1200 } },
-          { name: "Épilation interfessier", price: { kind: "fixed", value: 300 } },
-          { name: "Épilation dos", price: { kind: "from", value: 300 } },
+          { id: "underarms", name: "Épilation aisselles", price: { kind: "fixed", value: 450 } },
+          { id: "half-arms", name: "Épilation demi-bras", price: { kind: "fixed", value: 650 } },
+          { id: "full-arms", name: "Épilation bras complets", price: { kind: "fixed", value: 1000 } },
+          { id: "full-legs", name: "Épilation jambes complètes", price: { kind: "fixed", value: 1200 } },
+          { id: "half-legs", name: "Épilation demi-jambes", price: { kind: "fixed", value: 700 } },
+          { id: "bikini", name: "Épilation maillot simple", price: { kind: "fixed", value: 1200 } },
+          { id: "brazilian", name: "Épilation brésilienne", price: { kind: "fixed", value: 700 } },
+          { id: "full-bikini", name: "Épilation maillot intégral", price: { kind: "fixed", value: 1200 } },
+          { id: "intergluteal", name: "Épilation interfessier", price: { kind: "fixed", value: 300 } },
+          { id: "back", name: "Épilation dos", price: { kind: "from", value: 300 } },
         ],
       },
     ],
@@ -241,13 +244,17 @@ export const categories: ServiceCategory[] = [
         id: "corps",
         title: "Soins du corps",
         items: [
-          { name: "Lifting colombien fessier", price: { kind: "fixed", value: 1400 } },
-          { name: "Massage madérothérapie", price: { kind: "fixed", value: 1900 } },
-          { name: "Massage relaxant — 30 min", price: { kind: "fixed", value: 1800 } },
-          { name: "Massage relaxant — 1h", price: { kind: "fixed", value: 2200 } },
-          { name: "Soins du visage", price: { kind: "fixed", value: 2500 } },
-          { name: "Séance hijama (thérapie par ventouses)", price: { kind: "fixed", value: 2000 } },
-          { name: "Korean face massage", price: { kind: "fixed", value: 1500 } },
+          { id: "colombian-lift", name: "Lifting colombien fessier", price: { kind: "fixed", value: 1400 } },
+          { id: "maderotherapy", name: "Massage madérothérapie", price: { kind: "fixed", value: 1900 } },
+          { id: "massage-30", name: "Massage relaxant — 30 min", price: { kind: "fixed", value: 1800 } },
+          { id: "massage-60", name: "Massage relaxant — 1h", price: { kind: "fixed", value: 2200 } },
+          { id: "facial", name: "Soins du visage", price: { kind: "fixed", value: 2500 } },
+          {
+            id: "hijama",
+            name: "Séance hijama (thérapie par ventouses)",
+            price: { kind: "fixed", value: 2000 },
+          },
+          { id: "korean-face", name: "Korean face massage", price: { kind: "fixed", value: 1500 } },
         ],
       },
     ],
@@ -256,4 +263,16 @@ export const categories: ServiceCategory[] = [
 
 export function getCategory(id: string) {
   return categories.find((category) => category.id === id);
+}
+
+export function itemCatalogKey(groupId: string, itemId: string) {
+  return `item.${groupId}.${itemId}`;
+}
+
+export function groupCatalogKey(groupId: string) {
+  return `group.${groupId}`;
+}
+
+export function noteCatalogKey(noteId: string) {
+  return `note.${noteId}`;
 }
