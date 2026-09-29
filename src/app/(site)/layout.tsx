@@ -21,6 +21,12 @@ const jsonLd = {
     addressLocality: salon.city,
     addressCountry: "EG",
   },
+  geo: {
+    "@type": "GeoCoordinates",
+    latitude: salon.location.lat,
+    longitude: salon.location.lng,
+  },
+  hasMap: salon.location.mapsUrl,
   sameAs: [salon.social.instagram.href, salon.social.facebook.href, salon.social.snapchat.href],
 };
 

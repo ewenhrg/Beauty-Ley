@@ -4,6 +4,13 @@ export const salon = {
   city: "Hurghada",
   country: "Égypte",
   currency: "EGP",
+  location: {
+    lat: 27.2047397,
+    lng: 33.8487333,
+    mapsUrl: "https://maps.app.goo.gl/FWYahcDVNFYG8pBU6",
+    /** Public embed (no API key). Pin points to Beauty Ley in Hurghada. */
+    embedUrl: "https://www.google.com/maps?q=27.2047397,33.8487333&z=16&output=embed",
+  },
   social: {
     instagram: {
       label: "Instagram",

@@ -23,6 +23,19 @@ export async function ContactSection() {
               <dt className="text-[11px] tracking-[0.2em] text-rose uppercase">{t("contact.city")}</dt>
               <dd className="mt-2 text-lg">{salon.city}</dd>
             </Reveal>
+            <Reveal as="div" delay={230}>
+              <dt className="text-[11px] tracking-[0.2em] text-rose uppercase">{t("contact.map")}</dt>
+              <dd className="mt-2">
+                <a
+                  href={salon.location.mapsUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="nav-link text-sm text-terracotta underline-offset-4 hover:text-rose"
+                >
+                  {t("contact.openMaps")}
+                </a>
+              </dd>
+            </Reveal>
             <Reveal as="div" delay={260}>
               <dt className="text-[11px] tracking-[0.2em] text-rose uppercase">{t("contact.booking")}</dt>
               <dd className="mt-2 max-w-sm text-ink-soft">{t("contact.bookingOnline")}</dd>
@@ -73,17 +86,27 @@ export async function ContactSection() {
             <BookingButton />
           </Reveal>
         </div>
-        <div>
-          <picture>
-            <source srcSet="/images/salon/styling.webp" type="image/webp" />
-            <img
-              src="/images/salon/styling.jpg"
-              alt={t("contact.altStyling")}
-              className="aspect-4/5 w-full rounded-[2rem] object-cover lg:aspect-[4/5]"
+        <Reveal delay={200} className="min-w-0">
+          <div className="overflow-hidden rounded-[2rem] ring-1 ring-line shadow-soft">
+            <iframe
+              title={t("contact.mapTitle")}
+              src={salon.location.embedUrl}
+              className="aspect-4/5 h-full w-full border-0 lg:aspect-[4/5]"
               loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              allowFullScreen
             />
-          </picture>
-        </div>
+          </div>
+          <a
+            href={salon.location.mapsUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-4 inline-flex items-center gap-2 text-[11px] tracking-[0.18em] text-ink-soft uppercase transition-colors hover:text-terracotta"
+          >
+            {t("contact.openMaps")}
+            <span aria-hidden="true">→</span>
+          </a>
+        </Reveal>
       </div>
     </section>
   );
