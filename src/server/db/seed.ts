@@ -69,14 +69,14 @@ const CATEGORIES: Array<{
     name: "Épilation",
     slug: "epilation",
     description: "Visage, corps et maillot à la cire.",
-    image: "/images/work/portrait-freckles.jpg",
+    image: "/images/work/waxing-esthetics.png",
   },
   {
     id: "cat-soins",
     name: "Soins & massages",
     slug: "soins",
     description: "Soins du visage, massages et rituels du corps.",
-    image: "/images/salon/pedicure-lounge.jpg",
+    image: "/images/work/body-care-massage.png",
   },
 ];
 

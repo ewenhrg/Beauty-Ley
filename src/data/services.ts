@@ -203,8 +203,8 @@ export const categories: ServiceCategory[] = [
     id: "esthetique",
     title: "Esthétique & épilation",
     href: "/prestations#esthetique",
-    image: "/images/salon/hair-wash.jpg",
-    imageAlt: "Espace lavage Beauty Ley",
+    image: "/images/work/waxing-esthetics.png",
+    imageAlt: "Soin d'épilation et esthétique chez Beauty Ley",
     groups: [
       {
         id: "epilation",
@@ -237,8 +237,8 @@ export const categories: ServiceCategory[] = [
     id: "soins",
     title: "Soins du corps",
     href: "/prestations#soins",
-    image: "/images/salon/pedicure-lounge.jpg",
-    imageAlt: "Espace spa et pédicure Beauty Ley",
+    image: "/images/work/body-care-massage.png",
+    imageAlt: "Soins du corps et massage chez Beauty Ley",
     groups: [
       {
         id: "corps",
