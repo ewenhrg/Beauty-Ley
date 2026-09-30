@@ -96,12 +96,11 @@ const SERVICES: Record<string, ServiceSeed[]> = {
     ["svc-brushing-long", "Shampoing + brushing — longs", 75, 900, "from", "Shampoing, soin et brushing longue tenue."],
     ["svc-brushing-extra", "Shampoing + brushing — extra longs", 90, 1100, "from", "Pour les longueurs au-delà du milieu du dos."],
     ["svc-coupe", "Coupe", 45, 500, "from", "Coupe personnalisée, shampoing inclus."],
-    ["svc-frange", "Frange", 20, 300, "from", "Création ou rafraîchissement de frange."],
+    ["svc-frange", "Bang", 20, 300, "from", "Création ou rafraîchissement de frange."],
     ["svc-soin-cheveux", "Soin profond", 40, 300, "from", "Masque restructurant et modelage du cuir chevelu."],
-    ["svc-coupe-homme", "Coupe homme", 45, 900, "from", "Coupe, contours et coiffage."],
-    ["svc-barbe", "Barbe", 30, 500, "from", "Taille, contours et soin de la barbe."],
-    ["svc-coupe-barbe", "Coupe homme + barbe", 75, 1200, "from", "Le duo coupe et barbe en une séance."],
-    ["svc-tresses", "Tresses / rasta", 150, 1000, "from", "Tressage sur mesure, durée selon la longueur."],
+    ["svc-coupe-homme", "Coupe seul homme", 45, 900, "from", "Coupe, contours et coiffage."],
+    ["svc-coupe-homme-shampoing", "Coupe homme + shampoing", 60, 1200, "from", "Coupe homme avec shampoing."],
+    ["svc-barbe", "Barbe", 30, 400, "from", "Taille, contours et soin de la barbe."],
   ],
   "cat-coloration": [
     ["svc-couleur-court", "Couleur + brushing — cheveux courts", 120, 2300, "from", "Coloration complète, shampoing et brushing."],
@@ -176,12 +175,10 @@ const SERVICES: Record<string, ServiceSeed[]> = {
   ],
   "cat-soins": [
     ["svc-soin-visage", "Soins du visage", 60, 2500, "fixed", "Nettoyage profond, sérum et massage."],
-    ["svc-korean-massage", "Korean face massage", 45, 1500, "fixed", "Massage liftant du visage et du cou."],
     ["svc-massage-30", "Massage relaxant — 30 min", 30, 1800, "fixed", "Détente du dos et des épaules."],
     ["svc-massage-60", "Massage relaxant — 1 h", 60, 2200, "fixed", "Massage complet du corps."],
     ["svc-maderotherapie", "Massage madérothérapie", 60, 1900, "fixed", "Modelage aux instruments de bois."],
     ["svc-lifting-colombien", "Lifting colombien fessier", 60, 1400, "fixed", "Modelage remodelant et drainant."],
-    ["svc-hijama", "Séance hijama", 60, 2000, "fixed", "Thérapie par ventouses."],
   ],
 };
 
