@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { PageHeader } from "@/components/PageHeader";
-import { WhatsAppServiceBooking } from "@/components/booking/WhatsAppServiceBooking";
+import { HybridReservation } from "@/components/booking/HybridReservation";
 import { getT } from "@/i18n/server";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -21,7 +22,9 @@ export default async function ReservationPage() {
         <h2 className="font-display text-2xl text-ink sm:text-3xl">{t("booking.service.title")}</h2>
         <p className="mt-3 text-sm leading-relaxed text-ink-soft">{t("booking.service.lead")}</p>
         <div className="mt-8">
-          <WhatsAppServiceBooking />
+          <Suspense fallback={null}>
+            <HybridReservation />
+          </Suspense>
         </div>
       </section>
     </>

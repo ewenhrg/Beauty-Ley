@@ -31,7 +31,14 @@ import { intlLocale } from "@/i18n/config";
 
 type FieldErrors = Partial<Record<keyof CustomerDetails | "acceptTerms", string>>;
 
-export function BookingFlow() {
+export function BookingFlow({
+  presetServiceId,
+  hideServiceStep = false,
+}: {
+  /** Skip the picker and lock this online service (hybrid reservation). */
+  presetServiceId?: string;
+  hideServiceStep?: boolean;
+} = {}) {
   const t = useT();
   const locale = useLocale();
   const params = useSearchParams();
@@ -59,20 +66,21 @@ export function BookingFlow() {
         );
       });
     return () => controller.abort();
-  }, []);
+  }, [t]);
 
   // Restore a draft once the catalogue is known, so stale ids can be dropped.
   useEffect(() => {
     if (!catalog || restored.current) return;
     restored.current = true;
 
-    const requested = params.get("service");
+    const onlineOnly = catalog.services.filter((service) => service.bookingChannel === "online");
+    const requested = presetServiceId || params.get("service");
     const draft = loadDraft();
     const known = (id: string | null) =>
-      Boolean(id && catalog.services.some((service) => service.id === id));
+      Boolean(id && onlineOnly.some((service) => service.id === id));
 
     if (requested && known(requested)) {
-      const service = catalog.services.find((item) => item.id === requested);
+      const service = onlineOnly.find((item) => item.id === requested);
       dispatch({
         type: "pickService",
         serviceId: requested,
@@ -82,8 +90,8 @@ export function BookingFlow() {
       });
       return;
     }
-    if (draft && known(draft.serviceId)) {
-      const service = catalog.services.find((item) => item.id === draft.serviceId);
+    if (!hideServiceStep && draft && known(draft.serviceId)) {
+      const service = onlineOnly.find((item) => item.id === draft.serviceId);
       const chooseStaff = service
         ? serviceAllowsStaffChoice(service.categoryId, catalog.categories)
         : false;
@@ -103,15 +111,26 @@ export function BookingFlow() {
         },
       });
     }
-  }, [catalog, params]);
+  }, [catalog, params, presetServiceId, hideServiceStep]);
 
   useEffect(() => {
     if (restored.current) saveDraft(state);
   }, [state]);
 
+  const onlineCatalog = useMemo(() => {
+    if (!catalog) return null;
+    const services = catalog.services.filter((item) => item.bookingChannel === "online");
+    const categoryIds = new Set(services.map((item) => item.categoryId));
+    return {
+      ...catalog,
+      services,
+      categories: catalog.categories.filter((category) => categoryIds.has(category.id)),
+    };
+  }, [catalog]);
+
   const service = useMemo(
-    () => catalog?.services.find((item) => item.id === state.serviceId) ?? null,
-    [catalog, state.serviceId],
+    () => onlineCatalog?.services.find((item) => item.id === state.serviceId) ?? null,
+    [onlineCatalog, state.serviceId],
   );
   const staffMember = useMemo(
     () => catalog?.staff.find((member) => member.id === state.staffId) ?? null,
@@ -208,7 +227,7 @@ export function BookingFlow() {
     );
   }
 
-  if (!catalog) return <CatalogSkeleton />;
+  if (!catalog || !onlineCatalog) return <CatalogSkeleton />;
 
   const canContinue =
     state.step === "service"
@@ -220,7 +239,9 @@ export function BookingFlow() {
           : true;
 
   const previousStep: StepId | null = (() => {
-    const steps = flowSteps(state.chooseStaff);
+    const steps = flowSteps(state.chooseStaff).filter(
+      (step) => !(hideServiceStep && step === "service"),
+    );
     const index = steps.indexOf(state.step);
     return index > 0 ? steps[index - 1] : null;
   })();
@@ -230,6 +251,7 @@ export function BookingFlow() {
       <Progress
         current={state.step}
         chooseStaff={state.chooseStaff}
+        hideServiceStep={hideServiceStep}
         onJump={goto}
         reachable={reachableSteps(state)}
       />
@@ -244,16 +266,16 @@ export function BookingFlow() {
         key={state.step}
         className={`mt-8 ${direction === "forward" ? "step-in" : "step-in-back"}`}
       >
-        {state.step === "service" ? (
+        {state.step === "service" && !hideServiceStep ? (
           <ServiceStep
-            catalog={catalog}
+            catalog={onlineCatalog}
             selectedId={state.serviceId}
             onSelect={(picked) => {
               setDirection("forward");
               dispatch({
                 type: "pickService",
                 serviceId: picked.id,
-                chooseStaff: serviceAllowsStaffChoice(picked.categoryId, catalog.categories),
+                chooseStaff: serviceAllowsStaffChoice(picked.categoryId, onlineCatalog.categories),
               });
               scrollToTop();
             }}
@@ -263,7 +285,7 @@ export function BookingFlow() {
         {state.step === "staff" && service ? (
           <StaffStep
             service={service}
-            staff={catalog.staff}
+            staff={onlineCatalog.staff}
             selectedId={state.staffPicked ? state.staffId : undefined}
             onSelect={(staffId) => {
               setDirection("forward");
@@ -277,7 +299,7 @@ export function BookingFlow() {
           <DateTimeStep
             service={service}
             staffId={state.staffId}
-            staff={catalog.staff}
+            staff={onlineCatalog.staff}
             date={state.date}
             startAt={state.startAt}
             revision={revision}
@@ -380,16 +402,20 @@ export function BookingFlow() {
 function Progress({
   current,
   chooseStaff,
+  hideServiceStep = false,
   reachable,
   onJump,
 }: {
   current: StepId;
   chooseStaff: boolean;
+  hideServiceStep?: boolean;
   reachable: StepId[];
   onJump: (step: StepId) => void;
 }) {
   const t = useT();
-  const steps = flowSteps(chooseStaff);
+  const steps = flowSteps(chooseStaff).filter(
+    (step) => !(hideServiceStep && step === "service"),
+  );
   const currentIndex = steps.indexOf(current);
   return (
     <nav aria-label={t("booking.stepsAria")}>

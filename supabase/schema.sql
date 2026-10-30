@@ -22,17 +22,19 @@ create table if not exists service_categories (
 );
 
 create table if not exists services (
-  id           text primary key,
-  category_id  text        not null references service_categories (id) on delete restrict,
-  name         text        not null,
-  description  text,
-  duration_min integer     not null check (duration_min between 5 and 600),
-  buffer_min   integer     not null default 0 check (buffer_min between 0 and 120),
-  price        integer     not null check (price >= 0),
-  price_kind   text        not null default 'fixed' check (price_kind in ('fixed', 'from')),
-  image        text,
-  sort_order   integer     not null default 0,
-  active       boolean     not null default true
+  id               text primary key,
+  category_id      text        not null references service_categories (id) on delete restrict,
+  name             text        not null,
+  description      text,
+  duration_min     integer     not null check (duration_min between 5 and 600),
+  buffer_min       integer     not null default 0 check (buffer_min between 0 and 120),
+  price            integer     not null check (price >= 0),
+  price_kind       text        not null default 'fixed' check (price_kind in ('fixed', 'from')),
+  image            text,
+  sort_order       integer     not null default 0,
+  active           boolean     not null default true,
+  booking_channel  text        not null default 'whatsapp' check (booking_channel in ('whatsapp', 'online')),
+  online_weekdays  integer[]   not null default '{}'
 );
 
 create index if not exists services_category_idx on services (category_id);

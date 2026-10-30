@@ -44,12 +44,12 @@ export function ServicesPreview() {
                     className="aspect-4/5 w-full object-cover object-top"
                     loading="lazy"
                   />
-                  <div className="absolute inset-0 bg-linear-to-t from-terracotta/85 via-ink/15 to-transparent transition-opacity duration-500 group-hover:from-rose/90" />
+                  <div className="absolute inset-0 bg-linear-to-t from-ink/90 via-ink/45 to-transparent transition-opacity duration-500 group-hover:from-ink/95" />
                   <div className="absolute inset-x-0 bottom-0 p-6">
-                    <h3 className="font-display text-2xl text-cream">
+                    <h3 className="font-display text-2xl text-cream drop-shadow-[0_2px_8px_rgba(0,0,0,0.55)] sm:text-3xl">
                       {key ? t(key) : category.title}
                     </h3>
-                    <p className="mt-2 flex items-center gap-2 text-[11px] tracking-[0.2em] text-gold-soft uppercase">
+                    <p className="mt-2 flex items-center gap-2 text-[11px] tracking-[0.2em] text-cream/90 uppercase drop-shadow-[0_1px_4px_rgba(0,0,0,0.45)]">
                       {t("services.discover")}
                       <span className="transition-transform duration-500 group-hover:translate-x-1">
                         →

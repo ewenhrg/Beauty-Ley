@@ -52,6 +52,10 @@ export default async function AdminSettingsPage() {
 
       <div className="mt-8 grid gap-6 xl:grid-cols-2">
         <Card title="Horaires d'ouverture">
+          <p className="mb-4 text-xs leading-relaxed text-ink-soft">
+            Ces jours et créneaux définissent quand le calendrier de réservation en ligne est
+            ouvert pour les clients (en plus des jours choisis par prestation).
+          </p>
           <BusinessHoursForm hours={hours} />
         </Card>
 

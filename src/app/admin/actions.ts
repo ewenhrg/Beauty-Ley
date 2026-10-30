@@ -341,6 +341,16 @@ export async function saveServiceAction(
     const id = asOptionalString(formData.get("id"), "id", 80);
     const staffIds = formData.getAll("staffIds").map(String).filter(Boolean);
 
+    const bookingChannel = asEnum(
+      formData.get("bookingChannel"),
+      ["whatsapp", "online"] as const,
+      "bookingChannel",
+    );
+    const onlineWeekdays = formData
+      .getAll("onlineWeekdays")
+      .map((value) => Number(value))
+      .filter((day) => Number.isInteger(day) && day >= 0 && day <= 6);
+
     const patch: Partial<ServiceRow> = {
       category_id: asString(formData.get("categoryId"), "categoryId"),
       name: asString(formData.get("name"), "name", { max: 120 }),
@@ -352,6 +362,8 @@ export async function saveServiceAction(
       image: asOptionalString(formData.get("image"), "image", 300),
       sort_order: asInteger(formData.get("sortOrder") ?? 0, "sortOrder", { min: 0, max: 999 }),
       active: formData.get("active") === "on",
+      booking_channel: bookingChannel,
+      online_weekdays: bookingChannel === "online" ? onlineWeekdays : [],
     };
 
     const serviceId = id ?? newId("svc");
@@ -362,7 +374,7 @@ export async function saveServiceAction(
     }
     await setServiceStaff(serviceId, staffIds);
     return id ? "Prestation mise à jour." : "Prestation créée.";
-  }, ["/admin/prestations", "/prestations"]);
+  }, ["/admin/prestations", "/prestations", "/reservation"]);
 }
 
 export async function deleteServiceAction(

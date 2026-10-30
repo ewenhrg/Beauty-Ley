@@ -7,9 +7,15 @@ import {
   saveCategoryAction,
   saveServiceAction,
 } from "@/app/admin/actions";
-import type { ServiceCategoryRow, ServiceRow } from "@/server/db/types";
-import { formatDuration } from "@/lib/time";
+import type { BookingChannel, ServiceCategoryRow, ServiceRow } from "@/server/db/types";
+import { formatDuration, weekdayLabel } from "@/lib/time";
 import { ActionForm, LabelledField, Money, SubmitButton, adminInput, adminLabel } from "./ui";
+
+const WEEK_ORDER = [1, 2, 3, 4, 5, 6, 0];
+
+function channelLabel(channel: BookingChannel | undefined) {
+  return channel === "online" ? "Site" : "WhatsApp";
+}
 
 type StaffOption = { id: string; name: string };
 
@@ -84,6 +90,8 @@ export function ServiceEditor({
                             {service.active ? "" : " · inactive"}
                           </span>
                           <span className="mt-0.5 block text-xs text-ink-soft">
+                            {channelLabel(service.booking_channel)}
+                            {" · "}
                             {(staffByService[service.id] ?? [])
                               .map((id) => staff.find((member) => member.id === id)?.name)
                               .filter(Boolean)
@@ -148,6 +156,11 @@ function ServiceForm({
   service?: ServiceRow;
   selectedStaff: string[];
 }) {
+  const [channel, setChannel] = useState<BookingChannel>(
+    service?.booking_channel === "online" ? "online" : "whatsapp",
+  );
+  const selectedWeekdays = new Set(service?.online_weekdays ?? []);
+
   return (
     <>
       <ActionForm action={saveServiceAction}>
@@ -239,9 +252,81 @@ function ServiceForm({
               defaultChecked={service?.active ?? true}
               className="h-4 w-4 accent-[#c17a5c]"
             />
-            Réservable en ligne
+            Active (visible)
           </label>
         </div>
+
+        <fieldset className="mt-4">
+          <legend className={adminLabel}>Réservation depuis le site</legend>
+          <div className="mt-2 grid gap-2 sm:grid-cols-2">
+            <label className="flex cursor-pointer items-start gap-2 rounded-xl border border-line bg-white/60 px-3 py-3 text-sm text-ink">
+              <input
+                type="radio"
+                name="bookingChannel"
+                value="whatsapp"
+                checked={channel === "whatsapp"}
+                onChange={() => setChannel("whatsapp")}
+                className="mt-0.5 h-4 w-4 accent-[#c17a5c]"
+              />
+              <span>
+                <span className="block font-medium">WhatsApp</span>
+                <span className="mt-0.5 block text-xs text-ink-soft">
+                  Le client choisit la prestation puis est renvoyé vers WhatsApp.
+                </span>
+              </span>
+            </label>
+            <label className="flex cursor-pointer items-start gap-2 rounded-xl border border-line bg-white/60 px-3 py-3 text-sm text-ink">
+              <input
+                type="radio"
+                name="bookingChannel"
+                value="online"
+                checked={channel === "online"}
+                onChange={() => setChannel("online")}
+                className="mt-0.5 h-4 w-4 accent-[#c17a5c]"
+              />
+              <span>
+                <span className="block font-medium">Calendrier du site</span>
+                <span className="mt-0.5 block text-xs text-ink-soft">
+                  Le client réserve un créneau directement sur la page réservation.
+                </span>
+              </span>
+            </label>
+          </div>
+        </fieldset>
+
+        {channel === "online" ? (
+          <fieldset className="mt-4">
+            <legend className={adminLabel}>Jours ouverts à la réservation en ligne</legend>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {WEEK_ORDER.map((weekday) => (
+                <label
+                  key={weekday}
+                  className="flex items-center gap-2 rounded-xl border border-line bg-white/60 px-3 py-2 text-sm text-ink"
+                >
+                  <input
+                    type="checkbox"
+                    name="onlineWeekdays"
+                    value={weekday}
+                    defaultChecked={
+                      selectedWeekdays.size === 0 ? true : selectedWeekdays.has(weekday)
+                    }
+                    className="h-4 w-4 accent-[#c17a5c]"
+                  />
+                  {weekdayLabel(weekday, true)}
+                </label>
+              ))}
+            </div>
+            <p className="mt-2 text-xs text-ink-soft">
+              Cochez les jours où cette prestation apparaît dans le calendrier client. Les horaires
+              précis viennent des{" "}
+              <a href="/admin/parametres" className="underline underline-offset-2">
+                horaires du salon
+              </a>{" "}
+              et du planning de l&apos;équipe. Laissez tous cochés pour suivre uniquement ces
+              horaires.
+            </p>
+          </fieldset>
+        ) : null}
 
         <fieldset className="mt-4">
           <legend className={adminLabel}>Professionnelles autorisées</legend>
@@ -260,7 +345,7 @@ function ServiceForm({
             ))}
           </div>
           <p className="mt-2 text-xs text-ink-soft">
-            Une prestation sans professionnelle assignée n&apos;apparaît pas à la réservation.
+            Obligatoire pour la réservation sur le site. Pour WhatsApp, optionnel.
           </p>
         </fieldset>
 

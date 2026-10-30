@@ -83,6 +83,8 @@ async function loadContext(
 ): Promise<Context | null> {
   const service = await getService(serviceId);
   if (!service || !service.active) return null;
+  // Public site may only calendar-book services opened for online booking.
+  if (audience === "public" && service.booking_channel !== "online") return null;
 
   const [settings, assigned, hours, closures, schedules, timeOff, category, team] = await Promise.all([
     getSettings(),
@@ -240,6 +242,11 @@ async function computeSlots(
   const weekday = weekdayOfKey(dateKey);
   if (!context.businessByWeekday.get(weekday)) {
     return { date: dateKey, slots: [], reason: "closed", label: "Salon fermé" };
+  }
+
+  const openWeekdays = service.online_weekdays;
+  if (openWeekdays.length > 0 && !openWeekdays.includes(weekday)) {
+    return { date: dateKey, slots: [], reason: "closed", label: "Non disponible en ligne" };
   }
 
   const busyByStaff = await loadBusy(dateKey, context.staff);

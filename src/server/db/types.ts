@@ -31,6 +31,9 @@ export type ServiceCategoryRow = {
   active: boolean;
 };
 
+/** How clients book this service from the public site. */
+export type BookingChannel = "whatsapp" | "online";
+
 export type ServiceRow = {
   id: string;
   category_id: string;
@@ -46,6 +49,16 @@ export type ServiceRow = {
   image: string | null;
   sort_order: number;
   active: boolean;
+  /**
+   * `whatsapp` opens a prefilled chat; `online` opens the site calendar.
+   * Missing on older rows — treat as `whatsapp`.
+   */
+  booking_channel: BookingChannel;
+  /**
+   * Weekdays (0=Sun … 6=Sat) when online booking is offered for this service.
+   * Empty = every day the salon is open (business hours + staff schedules).
+   */
+  online_weekdays: number[];
 };
 
 export type StaffRow = {

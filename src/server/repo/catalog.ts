@@ -1,6 +1,7 @@
 import { isChoosableHairStylist, isHairCategorySlug, AUTO_CREATED_STAFF_IDS, DEFAULT_WORK_WINDOWS } from "@/lib/staff-choice";
 import { getStore } from "../db";
 import type {
+  BookingChannel,
   ServiceCategoryRow,
   ServiceRow,
   StaffRow,
@@ -9,6 +10,19 @@ import type {
 import { newId } from "../ids";
 import { ensureSeeded, syncStaffFromAccounts } from "./bootstrap";
 import { replaceStaffSchedules } from "./schedule";
+
+/** Backfills fields added after the first seed so old JSON/Supabase rows stay valid. */
+export function normalizeService(row: ServiceRow): ServiceRow {
+  const channel: BookingChannel = row.booking_channel === "online" ? "online" : "whatsapp";
+  const weekdays = Array.isArray(row.online_weekdays)
+    ? row.online_weekdays.filter((day) => Number.isInteger(day) && day >= 0 && day <= 6)
+    : [];
+  return {
+    ...row,
+    booking_channel: channel,
+    online_weekdays: weekdays,
+  };
+}
 
 export async function listCategories(options: { activeOnly?: boolean } = {}) {
   await ensureSeeded();
@@ -21,16 +35,17 @@ export async function listCategories(options: { activeOnly?: boolean } = {}) {
 
 export async function listServices(options: { activeOnly?: boolean } = {}) {
   await ensureSeeded();
-  return getStore().select("services", {
+  const rows = await getStore().select("services", {
     ...(options.activeOnly ? { eq: { active: true } } : {}),
     order: { column: "sort_order" },
   });
+  return rows.map(normalizeService);
 }
 
 export async function getService(id: string) {
   await ensureSeeded();
   const rows = await getStore().select("services", { eq: { id }, limit: 1 });
-  return rows[0] ?? null;
+  return rows[0] ? normalizeService(rows[0]) : null;
 }
 
 export async function getCategory(id: string) {

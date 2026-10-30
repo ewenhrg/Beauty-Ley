@@ -42,6 +42,7 @@ export function toServiceDto(row: ServiceRow, staffIds: string[]): ServiceDto {
     priceKind: row.price_kind,
     image: row.image,
     staffIds,
+    bookingChannel: row.booking_channel === "online" ? "online" : "whatsapp",
   };
 }
 
@@ -87,6 +88,7 @@ export async function buildCatalog(): Promise<CatalogDto> {
   const serviceDtos: ServiceDto[] = [];
 
   for (const service of services) {
+    const channel = service.booking_channel === "online" ? "online" : "whatsapp";
     let ids = (staffByService.get(service.id) ?? []).sort(
       (a, b) => (order.get(a) ?? 0) - (order.get(b) ?? 0),
     );
@@ -102,7 +104,8 @@ export async function buildCatalog(): Promise<CatalogDto> {
       // Nails, lashes, etc. are assigned in admin — any teammate can hold the slot.
       ids = allStaffIds;
     }
-    if (!ids.length) continue;
+    // Online booking needs at least one staff member; WhatsApp does not.
+    if (channel === "online" && !ids.length) continue;
     serviceDtos.push(toServiceDto(service, ids));
     visibleCategories.add(service.category_id);
   }

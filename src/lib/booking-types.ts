@@ -11,6 +11,8 @@ export type CategoryDto = {
   image: string | null;
 };
 
+export type BookingChannelDto = "whatsapp" | "online";
+
 export type ServiceDto = {
   id: string;
   categoryId: string;
@@ -21,6 +23,7 @@ export type ServiceDto = {
   priceKind: "fixed" | "from";
   image: string | null;
   staffIds: string[];
+  bookingChannel: BookingChannelDto;
 };
 
 export type StaffDto = {

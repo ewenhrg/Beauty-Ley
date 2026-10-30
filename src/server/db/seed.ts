@@ -213,6 +213,8 @@ export function buildSeed(now = new Date()): Seed {
       image: null,
       sort_order: index,
       active: true,
+      booking_channel: "whatsapp" as const,
+      online_weekdays: [] as number[],
     })),
   );
 
