@@ -55,6 +55,26 @@ export function getStoreStatus(): StoreStatus {
   return status;
 }
 
+/**
+ * Confirms the configured store actually answers. Env vars alone are not enough:
+ * a deleted Supabase host still looks "ready" until the first query.
+ */
+export async function probeStore(): Promise<StoreStatus> {
+  const current = getStoreStatus();
+  if (!current.ready) return current;
+  try {
+    const store = getStore();
+    await store.select("settings", { limit: 1 });
+    return current;
+  } catch (error) {
+    const reason =
+      error instanceof Error
+        ? error.message
+        : "La base de réservation ne répond pas.";
+    return { ready: false, reason };
+  }
+}
+
 export class BookingUnavailableError extends Error {
   constructor(status: { reason: string }) {
     super(status.reason);

@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { Notice } from "@/components/booking/ui";
 import { firstAdminHref, getAdminSession } from "@/server/auth";
-import { getStoreStatus } from "@/server/db";
+import { probeStore } from "@/server/db";
 
 export const metadata: Metadata = {
   title: "Administration",
@@ -16,7 +16,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const session = await getAdminSession();
   if (!session) redirect("/admin/login");
 
-  const status = getStoreStatus();
+  const status = await probeStore();
 
   return (
     <AdminShell

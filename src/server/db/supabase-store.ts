@@ -83,7 +83,27 @@ export class SupabaseStore implements Store {
   }
 
   private async request(input: string, init: RequestInit) {
-    const response = await fetch(input, { ...init, cache: "no-store" });
+    let response: Response;
+    try {
+      response = await fetch(input, { ...init, cache: "no-store" });
+    } catch (error) {
+      const cause =
+        error instanceof Error && "cause" in error
+          ? (error as Error & { cause?: { code?: string; hostname?: string } }).cause
+          : undefined;
+      const host = cause?.hostname ?? (() => {
+        try {
+          return new URL(this.url).hostname;
+        } catch {
+          return this.url;
+        }
+      })();
+      const unreachable =
+        cause?.code === "ENOTFOUND"
+          ? `Impossible de joindre Supabase (${host}). Vérifiez SUPABASE_URL sur Vercel : le projet n'existe plus ou l'URL est incorrecte.`
+          : `Connexion à Supabase impossible (${host}). Vérifiez SUPABASE_URL et SUPABASE_SERVICE_ROLE_KEY.`;
+      throw new SupabaseError(unreachable, cause?.code ?? "NETWORK", 0);
+    }
     if (response.ok) {
       if (response.status === 204) return [];
       const text = await response.text();
