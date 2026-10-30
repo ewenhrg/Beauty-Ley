@@ -178,6 +178,7 @@ export type AdminPageId =
   | "prestations"
   | "equipe"
   | "banniere"
+  | "flyers"
   | "parametres"
   | "comptes";
 
@@ -189,6 +190,19 @@ export type BannerSettingsRow = {
 export type BannerOfferRow = {
   id: string;
   message: string;
+  active: boolean;
+  sort_order: number;
+};
+
+export type FlyerSettingsRow = {
+  id: string;
+  enabled: boolean;
+};
+
+export type FlyerOfferRow = {
+  id: string;
+  description: string;
+  image: string;
   active: boolean;
   sort_order: number;
 };
@@ -244,6 +258,8 @@ export type Tables = {
   admin_users: AdminUserRow;
   banner_settings: BannerSettingsRow;
   banner_offers: BannerOfferRow;
+  flyer_settings: FlyerSettingsRow;
+  flyer_offers: FlyerOfferRow;
 };
 
 export type TableName = keyof Tables;
@@ -264,4 +280,6 @@ export const TABLE_NAMES: TableName[] = [
   "admin_users",
   "banner_settings",
   "banner_offers",
+  "flyer_settings",
+  "flyer_offers",
 ];

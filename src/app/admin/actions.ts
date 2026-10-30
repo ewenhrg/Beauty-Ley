@@ -73,6 +73,12 @@ import {
   setBannerEnabled,
   updateBannerOffer,
 } from "@/server/repo/banner";
+import {
+  createFlyerOffer,
+  deleteFlyerOffer,
+  setFlyerEnabled,
+  updateFlyerOffer,
+} from "@/server/repo/flyers";
 import { availablePaymentModes } from "@/server/payments";
 import {
   asEnum,
@@ -114,7 +120,7 @@ async function run(fn: () => Promise<string | void>, paths: string[]): Promise<A
     if (error instanceof ValidationError || error instanceof BookingError || error instanceof UsersTableMissingError) {
       return { ok: false, message: error.message };
     }
-    if (error instanceof Error && /bannière|Supabase|table/i.test(error.message)) {
+    if (error instanceof Error && /bannière|flyer|Supabase|table/i.test(error.message)) {
       return { ok: false, message: error.message };
     }
     console.error("[admin]", error);
@@ -663,6 +669,65 @@ export async function deleteBannerOfferAction(
     await deleteBannerOffer(asString(formData.get("id"), "id"));
     return "Offre supprimée.";
   }, ["/admin/banniere", "/"]);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Flyer popup offers                                                          */
+/* -------------------------------------------------------------------------- */
+
+export async function saveFlyerEnabledAction(
+  _state: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await guard("flyers");
+  return run(async () => {
+    await setFlyerEnabled(formData.get("enabled") === "on");
+    return "Affichage des flyers mis à jour.";
+  }, ["/admin/flyers", "/"]);
+}
+
+export async function saveFlyerOfferAction(
+  _state: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await guard("flyers");
+  return run(async () => {
+    const id = asOptionalString(formData.get("id"), "id", 80);
+    const description = asString(formData.get("description") ?? "", "description", {
+      min: 0,
+      max: 500,
+    });
+    const image = asString(formData.get("image"), "image", { max: 500 });
+    const active = formData.get("active") === "on";
+    const sortOrder = asInteger(formData.get("sortOrder") ?? 0, "sortOrder", {
+      min: 0,
+      max: 999,
+    });
+
+    if (id) {
+      await updateFlyerOffer(id, {
+        description,
+        image,
+        active,
+        sort_order: sortOrder,
+      });
+      return "Flyer mis à jour.";
+    }
+
+    await createFlyerOffer({ description, image, active, sortOrder });
+    return "Flyer ajouté.";
+  }, ["/admin/flyers", "/"]);
+}
+
+export async function deleteFlyerOfferAction(
+  _state: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await guard("flyers");
+  return run(async () => {
+    await deleteFlyerOffer(asString(formData.get("id"), "id"));
+    return "Flyer supprimé.";
+  }, ["/admin/flyers", "/"]);
 }
 
 /* -------------------------------------------------------------------------- */

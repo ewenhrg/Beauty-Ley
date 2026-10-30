@@ -23,6 +23,7 @@ const ADMIN_NAV_KEYS: Record<string, MessageKey> = {
   prestations: "admin.nav.prestations",
   equipe: "admin.nav.equipe",
   banniere: "admin.nav.banniere",
+  flyers: "admin.nav.flyers",
   parametres: "admin.nav.parametres",
   comptes: "admin.nav.comptes",
 };

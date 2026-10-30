@@ -44,6 +44,7 @@ async function run() {
     await removeAutoCreatedStaff(store);
     await syncStaffFromAccounts(store);
     await ensureBannerDefaults(store);
+    await ensureFlyerDefaults(store);
   });
 }
 
@@ -52,6 +53,17 @@ async function ensureBannerDefaults(store: Store) {
     const rows = await store.select("banner_settings", { eq: { id: "banner" }, limit: 1 });
     if (!rows.length) {
       await store.insert("banner_settings", [{ id: "banner", enabled: false }]);
+    }
+  } catch {
+    // Table may be missing on older Supabase projects until the migration runs.
+  }
+}
+
+async function ensureFlyerDefaults(store: Store) {
+  try {
+    const rows = await store.select("flyer_settings", { eq: { id: "flyer" }, limit: 1 });
+    if (!rows.length) {
+      await store.insert("flyer_settings", [{ id: "flyer", enabled: false }]);
     }
   } catch {
     // Table may be missing on older Supabase projects until the migration runs.

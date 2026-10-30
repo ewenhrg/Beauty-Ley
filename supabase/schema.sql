@@ -244,6 +244,22 @@ create table if not exists banner_offers (
 alter table banner_settings enable row level security;
 alter table banner_offers   enable row level security;
 
+create table if not exists flyer_settings (
+  id      text primary key,
+  enabled boolean not null default false
+);
+
+create table if not exists flyer_offers (
+  id          text primary key,
+  description text        not null default '',
+  image       text        not null,
+  active      boolean     not null default true,
+  sort_order  integer     not null default 0
+);
+
+alter table flyer_settings enable row level security;
+alter table flyer_offers   enable row level security;
+
 -- Team logins. The salon owner still signs in with ADMIN_PASSWORD; extra
 -- accounts live here, each with a password hash and a list of allowed pages.
 create table if not exists admin_users (

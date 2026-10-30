@@ -6,6 +6,7 @@ export const ADMIN_NAV = [
   { id: "prestations", href: "/admin/prestations", label: "Prestations", icon: "sparkle" },
   { id: "equipe", href: "/admin/equipe", label: "Équipe", icon: "team" },
   { id: "banniere", href: "/admin/banniere", label: "Bannière", icon: "banner" },
+  { id: "flyers", href: "/admin/flyers", label: "Flyer offre", icon: "flyer" },
   { id: "parametres", href: "/admin/parametres", label: "Paramètres", icon: "settings" },
   { id: "comptes", href: "/admin/comptes", label: "Comptes", icon: "users" },
 ] as const;

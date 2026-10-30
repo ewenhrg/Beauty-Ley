@@ -1,12 +1,14 @@
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PromoBanner } from "@/components/PromoBanner";
+import { FlyerPopup } from "@/components/FlyerPopup";
 import { BookingProvider } from "@/components/BookingProvider";
 import { MobileBookingBar } from "@/components/MobileBookingBar";
 import { salon } from "@/data/salon";
 import { getSiteUrl } from "@/lib/site";
 import { getStoreStatus } from "@/server/db";
 import { getPublicBannerMessages } from "@/server/repo/banner";
+import { getPublicFlyers } from "@/server/repo/flyers";
 import { getT } from "@/i18n/server";
 
 const siteUrl = getSiteUrl();
@@ -35,7 +37,9 @@ const jsonLd = {
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
   const t = await getT();
   const bookingOnline = getStoreStatus().ready;
-  const promoMessages = bookingOnline ? await getPublicBannerMessages() : [];
+  const [promoMessages, flyers] = bookingOnline
+    ? await Promise.all([getPublicBannerMessages(), getPublicFlyers()])
+    : [[], []];
   const hasPromo = promoMessages.length > 0;
 
   return (
@@ -56,6 +60,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
           </main>
           <Footer />
           <MobileBookingBar />
+          <FlyerPopup flyers={flyers} />
         </div>
       </BookingProvider>
     </>
