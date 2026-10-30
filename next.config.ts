@@ -3,6 +3,12 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   agentRules: false,
+  experimental: {
+    serverActions: {
+      // Flyer photo uploads (raw + multipart overhead), then compressed with sharp.
+      bodySizeLimit: "9mb",
+    },
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],

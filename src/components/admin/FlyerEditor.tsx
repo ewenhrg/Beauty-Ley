@@ -66,7 +66,8 @@ export function FlyerEditor({
         <div className="space-y-2">
           {offers.length === 0 ? (
             <p className="rounded-xl border border-dashed border-line px-4 py-6 text-center text-xs text-ink-soft">
-              Aucun flyer. Ajoutez une photo (URL) et une description pour l&apos;afficher au client.
+              Aucun flyer. Importez une photo depuis votre téléphone ou ordinateur, puis ajoutez
+              une description.
             </p>
           ) : null}
 
@@ -116,20 +117,42 @@ export function FlyerEditor({
 }
 
 function OfferForm({ offer, sortOrder = 0 }: { offer?: FlyerOfferRow; sortOrder?: number }) {
+  const [preview, setPreview] = useState<string | null>(offer?.image ?? null);
+
   return (
     <>
-      <ActionForm action={saveFlyerOfferAction}>
+      <ActionForm action={saveFlyerOfferAction} encType="multipart/form-data">
         {offer ? <input type="hidden" name="id" value={offer.id} /> : null}
+        {offer?.image ? <input type="hidden" name="existingImage" value={offer.image} /> : null}
         <div className="grid gap-3 sm:grid-cols-2">
-          <LabelledField label="Photo (URL)" className="sm:col-span-2">
+          <LabelledField label="Photo" className="sm:col-span-2">
             <input
-              name="image"
-              required
-              defaultValue={offer?.image ?? ""}
-              placeholder="https://…"
-              className={adminInput}
+              name="photo"
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              required={!offer?.image}
+              className={`${adminInput} file:mr-3 file:rounded-lg file:border-0 file:bg-terracotta/15 file:px-3 file:py-1.5 file:text-xs file:tracking-[0.14em] file:text-terracotta file:uppercase`}
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                if (!file) {
+                  setPreview(offer?.image ?? null);
+                  return;
+                }
+                const url = URL.createObjectURL(file);
+                setPreview(url);
+              }}
             />
           </LabelledField>
+          {preview ? (
+            <div className="sm:col-span-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={preview}
+                alt="Aperçu"
+                className="max-h-64 w-full rounded-2xl object-cover"
+              />
+            </div>
+          ) : null}
           <LabelledField label="Description" className="sm:col-span-2">
             <textarea
               name="description"
@@ -160,7 +183,8 @@ function OfferForm({ offer, sortOrder = 0 }: { offer?: FlyerOfferRow; sortOrder?
           </label>
         </div>
         <p className={`mt-2 ${adminLabel}`}>
-          Astuce : hébergez l&apos;image (Imgur, Cloudinary, etc.) puis collez l&apos;URL ici.
+          Choisissez une photo depuis votre appareil. En modification, laissez vide pour garder
+          l&apos;image actuelle.
         </p>
         <SubmitButton className="mt-4">{offer ? "Enregistrer" : "Ajouter le flyer"}</SubmitButton>
       </ActionForm>

@@ -79,6 +79,7 @@ import {
   setFlyerEnabled,
   updateFlyerOffer,
 } from "@/server/repo/flyers";
+import { uploadFlyerImage } from "@/server/upload-image";
 import { availablePaymentModes } from "@/server/payments";
 import {
   asEnum,
@@ -697,12 +698,23 @@ export async function saveFlyerOfferAction(
       min: 0,
       max: 500,
     });
-    const image = asString(formData.get("image"), "image", { max: 500 });
     const active = formData.get("active") === "on";
     const sortOrder = asInteger(formData.get("sortOrder") ?? 0, "sortOrder", {
       min: 0,
       max: 999,
     });
+
+    const file = formData.get("photo");
+    const existingImage = asOptionalString(formData.get("existingImage"), "existingImage", 500);
+    let image = existingImage ?? "";
+
+    if (file instanceof File && file.size > 0) {
+      image = await uploadFlyerImage(file);
+    }
+
+    if (!image) {
+      throw new ValidationError("Ajoutez une photo.", "image");
+    }
 
     if (id) {
       await updateFlyerOffer(id, {

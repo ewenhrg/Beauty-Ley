@@ -149,6 +149,7 @@ export function ActionForm({
   className = "",
   id,
   resetOnSuccess = false,
+  encType,
 }: {
   action: (state: ActionState, formData: FormData) => Promise<ActionState>;
   children: ReactNode;
@@ -156,6 +157,7 @@ export function ActionForm({
   id?: string;
   /** Clears fields after a successful create so another row can be added immediately. */
   resetOnSuccess?: boolean;
+  encType?: "multipart/form-data" | "application/x-www-form-urlencoded";
 }) {
   const [state, formAction] = useActionState(action, idleState);
   const formRef = useRef<HTMLFormElement>(null);
@@ -166,7 +168,7 @@ export function ActionForm({
     router.refresh();
   }, [resetOnSuccess, router, state.ok, state.message]);
   return (
-    <form ref={formRef} action={formAction} className={className} id={id}>
+    <form ref={formRef} action={formAction} className={className} id={id} encType={encType}>
       {children}
       {state.message ? (
         <p

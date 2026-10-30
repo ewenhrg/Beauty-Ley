@@ -13,3 +13,6 @@ tsconfig.tsbuildinfo
 
 # Booking data store (local development only)
 .data
+
+# Local flyer uploads (dev fallback when Blob is not configured)
+public/uploads
