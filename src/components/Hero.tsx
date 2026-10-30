@@ -20,7 +20,7 @@ export function Hero() {
       </picture>
       <div className="absolute inset-0 bg-linear-to-t from-terracotta/80 via-ink/25 to-rose/20" />
       <div className="absolute inset-0 bg-linear-to-r from-ink/35 via-transparent to-gold/15" />
-      <div className="relative z-10 mx-auto w-full max-w-7xl px-5 pb-[calc(5.5rem+env(safe-area-inset-bottom))] pt-[calc(7.5rem+env(safe-area-inset-top))] sm:px-8 sm:pb-20 sm:pt-40 lg:pb-24">
+      <div className="relative z-10 mx-auto w-full max-w-7xl px-5 pb-[calc(5.5rem+env(safe-area-inset-bottom))] pt-[calc(7.5rem+env(safe-area-inset-top)+var(--promo-banner-h,0px))] sm:px-8 sm:pb-20 sm:pt-[calc(10rem+var(--promo-banner-h,0px))] lg:pb-24">
         <p className="reveal text-[11px] tracking-[0.32em] text-gold-soft uppercase">
           {salon.city} · {salon.tagline}
         </p>

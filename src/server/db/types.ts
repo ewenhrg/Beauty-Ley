@@ -177,8 +177,21 @@ export type AdminPageId =
   | "clients"
   | "prestations"
   | "equipe"
+  | "banniere"
   | "parametres"
   | "comptes";
+
+export type BannerSettingsRow = {
+  id: string;
+  enabled: boolean;
+};
+
+export type BannerOfferRow = {
+  id: string;
+  message: string;
+  active: boolean;
+  sort_order: number;
+};
 
 export type AdminUserRow = {
   id: string;
@@ -229,6 +242,8 @@ export type Tables = {
   notifications: NotificationRow;
   settings: SettingsRow;
   admin_users: AdminUserRow;
+  banner_settings: BannerSettingsRow;
+  banner_offers: BannerOfferRow;
 };
 
 export type TableName = keyof Tables;
@@ -247,4 +262,6 @@ export const TABLE_NAMES: TableName[] = [
   "notifications",
   "settings",
   "admin_users",
+  "banner_settings",
+  "banner_offers",
 ];

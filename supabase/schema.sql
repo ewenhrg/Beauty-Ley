@@ -228,6 +228,22 @@ alter table appointments       enable row level security;
 alter table notifications      enable row level security;
 alter table settings           enable row level security;
 
+-- Site promo banner (admin-managed scrolling offers).
+create table if not exists banner_settings (
+  id      text primary key,
+  enabled boolean not null default false
+);
+
+create table if not exists banner_offers (
+  id         text primary key,
+  message    text        not null,
+  active     boolean     not null default true,
+  sort_order integer     not null default 0
+);
+
+alter table banner_settings enable row level security;
+alter table banner_offers   enable row level security;
+
 -- Team logins. The salon owner still signs in with ADMIN_PASSWORD; extra
 -- accounts live here, each with a password hash and a list of allowed pages.
 create table if not exists admin_users (

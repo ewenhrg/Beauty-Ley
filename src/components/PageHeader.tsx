@@ -11,7 +11,7 @@ export function PageHeader({
   children?: ReactNode;
 }) {
   return (
-    <header className="relative overflow-hidden pt-[calc(7.25rem+env(safe-area-inset-top))] pb-14 sm:pt-36 sm:pb-24">
+    <header className="relative overflow-hidden pt-[calc(7.25rem+env(safe-area-inset-top)+var(--promo-banner-h,0px))] pb-14 sm:pt-[calc(9rem+var(--promo-banner-h,0px))] sm:pb-24">
       <img
         src="/images/salon/nail-bar.jpg"
         alt=""

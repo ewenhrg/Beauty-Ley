@@ -43,7 +43,19 @@ async function run() {
 
     await removeAutoCreatedStaff(store);
     await syncStaffFromAccounts(store);
+    await ensureBannerDefaults(store);
   });
+}
+
+async function ensureBannerDefaults(store: Store) {
+  try {
+    const rows = await store.select("banner_settings", { eq: { id: "banner" }, limit: 1 });
+    if (!rows.length) {
+      await store.insert("banner_settings", [{ id: "banner", enabled: false }]);
+    }
+  } catch {
+    // Table may be missing on older Supabase projects until the migration runs.
+  }
 }
 
 function splitName(displayName: string) {

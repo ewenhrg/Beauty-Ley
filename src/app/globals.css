@@ -42,6 +42,36 @@ html {
   }
 }
 
+:root {
+  --promo-banner-h: 0px;
+}
+
+.has-promo-banner {
+  /* 2.25rem strip + notch/safe-area already applied inside PromoBanner */
+  --promo-banner-h: calc(2.25rem + env(safe-area-inset-top, 0px));
+}
+
+@keyframes promo-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.promo-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: promo-marquee 42s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .promo-marquee-track {
+    animation: none;
+  }
+}
+
 body {
   background:
     radial-gradient(ellipse 70% 45% at 100% 8%, rgba(201, 125, 115, 0.26), transparent 55%),

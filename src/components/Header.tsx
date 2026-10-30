@@ -10,7 +10,7 @@ import { InstagramIcon } from "./SocialIcons";
 import { LanguageSwitcher } from "@/i18n/LanguageSwitcher";
 import { useT } from "@/i18n/I18nProvider";
 
-export function Header() {
+export function Header({ hasPromo = false }: { hasPromo?: boolean }) {
   const pathname = usePathname();
   const t = useT();
   const [open, setOpen] = useState(false);
@@ -41,7 +41,9 @@ export function Header() {
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-50 isolate pt-[env(safe-area-inset-top)] transition-colors duration-300 ${
+      className={`fixed inset-x-0 z-50 isolate transition-colors duration-300 ${
+        hasPromo ? "top-[var(--promo-banner-h)]" : "top-0 pt-[env(safe-area-inset-top)]"
+      } ${
         light ? "bg-transparent text-cream" : "bg-cream/92 text-ink shadow-soft backdrop-blur-md"
       }`}
     >

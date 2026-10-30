@@ -263,5 +263,7 @@ export function buildSeed(now = new Date()): Seed {
     notifications: [],
     settings,
     admin_users: [],
+    banner_settings: [{ id: "banner", enabled: false }],
+    banner_offers: [],
   };
 }

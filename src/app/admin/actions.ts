@@ -67,6 +67,12 @@ import {
   updateBusinessHours,
 } from "@/server/repo/schedule";
 import { updateSettings } from "@/server/repo/settings";
+import {
+  createBannerOffer,
+  deleteBannerOffer,
+  setBannerEnabled,
+  updateBannerOffer,
+} from "@/server/repo/banner";
 import { availablePaymentModes } from "@/server/payments";
 import {
   asEnum,
@@ -106,6 +112,9 @@ async function run(fn: () => Promise<string | void>, paths: string[]): Promise<A
     return { ok: true, message: message ?? null };
   } catch (error) {
     if (error instanceof ValidationError || error instanceof BookingError || error instanceof UsersTableMissingError) {
+      return { ok: false, message: error.message };
+    }
+    if (error instanceof Error && /bannière|Supabase|table/i.test(error.message)) {
       return { ok: false, message: error.message };
     }
     console.error("[admin]", error);
@@ -600,6 +609,60 @@ export async function saveSettingsAction(
     });
     return "Paramètres enregistrés.";
   }, ["/admin/parametres", "/reservation"]);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Promo banner                                                                */
+/* -------------------------------------------------------------------------- */
+
+export async function saveBannerEnabledAction(
+  _state: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await guard("banniere");
+  return run(async () => {
+    await setBannerEnabled(formData.get("enabled") === "on");
+    return "Affichage de la bannière mis à jour.";
+  }, ["/admin/banniere", "/"]);
+}
+
+export async function saveBannerOfferAction(
+  _state: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await guard("banniere");
+  return run(async () => {
+    const id = asOptionalString(formData.get("id"), "id", 80);
+    const message = asString(formData.get("message"), "message", { max: 160 });
+    const active = formData.get("active") === "on";
+    const sortOrder = asInteger(formData.get("sortOrder") ?? 0, "sortOrder", {
+      min: 0,
+      max: 999,
+    });
+
+    if (id) {
+      await updateBannerOffer(id, {
+        message,
+        active,
+        sort_order: sortOrder,
+      });
+      return "Offre mise à jour.";
+    }
+
+    await createBannerOffer({ message, active, sortOrder });
+    return "Offre ajoutée.";
+  }, ["/admin/banniere", "/"]);
+}
+
+export async function deleteBannerOfferAction(
+  _state: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await guard("banniere");
+  return run(async () => {
+    await deleteBannerOffer(asString(formData.get("id"), "id"));
+    return "Offre supprimée.";
+  }, ["/admin/banniere", "/"]);
 }
 
 /* -------------------------------------------------------------------------- */
