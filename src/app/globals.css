@@ -63,7 +63,8 @@ html {
 .promo-marquee-track {
   display: flex;
   width: max-content;
-  animation: promo-marquee 42s linear infinite;
+  animation: promo-marquee 18s linear infinite;
+  will-change: transform;
 }
 
 @media (prefers-reduced-motion: reduce) {
