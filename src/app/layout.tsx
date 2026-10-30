@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Outfit } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import { salon } from "@/data/salon";
 import { getSiteUrl } from "@/lib/site";
 import { I18nProvider } from "@/i18n/I18nProvider";
@@ -73,6 +74,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang={LOCALE_META[locale].html} className={`${outfit.variable} ${cormorant.variable}`}>
       <body className="font-sans antialiased">
         <I18nProvider locale={locale}>{children}</I18nProvider>
+        <Analytics />
       </body>
     </html>
   );
