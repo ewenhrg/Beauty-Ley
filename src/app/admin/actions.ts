@@ -81,6 +81,7 @@ import {
 } from "@/server/repo/flyers";
 import { uploadFlyerImage } from "@/server/upload-image";
 import { availablePaymentModes } from "@/server/payments";
+import { SupabaseError } from "@/server/db";
 import {
   asEnum,
   asInteger,
@@ -119,6 +120,16 @@ async function run(fn: () => Promise<string | void>, paths: string[]): Promise<A
     return { ok: true, message: message ?? null };
   } catch (error) {
     if (error instanceof ValidationError || error instanceof BookingError || error instanceof UsersTableMissingError) {
+      return { ok: false, message: error.message };
+    }
+    if (error instanceof SupabaseError) {
+      if (/booking_channel|online_weekdays/i.test(error.message)) {
+        return {
+          ok: false,
+          message:
+            "Colonnes manquantes dans Supabase. Exécutez supabase/migrations/20260328_booking_channel.sql dans l'éditeur SQL.",
+        };
+      }
       return { ok: false, message: error.message };
     }
     if (error instanceof Error && /bannière|flyer|Supabase|table/i.test(error.message)) {
