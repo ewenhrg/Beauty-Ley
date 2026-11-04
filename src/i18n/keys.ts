@@ -30,8 +30,11 @@ const ADMIN_NAV_KEYS: Record<string, MessageKey> = {
 
 const BOOKING_STEP_KEYS: Record<string, MessageKey> = {
   service: "booking.steps.service",
+  options: "booking.steps.options",
+  addMore: "booking.steps.addMore",
   staff: "booking.steps.staff",
   slot: "booking.steps.slot",
+  party: "booking.steps.party",
   summary: "booking.steps.summary",
   details: "booking.steps.details",
 };

@@ -1,6 +1,6 @@
 "use client";
 
-import type { ServiceDto, StaffDto } from "@/lib/booking-types";
+import type { StaffDto } from "@/lib/booking-types";
 import { priceLabel } from "@/lib/booking-types";
 import { formatDateKey, formatDuration } from "@/lib/time";
 import { Eyebrow, StepLead, StepTitle, SummaryRow } from "./ui";
@@ -8,11 +8,15 @@ import { useT, useLocale } from "@/i18n/I18nProvider";
 import { intlLocale } from "@/i18n/config";
 
 export type BookingSelection = {
-  service: ServiceDto;
+  labels: string[];
   staff: StaffDto | null;
   date: string;
   time: string;
   startAt: string;
+  duration: number;
+  price: number;
+  priceKind: "fixed" | "from";
+  partySize: number;
 };
 
 export function SummaryStep({
@@ -22,6 +26,7 @@ export function SummaryStep({
   onEditService,
   onEditStaff,
   onEditSlot,
+  onEditParty,
 }: {
   selection: BookingSelection;
   policy: { cancellationWindowHours: number; paymentLabel: string };
@@ -29,19 +34,24 @@ export function SummaryStep({
   onEditService: () => void;
   onEditStaff: () => void;
   onEditSlot: () => void;
+  onEditParty: () => void;
 }) {
-  const { service, staff, date, time } = selection;
+  const { labels, staff, date, time, duration, price, priceKind, partySize } = selection;
   const t = useT();
   const locale = useLocale();
 
   return (
     <div>
-      <Eyebrow>{t("booking.step", { n: chooseStaff ? 4 : 3 })}</Eyebrow>
+      <Eyebrow>{t("booking.step", { n: chooseStaff ? 6 : 5 })}</Eyebrow>
       <StepTitle>{t("booking.summary.title")}</StepTitle>
       <StepLead>{t("booking.summary.lead")}</StepLead>
 
       <dl className="mt-8 rounded-[1.75rem] border border-line bg-white/55 px-5 py-2 sm:px-7">
-        <SummaryRow label={t("booking.summary.service")} value={service.name} onEdit={onEditService} />
+        <SummaryRow
+          label={t("booking.summary.service")}
+          value={labels.join(" · ")}
+          onEdit={onEditService}
+        />
         {chooseStaff ? (
           <SummaryRow
             label={t("booking.summary.stylist")}
@@ -55,12 +65,21 @@ export function SummaryStep({
           onEdit={onEditSlot}
         />
         <SummaryRow label={t("booking.summary.time")} value={time} onEdit={onEditSlot} />
-        <SummaryRow label={t("booking.summary.duration")} value={formatDuration(service.duration)} />
+        <SummaryRow
+          label={t("booking.summary.party")}
+          value={
+            partySize === 1
+              ? t("booking.party.one")
+              : t("booking.party.many", { n: partySize })
+          }
+          onEdit={onEditParty}
+        />
+        <SummaryRow label={t("booking.summary.duration")} value={formatDuration(duration)} />
         <SummaryRow
           label={t("booking.summary.price")}
           value={
             <span className="font-display text-xl text-terracotta">
-              {priceLabel(service.price, service.priceKind, t("price.from"))}
+              {priceLabel(price, priceKind, t("price.from"))}
             </span>
           }
         />

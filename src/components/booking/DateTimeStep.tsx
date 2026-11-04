@@ -18,6 +18,7 @@ export function DateTimeStep({
   revision,
   stepNumber = 3,
   revealStaff = true,
+  durationMin,
   onSelectDate,
   onSelectSlot,
 }: {
@@ -30,6 +31,8 @@ export function DateTimeStep({
   stepNumber?: number;
   /** When false, slot tooltips do not name who is free. */
   revealStaff?: boolean;
+  /** Combined cart duration for one person. */
+  durationMin?: number;
   onSelectDate: (date: string) => void;
   onSelectSlot: (slot: SlotDto, date: string) => void;
 }) {
@@ -43,13 +46,14 @@ export function DateTimeStep({
   ];
   const today = todayKey();
   const [monthKey, setMonthKey] = useState(() => (date ?? today).slice(0, 7));
-  const month = useMonthAvailability(service.id, staffId, monthKey, revision);
+  const duration = durationMin ?? service.duration;
+  const month = useMonthAvailability(service.id, staffId, monthKey, revision, duration);
 
   // Until the client picks a day, preselect the first bookable one of the month.
   const suggested =
     month.nextOpenDay && month.nextOpenDay.slice(0, 7) === monthKey ? month.nextOpenDay : null;
   const activeDate = date ?? suggested;
-  const slots = useSlots(service.id, staffId, activeDate, revision);
+  const slots = useSlots(service.id, staffId, activeDate, revision, duration);
 
   const grouped = useMemo(
     () =>
@@ -78,7 +82,7 @@ export function DateTimeStep({
     <div>
       <Eyebrow>{t("booking.step", { n: stepNumber })}</Eyebrow>
       <StepTitle>{t("booking.slot.title")}</StepTitle>
-      <StepLead>{t("booking.slot.lead")}</StepLead>
+      <StepLead>{t("booking.slot.leadOpen")}</StepLead>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,340px)_1fr] lg:gap-8">
         <div>

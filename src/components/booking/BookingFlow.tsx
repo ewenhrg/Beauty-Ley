@@ -5,10 +5,14 @@ import { useSearchParams } from "next/navigation";
 import { BookingApiError, createAppointment, fetchCatalog } from "@/lib/booking-client";
 import type { AppointmentDto, CatalogDto } from "@/lib/booking-types";
 import { priceLabel } from "@/lib/booking-types";
+import { cartTotals, needsManicureOptions } from "@/lib/booking-cart";
 import { formatDateKey, formatDuration } from "@/lib/time";
+import { AddMoreStep } from "./AddMoreStep";
 import { ConfirmationView } from "./ConfirmationView";
 import { DateTimeStep } from "./DateTimeStep";
 import { DetailsStep } from "./DetailsStep";
+import { ManicureOptionStep } from "./ManicureOptionStep";
+import { PartySizeStep } from "./PartySizeStep";
 import { ServiceStep } from "./ServiceStep";
 import { StaffStep } from "./StaffStep";
 import { SummaryStep } from "./SummaryStep";
@@ -17,6 +21,7 @@ import {
   flowSteps,
   initialState,
   loadDraft,
+  primaryServiceId,
   reachableSteps,
   reducer,
   saveDraft,
@@ -68,7 +73,6 @@ export function BookingFlow({
     return () => controller.abort();
   }, [t]);
 
-  // Restore a draft once the catalogue is known, so stale ids can be dropped.
   useEffect(() => {
     if (!catalog || restored.current) return;
     restored.current = true;
@@ -81,22 +85,27 @@ export function BookingFlow({
 
     if (requested && known(requested)) {
       const service = onlineOnly.find((item) => item.id === requested);
+      if (!service) return;
       dispatch({
         type: "pickService",
         serviceId: requested,
-        chooseStaff: service
-          ? serviceAllowsStaffChoice(service.categoryId, catalog.categories)
-          : false,
+        needsOptions: needsManicureOptions(service, catalog.categories),
+        chooseStaff: serviceAllowsStaffChoice(service.categoryId, catalog.categories),
       });
       return;
     }
-    if (!hideServiceStep && draft && known(draft.serviceId)) {
-      const service = onlineOnly.find((item) => item.id === draft.serviceId);
-      const chooseStaff = service
-        ? serviceAllowsStaffChoice(service.categoryId, catalog.categories)
-        : false;
-      const allowedHair = service
-        ? new Set(choosableHairStaff(catalog.staff, service.staffIds).map((member) => member.id))
+    if (!hideServiceStep && draft && draft.items.every((item) => known(item.serviceId))) {
+      const chooseStaff = draft.items.some((item) => {
+        const service = onlineOnly.find((entry) => entry.id === item.serviceId);
+        return service
+          ? serviceAllowsStaffChoice(service.categoryId, catalog.categories)
+          : false;
+      });
+      const hairService = onlineOnly.find((service) =>
+        draft.items.some((item) => item.serviceId === service.id),
+      );
+      const allowedHair = hairService
+        ? new Set(choosableHairStaff(catalog.staff, hairService.staffIds).map((member) => member.id))
         : new Set<string>();
       const staffId =
         chooseStaff && draft.staffId && allowedHair.has(draft.staffId) ? draft.staffId : null;
@@ -107,7 +116,12 @@ export function BookingFlow({
           chooseStaff,
           staffId,
           staffPicked: chooseStaff ? draft.staffPicked : true,
-          step: draft.step === "staff" && !chooseStaff ? "slot" : draft.step,
+          step:
+            draft.step === "staff" && !chooseStaff
+              ? "slot"
+              : draft.step === "service" && hideServiceStep
+                ? "addMore"
+                : draft.step,
         },
       });
     }
@@ -128,10 +142,51 @@ export function BookingFlow({
     };
   }, [catalog]);
 
-  const service = useMemo(
-    () => onlineCatalog?.services.find((item) => item.id === state.serviceId) ?? null,
-    [onlineCatalog, state.serviceId],
+  const cartItems = useMemo(() => {
+    if (!state.pendingServiceId) return state.items;
+    return [
+      ...state.items,
+      { serviceId: state.pendingServiceId, manicureOption: null },
+    ];
+  }, [state.items, state.pendingServiceId]);
+
+  const totals = useMemo(() => {
+    if (!onlineCatalog) {
+      return {
+        durationPerPerson: 0,
+        pricePerPerson: 0,
+        priceKind: "fixed" as const,
+        totalPrice: 0,
+        labels: [] as string[],
+      };
+    }
+    return cartTotals(state.items, onlineCatalog.services, state.partySize);
+  }, [onlineCatalog, state.items, state.partySize]);
+
+  const previewLabels = useMemo(() => {
+    if (!onlineCatalog) return [] as string[];
+    return cartTotals(cartItems, onlineCatalog.services, 1).labels;
+  }, [cartItems, onlineCatalog]);
+
+  const primaryId = useMemo(() => {
+    if (!onlineCatalog) return null;
+    const durations = new Map(
+      onlineCatalog.services.map((service) => [service.id, service.duration]),
+    );
+    return primaryServiceId(state.items, durations);
+  }, [onlineCatalog, state.items]);
+
+  const primaryService = useMemo(
+    () => onlineCatalog?.services.find((item) => item.id === primaryId) ?? null,
+    [onlineCatalog, primaryId],
   );
+
+  const pendingService = useMemo(
+    () =>
+      onlineCatalog?.services.find((item) => item.id === state.pendingServiceId) ?? null,
+    [onlineCatalog, state.pendingServiceId],
+  );
+
   const staffMember = useMemo(
     () => catalog?.staff.find((member) => member.id === state.staffId) ?? null,
     [catalog, state.staffId],
@@ -144,7 +199,9 @@ export function BookingFlow({
   const goto = useCallback(
     (step: StepId) => {
       const chooseStaff = state.chooseStaff;
-      setDirection(stepIndex(step, chooseStaff) >= stepIndex(state.step, chooseStaff) ? "forward" : "back");
+      setDirection(
+        stepIndex(step, chooseStaff) >= stepIndex(state.step, chooseStaff) ? "forward" : "back",
+      );
       dispatch({ type: "goto", step });
       scrollToTop();
     },
@@ -165,7 +222,7 @@ export function BookingFlow({
   }, [state.details, t]);
 
   const submit = useCallback(async () => {
-    if (!service || !state.startAt) return;
+    if (!state.items.length || !state.startAt || !onlineCatalog) return;
     const errors = validateDetails();
     setFieldErrors(errors);
     if (Object.keys(errors).length) return;
@@ -174,7 +231,8 @@ export function BookingFlow({
     setSubmitError(null);
     try {
       const appointment = await createAppointment({
-        serviceId: service.id,
+        items: state.items,
+        partySize: state.partySize,
         staffId: state.staffId ?? undefined,
         startAt: state.startAt,
         firstName: state.details.firstName.trim(),
@@ -204,7 +262,18 @@ export function BookingFlow({
     } finally {
       setSubmitting(false);
     }
-  }, [goto, scrollToTop, service, state.details, state.staffId, state.startAt, t, validateDetails]);
+  }, [
+    goto,
+    onlineCatalog,
+    scrollToTop,
+    state.details,
+    state.items,
+    state.partySize,
+    state.staffId,
+    state.startAt,
+    t,
+    validateDetails,
+  ]);
 
   if (confirmed) {
     return (
@@ -229,29 +298,70 @@ export function BookingFlow({
 
   if (!catalog || !onlineCatalog) return <CatalogSkeleton />;
 
+  const showServiceStep =
+    state.step === "service" && (!hideServiceStep || state.items.length > 0);
+
+  const previousStep: StepId | null = (() => {
+    switch (state.step) {
+      case "service":
+        return state.items.length ? "addMore" : null;
+      case "options":
+        return hideServiceStep && !state.items.length ? null : "service";
+      case "addMore": {
+        if (state.pendingServiceId) {
+          const pending = onlineCatalog.services.find(
+            (service) => service.id === state.pendingServiceId,
+          );
+          if (pending && needsManicureOptions(pending, onlineCatalog.categories)) {
+            return "options";
+          }
+          return hideServiceStep && !state.items.length ? null : "service";
+        }
+        return hideServiceStep && state.items.length <= 1 ? null : "service";
+      }
+      case "staff":
+        return "addMore";
+      case "slot":
+        return state.chooseStaff ? "staff" : "addMore";
+      case "party":
+        return "slot";
+      case "summary":
+        return "party";
+      case "details":
+        return "summary";
+      default: {
+        const _exhaustive: never = state.step;
+        return _exhaustive;
+      }
+    }
+  })();
+
+  const stepNumber = (() => {
+    const steps = flowSteps(state.chooseStaff).filter((step) => {
+      if (hideServiceStep && step === "service" && !state.items.length) return false;
+      return true;
+    });
+    const index = steps.indexOf(state.step);
+    return index >= 0 ? index + 1 : 1;
+  })();
+
   const canContinue =
-    state.step === "service"
-      ? Boolean(service)
+    state.step === "party"
+      ? state.partySize >= 1
       : state.step === "staff"
         ? state.staffPicked
         : state.step === "slot"
           ? Boolean(state.startAt)
-          : true;
-
-  const previousStep: StepId | null = (() => {
-    const steps = flowSteps(state.chooseStaff).filter(
-      (step) => !(hideServiceStep && step === "service"),
-    );
-    const index = steps.indexOf(state.step);
-    return index > 0 ? steps[index - 1] : null;
-  })();
+          : state.step === "summary"
+            ? true
+            : false;
 
   return (
     <div ref={topRef} className="scroll-mt-28">
       <Progress
         current={state.step}
         chooseStaff={state.chooseStaff}
-        hideServiceStep={hideServiceStep}
+        hideServiceStep={hideServiceStep && state.items.length === 0}
         onJump={goto}
         reachable={reachableSteps(state)}
       />
@@ -266,15 +376,17 @@ export function BookingFlow({
         key={state.step}
         className={`mt-8 ${direction === "forward" ? "step-in" : "step-in-back"}`}
       >
-        {state.step === "service" && !hideServiceStep ? (
+        {showServiceStep ? (
           <ServiceStep
             catalog={onlineCatalog}
-            selectedId={state.serviceId}
+            selectedId={state.pendingServiceId}
+            excludeIds={state.items.map((item) => item.serviceId)}
             onSelect={(picked) => {
               setDirection("forward");
               dispatch({
                 type: "pickService",
                 serviceId: picked.id,
+                needsOptions: needsManicureOptions(picked, onlineCatalog.categories),
                 chooseStaff: serviceAllowsStaffChoice(picked.categoryId, onlineCatalog.categories),
               });
               scrollToTop();
@@ -282,9 +394,34 @@ export function BookingFlow({
           />
         ) : null}
 
-        {state.step === "staff" && service ? (
+        {state.step === "options" && pendingService ? (
+          <ManicureOptionStep
+            services={onlineCatalog.services}
+            selected={null}
+            stepNumber={stepNumber}
+            onSelect={(option) => {
+              setDirection("forward");
+              dispatch({ type: "pickManicureOption", option });
+              scrollToTop();
+            }}
+          />
+        ) : null}
+
+        {state.step === "addMore" ? (
+          <AddMoreStep
+            labels={previewLabels}
+            stepNumber={stepNumber}
+            onAnswer={(yes) => {
+              setDirection("forward");
+              dispatch({ type: "addMore", yes });
+              scrollToTop();
+            }}
+          />
+        ) : null}
+
+        {state.step === "staff" && primaryService ? (
           <StaffStep
-            service={service}
+            service={primaryService}
             staff={onlineCatalog.staff}
             selectedId={state.staffPicked ? state.staffId : undefined}
             onSelect={(staffId) => {
@@ -295,16 +432,17 @@ export function BookingFlow({
           />
         ) : null}
 
-        {state.step === "slot" && service ? (
+        {state.step === "slot" && primaryService ? (
           <DateTimeStep
-            service={service}
+            service={primaryService}
             staffId={state.staffId}
             staff={onlineCatalog.staff}
             date={state.date}
             startAt={state.startAt}
             revision={revision}
-            stepNumber={state.chooseStaff ? 3 : 2}
+            stepNumber={stepNumber}
             revealStaff={state.chooseStaff}
+            durationMin={totals.durationPerPerson || primaryService.duration}
             onSelectDate={(date) => dispatch({ type: "pickDate", date })}
             onSelectSlot={(slot, day) => {
               setDirection("forward");
@@ -315,31 +453,53 @@ export function BookingFlow({
           />
         ) : null}
 
-        {state.step === "summary" && service && state.date && state.time && state.startAt ? (
+        {state.step === "party" ? (
+          <PartySizeStep
+            selected={state.partySize}
+            stepNumber={stepNumber}
+            onSelect={(partySize) => {
+              setDirection("forward");
+              dispatch({ type: "pickPartySize", partySize });
+              scrollToTop();
+            }}
+          />
+        ) : null}
+
+        {state.step === "summary" && state.date && state.time && state.startAt ? (
           <SummaryStep
             selection={{
-              service,
+              labels: totals.labels,
               staff: staffMember,
               date: state.date,
               time: state.time,
               startAt: state.startAt,
+              duration: totals.durationPerPerson,
+              price: totals.totalPrice,
+              priceKind: totals.priceKind,
+              partySize: state.partySize,
             }}
             policy={catalog.policy}
             chooseStaff={state.chooseStaff}
             onEditService={() => goto("service")}
             onEditStaff={() => goto("staff")}
             onEditSlot={() => goto("slot")}
+            onEditParty={() => goto("party")}
           />
         ) : null}
 
-        {state.step === "details" && service ? (
+        {state.step === "details" && state.items.length ? (
           <>
             <MiniRecap
-              service={service.name}
+              service={totals.labels.join(" · ")}
               staff={state.chooseStaff ? (staffMember?.name ?? t("booking.any")) : null}
               when={`${formatDateKey(state.date ?? "", { locale: intlLocale(locale) })} · ${state.time}`}
-              price={priceLabel(service.price, service.priceKind, t("price.from"))}
-              duration={formatDuration(service.duration)}
+              price={priceLabel(totals.totalPrice, totals.priceKind, t("price.from"))}
+              duration={formatDuration(totals.durationPerPerson)}
+              party={
+                state.partySize === 1
+                  ? t("booking.party.one")
+                  : t("booking.party.many", { n: state.partySize })
+              }
               onEdit={() => goto("summary")}
             />
             <div className="mt-8">
@@ -347,7 +507,7 @@ export function BookingFlow({
                 details={state.details}
                 errors={fieldErrors}
                 terms={catalog.policy.terms}
-                stepNumber={state.chooseStaff ? 5 : 4}
+                stepNumber={stepNumber}
                 onChange={(patch) => {
                   dispatch({ type: "setDetails", patch });
                   setFieldErrors({});
@@ -376,13 +536,24 @@ export function BookingFlow({
             <ActionButton onClick={submit} loading={submitting} className="min-h-12 flex-1 sm:flex-none">
               {submitting ? t("booking.confirming") : t("booking.confirm")}
             </ActionButton>
-          ) : state.step === "service" ? (
+          ) : state.step === "service" ||
+            state.step === "options" ||
+            state.step === "addMore" ||
+            state.step === "party" ? (
             <span className="text-[11px] tracking-[0.18em] text-ink-soft uppercase">
-              {t("booking.selectService")}
+              {state.step === "service"
+                ? t("booking.selectService")
+                : state.step === "party"
+                  ? t("booking.selectParty")
+                  : t("booking.selectOption")}
             </span>
           ) : (
             <ActionButton
               onClick={() => {
+                if (state.step === "summary") {
+                  goto("details");
+                  return;
+                }
                 const steps = flowSteps(state.chooseStaff);
                 const next = steps[steps.indexOf(state.step) + 1];
                 if (next) goto(next);
@@ -413,17 +584,26 @@ function Progress({
   onJump: (step: StepId) => void;
 }) {
   const t = useT();
-  const steps = flowSteps(chooseStaff).filter(
-    (step) => !(hideServiceStep && step === "service"),
-  );
-  const currentIndex = steps.indexOf(current);
+  const steps = flowSteps(chooseStaff).filter((step) => {
+    if (hideServiceStep && step === "service") return false;
+    // Keep the progress compact: hide intermediate helper steps on small labels.
+    if (step === "options" || step === "addMore") return false;
+    return true;
+  });
+  const mappedCurrent =
+    current === "options" || current === "addMore"
+      ? hideServiceStep
+        ? steps[0]
+        : "service"
+      : current;
+  const currentIndex = steps.indexOf(mappedCurrent ?? current);
   return (
     <nav aria-label={t("booking.stepsAria")}>
       <ol className="no-scrollbar -mx-5 flex items-center gap-1 overflow-x-auto px-5 sm:mx-0 sm:gap-2 sm:px-0">
         {steps.map((step, index) => {
           const done = index < currentIndex;
-          const active = step === current;
-          const enabled = reachable.includes(step);
+          const active = step === mappedCurrent;
+          const enabled = reachable.includes(step) || step === "service";
           return (
             <li key={step} className="flex min-w-0 shrink-0 items-center gap-1 sm:gap-2">
               <button
@@ -475,6 +655,7 @@ function MiniRecap({
   when,
   price,
   duration,
+  party,
   onEdit,
 }: {
   service: string;
@@ -482,6 +663,7 @@ function MiniRecap({
   when: string;
   price: string;
   duration: string;
+  party: string;
   onEdit: () => void;
 }) {
   const t = useT();
@@ -490,7 +672,7 @@ function MiniRecap({
       <div className="min-w-0">
         <p className="text-[15px] font-medium text-ink">{service}</p>
         <p className="mt-0.5 text-[13px] text-ink-soft">
-          {staff ? `${staff} · ` : null}
+          {party} · {staff ? `${staff} · ` : null}
           {when} · {duration}
         </p>
       </div>

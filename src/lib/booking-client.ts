@@ -50,7 +50,14 @@ export function fetchCatalog(signal?: AbortSignal) {
 }
 
 export function fetchAvailability(
-  params: { serviceId: string; staffId?: string; from: string; days: number; withNext?: boolean },
+  params: {
+    serviceId: string;
+    staffId?: string;
+    from: string;
+    days: number;
+    withNext?: boolean;
+    durationMin?: number;
+  },
   signal?: AbortSignal,
 ) {
   const query = new URLSearchParams({
@@ -60,6 +67,7 @@ export function fetchAvailability(
   });
   if (params.staffId) query.set("staffId", params.staffId);
   if (params.withNext) query.set("withNext", "1");
+  if (params.durationMin) query.set("durationMin", String(params.durationMin));
   return request<{ days: DayDto[]; maxAdvanceDays: number; nextOpenDay: string | null }>(
     `/api/booking/availability?${query}`,
     { signal },
@@ -67,11 +75,12 @@ export function fetchAvailability(
 }
 
 export function fetchSlots(
-  params: { serviceId: string; staffId?: string; date: string },
+  params: { serviceId: string; staffId?: string; date: string; durationMin?: number },
   signal?: AbortSignal,
 ) {
   const query = new URLSearchParams({ serviceId: params.serviceId, date: params.date });
   if (params.staffId) query.set("staffId", params.staffId);
+  if (params.durationMin) query.set("durationMin", String(params.durationMin));
   return request<{ date: string; slots: SlotDto[]; reason: DayDto["reason"]; label: string | null }>(
     `/api/booking/slots?${query}`,
     { signal },
@@ -79,7 +88,9 @@ export function fetchSlots(
 }
 
 export type BookingPayload = {
-  serviceId: string;
+  serviceId?: string;
+  items: Array<{ serviceId: string; manicureOption: "nail-art" | "french" | "none" | null }>;
+  partySize: number;
   staffId?: string;
   startAt: string;
   firstName: string;

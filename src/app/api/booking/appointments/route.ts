@@ -1,7 +1,13 @@
 import { createBooking, describeAppointment, sendAppointmentEmail } from "@/server/booking";
+import {
+  resolveBookingCart,
+  type BookingCartItem,
+  type ManicureOptionId,
+} from "@/server/booking-cart";
 import { handler, jsonError, jsonOk } from "@/server/http";
 import { toAppointmentDto } from "@/server/presenters";
 import {
+  asInteger,
   asOptionalEmail,
   asOptionalString,
   asPhone,
@@ -13,6 +19,38 @@ import {
 
 export const dynamic = "force-dynamic";
 
+const OPTIONS: ManicureOptionId[] = ["nail-art", "french", "none"];
+
+function parseCartItems(body: Record<string, unknown>): BookingCartItem[] {
+  if (Array.isArray(body.items) && body.items.length) {
+    return body.items.map((raw, index) => {
+      if (!raw || typeof raw !== "object") {
+        throw new ValidationError("Panier invalide.", `items.${index}`);
+      }
+      const item = raw as Record<string, unknown>;
+      const serviceId = asString(item.serviceId, `items.${index}.serviceId`);
+      const optionRaw = item.manicureOption;
+      let manicureOption: ManicureOptionId | null = null;
+      if (optionRaw === null || optionRaw === undefined || optionRaw === "") {
+        manicureOption = null;
+      } else if (typeof optionRaw === "string" && OPTIONS.includes(optionRaw as ManicureOptionId)) {
+        manicureOption = optionRaw as ManicureOptionId;
+      } else {
+        throw new ValidationError("Option manucure invalide.", `items.${index}.manicureOption`);
+      }
+      return { serviceId, manicureOption };
+    });
+  }
+
+  // Legacy single-service payload.
+  return [
+    {
+      serviceId: asString(body.serviceId, "serviceId"),
+      manicureOption: null,
+    },
+  ];
+}
+
 export const POST = handler(async (request: Request) => {
   const body = await readJson(request);
 
@@ -20,16 +58,30 @@ export const POST = handler(async (request: Request) => {
     throw new ValidationError("Merci d'accepter les conditions de réservation.", "acceptTerms");
   }
 
+  const items = parseCartItems(body);
+  const partySize = body.partySize === undefined ? 1 : asInteger(body.partySize, "partySize", {
+    min: 1,
+    max: 3,
+  });
+  const customerNote = asOptionalString(body.note, "note", 600);
+
+  const cart = await resolveBookingCart(items, partySize, customerNote);
+  if (!cart) {
+    throw new ValidationError("Prestations introuvables ou indisponibles.", "serviceId");
+  }
+
   const { appointment } = await createBooking({
-    serviceId: asString(body.serviceId, "serviceId"),
+    serviceId: cart.primaryService.id,
     staffId: typeof body.staffId === "string" && body.staffId ? body.staffId : undefined,
     startAt: asIsoInstant(body.startAt, "startAt"),
+    durationMin: cart.durationMin,
+    price: cart.price,
     customer: {
       firstName: asString(body.firstName, "firstName", { max: 60 }),
       lastName: asString(body.lastName, "lastName", { max: 60 }),
       phone: asPhone(body.phone),
       email: asOptionalEmail(body.email),
-      note: asOptionalString(body.note, "note", 600),
+      note: cart.note || null,
     },
   });
 

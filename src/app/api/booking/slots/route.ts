@@ -1,6 +1,6 @@
 import { getSlots } from "@/server/availability";
 import { handler, jsonOk } from "@/server/http";
-import { asDateKey, asString } from "@/server/validation";
+import { asDateKey, asInteger, asString } from "@/server/validation";
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +10,11 @@ export const GET = handler(async (request: Request) => {
   const serviceId = asString(params.get("serviceId"), "serviceId");
   const date = asDateKey(params.get("date"), "date");
   const staffId = params.get("staffId") || undefined;
+  const durationRaw = params.get("durationMin");
+  const durationMin = durationRaw
+    ? asInteger(durationRaw, "durationMin", { min: 5, max: 600 })
+    : undefined;
 
-  const result = await getSlots(serviceId, date, staffId);
+  const result = await getSlots(serviceId, date, staffId, new Date(), { durationMin });
   return jsonOk(result);
 });

@@ -1,6 +1,6 @@
 import { getAvailabilityRange, findNextOpenDay } from "@/server/availability";
 import { handler, jsonOk } from "@/server/http";
-import { asDateKey, asString, ValidationError } from "@/server/validation";
+import { asDateKey, asInteger, asString, ValidationError } from "@/server/validation";
 import { todayKey } from "@/lib/time";
 
 export const dynamic = "force-dynamic";
@@ -13,10 +13,17 @@ export const GET = handler(async (request: Request) => {
   const from = params.get("from") ? asDateKey(params.get("from"), "from") : todayKey();
   const days = Math.min(Math.max(Number(params.get("days") ?? 14), 1), 45);
   if (!Number.isFinite(days)) throw new ValidationError("Nombre de jours invalide.", "days");
+  const durationRaw = params.get("durationMin");
+  const durationMin = durationRaw
+    ? asInteger(durationRaw, "durationMin", { min: 5, max: 600 })
+    : undefined;
+  const options = { durationMin };
 
   const [range, nextOpen] = await Promise.all([
-    getAvailabilityRange(serviceId, from, days, staffId),
-    params.get("withNext") === "1" ? findNextOpenDay(serviceId, staffId) : Promise.resolve(null),
+    getAvailabilityRange(serviceId, from, days, staffId, new Date(), options),
+    params.get("withNext") === "1"
+      ? findNextOpenDay(serviceId, staffId, new Date(), 60, options)
+      : Promise.resolve(null),
   ]);
 
   return jsonOk({ ...range, nextOpenDay: nextOpen });

@@ -18,10 +18,13 @@ function normalise(value: string) {
 export function ServiceStep({
   catalog,
   selectedId,
+  excludeIds = [],
   onSelect,
 }: {
   catalog: CatalogDto;
   selectedId: string | null;
+  /** Already in the cart — hidden so the client adds something else. */
+  excludeIds?: string[];
   onSelect: (service: ServiceDto) => void;
 }) {
   const t = useT();
@@ -29,17 +32,18 @@ export function ServiceStep({
     () => catalog.categories[0]?.id ?? null,
   );
   const [query, setQuery] = useState("");
+  const excluded = useMemo(() => new Set(excludeIds), [excludeIds]);
 
   const searching = query.trim().length > 1;
   const visible = useMemo(() => {
-    if (searching) {
-      const needle = normalise(query.trim());
-      return catalog.services.filter((service) =>
-        normalise(`${service.name} ${service.description ?? ""}`).includes(needle),
-      );
-    }
-    return catalog.services.filter((service) => service.categoryId === categoryId);
-  }, [catalog.services, categoryId, query, searching]);
+    const base = searching
+      ? catalog.services.filter((service) => {
+          const needle = normalise(query.trim());
+          return normalise(`${service.name} ${service.description ?? ""}`).includes(needle);
+        })
+      : catalog.services.filter((service) => service.categoryId === categoryId);
+    return base.filter((service) => !excluded.has(service.id));
+  }, [catalog.services, categoryId, excluded, query, searching]);
 
   const categoryName = (id: string) => {
     const category = catalog.categories.find((item) => item.id === id);

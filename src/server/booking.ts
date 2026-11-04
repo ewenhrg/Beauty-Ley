@@ -39,6 +39,10 @@ export type BookingInput = {
   /** Undefined means "peu importe" — the engine picks an available member. */
   staffId?: string;
   startAt: string;
+  /** Combined cart duration (one person). Defaults to the catalogue duration. */
+  durationMin?: number;
+  /** Charged amount for the whole party (catalogue × extras × people). */
+  price?: number;
   customer: {
     firstName: string;
     lastName: string;
@@ -68,12 +72,14 @@ export async function createBooking(input: BookingInput) {
   const store = getStore();
 
   return store.transaction(async () => {
+    const source = input.source ?? "online";
     const resolved = await resolveSlot(
       input.serviceId,
       input.startAt,
       input.staffId,
       new Date(),
-      input.source === "admin" ? "internal" : "public",
+      source === "admin" ? "internal" : "public",
+      input.durationMin,
     );
     if (!resolved.ok) {
       throw resolved.reason === "service"
@@ -81,13 +87,16 @@ export async function createBooking(input: BookingInput) {
         : new BookingError("SLOT_TAKEN", "Ce créneau vient d'être réservé.");
     }
 
-    const { service, settings, staffId } = resolved;
+    const { service, settings, staffId, durationMin, ignoreBusy } = resolved;
     const startAt = new Date(input.startAt).toISOString();
     const endAt = new Date(
-      Date.parse(startAt) + (service.duration_min + service.buffer_min) * 60_000,
+      Date.parse(startAt) + (durationMin + service.buffer_min) * 60_000,
     ).toISOString();
 
-    await assertFree(staffId, startAt, endAt);
+    // Online bookings may share a créneau across the team; admin moves still lock per staff.
+    if (!ignoreBusy) {
+      await assertFree(staffId, startAt, endAt);
+    }
 
     const customer = await upsertCustomer({
       first_name: input.customer.firstName,
@@ -96,8 +105,11 @@ export async function createBooking(input: BookingInput) {
       email: input.customer.email,
     });
 
-    const plan = planFor(service.price, settings);
-    const source = input.source ?? "online";
+    const chargedPrice =
+      typeof input.price === "number" && Number.isFinite(input.price) && input.price > 0
+        ? Math.round(input.price)
+        : service.price;
+    const plan = planFor(chargedPrice, settings);
     const row: AppointmentRow = {
       id: newId("apt"),
       reference: newReference(),
@@ -107,11 +119,10 @@ export async function createBooking(input: BookingInput) {
       service_id: service.id,
       start_at: startAt,
       end_at: endAt,
-      duration_min: service.duration_min,
+      duration_min: durationMin,
       buffer_min: service.buffer_min,
       status: input.status ?? (settings.auto_confirm || source === "admin" ? "CONFIRMED" : "PENDING"),
-      // Price is resolved from the catalogue, never from the browser payload.
-      price: service.price,
+      price: chargedPrice,
       customer_note: input.customer.note,
       admin_note: null,
       source,

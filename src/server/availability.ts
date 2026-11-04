@@ -69,6 +69,14 @@ type Context = {
   settings: SettingsRow;
   service: ServiceRow;
   staff: StaffRow[];
+  audience: BookingAudience;
+  /**
+   * Public online booking ignores existing appointments so several clients can
+   * share a créneau (many staff). Admin / internal still respect occupancy.
+   */
+  ignoreBusy: boolean;
+  /** Optional override when the cart spans several prestations. */
+  durationMin: number;
   /** Salon opening window per weekday, in local minutes; null when closed. */
   businessByWeekday: Map<number, Interval | null>;
   closures: Array<{ start: string; end: string; label: string }>;
@@ -80,6 +88,7 @@ async function loadContext(
   serviceId: string,
   staffId?: string,
   audience: BookingAudience = "internal",
+  durationMin?: number,
 ): Promise<Context | null> {
   const service = await getService(serviceId);
   if (!service || !service.active) return null;
@@ -128,10 +137,18 @@ async function loadContext(
     timeOffByStaff.set(row.staff_id, list);
   }
 
+  const resolvedDuration = Math.max(
+    5,
+    Math.min(600, durationMin && Number.isFinite(durationMin) ? Math.round(durationMin) : service.duration_min),
+  );
+
   return {
     settings,
     service,
     staff,
+    audience,
+    ignoreBusy: audience === "public",
+    durationMin: resolvedDuration,
     businessByWeekday,
     closures: closures.map((row) => ({
       start: row.start_date,
@@ -179,7 +196,7 @@ async function freeIntervals(
 
   const busy = [
     ...(context.timeOffByStaff.get(member.id) ?? []),
-    ...(busyByStaff.get(member.id) ?? []),
+    ...(context.ignoreBusy ? [] : (busyByStaff.get(member.id) ?? [])),
   ];
   return subtract(windows, busy);
 }
@@ -216,8 +233,10 @@ export async function getSlots(
   dateKey: string,
   staffId?: string,
   now: Date = new Date(),
+  options: { durationMin?: number; audience?: BookingAudience } = {},
 ): Promise<SlotsResult> {
-  const context = await loadContext(serviceId, staffId, staffId ? "internal" : "public");
+  const audience = options.audience ?? (staffId ? "internal" : "public");
+  const context = await loadContext(serviceId, staffId, audience, options.durationMin);
   if (!context) return { date: dateKey, slots: [], reason: "off", label: null };
   return computeSlots(context, dateKey, now);
 }
@@ -249,9 +268,11 @@ async function computeSlots(
     return { date: dateKey, slots: [], reason: "closed", label: "Non disponible en ligne" };
   }
 
-  const busyByStaff = await loadBusy(dateKey, context.staff);
+  const busyByStaff = context.ignoreBusy
+    ? new Map<string, Interval[]>()
+    : await loadBusy(dateKey, context.staff);
   const granularity = Math.max(5, settings.slot_granularity_min) * 60_000;
-  const serviceMs = service.duration_min * 60_000;
+  const serviceMs = context.durationMin * 60_000;
   const earliest = now.getTime() + settings.min_notice_min * 60_000;
   const dayStart = wallToInstant(dateKey, 0).getTime();
 
@@ -304,8 +325,10 @@ export async function getAvailabilityRange(
   days: number,
   staffId?: string,
   now: Date = new Date(),
+  options: { durationMin?: number; audience?: BookingAudience } = {},
 ): Promise<{ days: DayAvailability[]; maxAdvanceDays: number }> {
-  const context = await loadContext(serviceId, staffId, staffId ? "internal" : "public");
+  const audience = options.audience ?? (staffId ? "internal" : "public");
+  const context = await loadContext(serviceId, staffId, audience, options.durationMin);
   if (!context) {
     return {
       days: Array.from({ length: days }, (_, index) => ({
@@ -340,8 +363,10 @@ export async function findNextOpenDay(
   staffId?: string,
   now: Date = new Date(),
   horizon = 60,
+  options: { durationMin?: number; audience?: BookingAudience } = {},
 ) {
-  const context = await loadContext(serviceId, staffId, staffId ? "internal" : "public");
+  const audience = options.audience ?? (staffId ? "internal" : "public");
+  const context = await loadContext(serviceId, staffId, audience, options.durationMin);
   if (!context) return null;
   const start = todayKey(now);
   const limit = Math.min(horizon, context.settings.max_advance_days);
@@ -363,11 +388,19 @@ export async function resolveSlot(
   preferredStaffId?: string,
   now: Date = new Date(),
   audience: BookingAudience = "internal",
+  durationMin?: number,
 ): Promise<
-  | { ok: true; staffId: string; service: ServiceRow; settings: SettingsRow }
+  | {
+      ok: true;
+      staffId: string;
+      service: ServiceRow;
+      settings: SettingsRow;
+      durationMin: number;
+      ignoreBusy: boolean;
+    }
   | { ok: false; reason: "service" | "slot" }
 > {
-  const context = await loadContext(serviceId, preferredStaffId, audience);
+  const context = await loadContext(serviceId, preferredStaffId, audience, durationMin);
   if (!context) return { ok: false, reason: "service" };
 
   const startMs = Date.parse(startAtIso);
@@ -385,7 +418,14 @@ export async function resolveSlot(
 
   if (preferred) {
     if (!slot.staffIds.includes(preferred)) return { ok: false, reason: "slot" };
-    return { ok: true, staffId: preferred, service: context.service, settings: context.settings };
+    return {
+      ok: true,
+      staffId: preferred,
+      service: context.service,
+      settings: context.settings,
+      durationMin: context.durationMin,
+      ignoreBusy: context.ignoreBusy,
+    };
   }
 
   // "Peu importe": spread the load rather than always picking the first member.
@@ -396,7 +436,14 @@ export async function resolveSlot(
     return slot.staffIds.indexOf(a) - slot.staffIds.indexOf(b);
   })[0];
 
-  return { ok: true, staffId: chosen, service: context.service, settings: context.settings };
+  return {
+    ok: true,
+    staffId: chosen,
+    service: context.service,
+    settings: context.settings,
+    durationMin: context.durationMin,
+    ignoreBusy: context.ignoreBusy,
+  };
 }
 
 /** Services a staff member can perform, keyed for the admin UI. */

@@ -121,6 +121,7 @@ const SERVICES: Record<string, ServiceSeed[]> = {
     ["svc-depose-semi", "Dépose semi-permanent", 30, 400, "fixed", "Dépose douce du vernis semi-permanent."],
     ["svc-depose-gel", "Dépose gel", 30, 600, "fixed", "Dépose douce du gel et soin des ongles naturels."],
     ["svc-nail-art", "Nail art", 30, 150, "from", "Décoration à la demande, tarif selon la complexité."],
+    ["svc-babyboomer", "Babyboomer / French", 15, 250, "fixed", "French ou babyboomer en finition."],
     ["svc-manucure-homme", "Manucure homme", 45, 1500, "fixed", "Mise en forme, cuticules et finition mate."],
   ],
   "cat-pedicure": [

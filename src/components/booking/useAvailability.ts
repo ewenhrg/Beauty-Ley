@@ -33,9 +33,10 @@ export function useMonthAvailability(
   monthKey: string,
   /** Bumped after a booking so the calendar reflects the new occupancy. */
   revision = 0,
+  durationMin?: number,
 ) {
   const [result, setResult] = useState<MonthResult>(emptyMonth);
-  const key = `${serviceId}|${staffId}|${monthKey}|${revision}`;
+  const key = `${serviceId}|${staffId}|${monthKey}|${durationMin ?? ""}|${revision}`;
 
   useEffect(() => {
     if (!serviceId) return;
@@ -43,7 +44,14 @@ export function useMonthAvailability(
     const { from, days } = calendarWindow(monthKey);
 
     fetchAvailability(
-      { serviceId, staffId: staffId ?? undefined, from, days, withNext: true },
+      {
+        serviceId,
+        staffId: staffId ?? undefined,
+        from,
+        days,
+        withNext: true,
+        durationMin,
+      },
       controller.signal,
     )
       .then((response) => {
@@ -68,7 +76,7 @@ export function useMonthAvailability(
       });
 
     return () => controller.abort();
-  }, [key, serviceId, staffId, monthKey]);
+  }, [key, serviceId, staffId, monthKey, durationMin]);
 
   return {
     days: result.key === key ? result.days : new Map<string, DayDto>(),
@@ -100,15 +108,20 @@ export function useSlots(
   staffId: string | null,
   date: string | null,
   revision = 0,
+  durationMin?: number,
 ) {
   const [result, setResult] = useState<SlotResult>(emptySlots);
-  const key = serviceId && date ? `${serviceId}|${staffId}|${date}|${revision}` : "";
+  const key =
+    serviceId && date ? `${serviceId}|${staffId}|${date}|${durationMin ?? ""}|${revision}` : "";
 
   useEffect(() => {
     if (!key || !serviceId || !date) return;
     const controller = new AbortController();
 
-    fetchSlots({ serviceId, staffId: staffId ?? undefined, date }, controller.signal)
+    fetchSlots(
+      { serviceId, staffId: staffId ?? undefined, date, durationMin },
+      controller.signal,
+    )
       .then((response) => {
         setResult({
           key,
@@ -131,7 +144,7 @@ export function useSlots(
       });
 
     return () => controller.abort();
-  }, [key, serviceId, staffId, date]);
+  }, [key, serviceId, staffId, date, durationMin]);
 
   const fresh = result.key === key;
   return {
