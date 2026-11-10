@@ -87,15 +87,15 @@ export async function createBooking(input: BookingInput) {
         : new BookingError("SLOT_TAKEN", "Ce créneau vient d'être réservé.");
     }
 
-    const { service, settings, staffId, durationMin, ignoreBusy } = resolved;
+    const { service, settings, staffIds, durationMin, ignoreBusy } = resolved;
     const startAt = new Date(input.startAt).toISOString();
     const endAt = new Date(
       Date.parse(startAt) + (durationMin + service.buffer_min) * 60_000,
     ).toISOString();
 
-    // Online bookings may share a créneau across the team; admin moves still lock per staff.
+    const candidates = ignoreBusy ? staffIds : staffIds.slice(0, 1);
     if (!ignoreBusy) {
-      await assertFree(staffId, startAt, endAt);
+      await assertFree(candidates[0], startAt, endAt);
     }
 
     const customer = await upsertCustomer({
@@ -110,39 +110,56 @@ export async function createBooking(input: BookingInput) {
         ? Math.round(input.price)
         : service.price;
     const plan = planFor(chargedPrice, settings);
-    const row: AppointmentRow = {
-      id: newId("apt"),
-      reference: newReference(),
-      manage_token: newToken(),
-      customer_id: customer.id,
-      staff_id: staffId,
-      service_id: service.id,
-      start_at: startAt,
-      end_at: endAt,
-      duration_min: durationMin,
-      buffer_min: service.buffer_min,
-      status: input.status ?? (settings.auto_confirm || source === "admin" ? "CONFIRMED" : "PENDING"),
-      price: chargedPrice,
-      customer_note: input.customer.note,
-      admin_note: null,
-      source,
-      payment_status: plan.amountDue > 0 ? "PENDING" : "NONE",
-      deposit_amount: plan.amountDue,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      cancelled_at: null,
-      cancelled_by: null,
-    };
+    const status =
+      input.status ?? (settings.auto_confirm || source === "admin" ? "CONFIRMED" : "PENDING");
+    const nowIso = new Date().toISOString();
 
-    try {
-      const appointment = await insertAppointment(row);
-      return { appointment, customer };
-    } catch (error) {
-      if (error instanceof SupabaseError && error.isConflict) {
-        throw new BookingError("SLOT_TAKEN", "Ce créneau vient d'être réservé.");
+    // Online: try each free teammate so several clients can share one créneau.
+    let lastConflict: unknown = null;
+    for (const staffId of candidates) {
+      const row: AppointmentRow = {
+        id: newId("apt"),
+        reference: newReference(),
+        manage_token: newToken(),
+        customer_id: customer.id,
+        staff_id: staffId,
+        service_id: service.id,
+        start_at: startAt,
+        end_at: endAt,
+        duration_min: durationMin,
+        buffer_min: service.buffer_min,
+        status,
+        price: chargedPrice,
+        customer_note: input.customer.note,
+        admin_note: null,
+        source,
+        payment_status: plan.amountDue > 0 ? "PENDING" : "NONE",
+        deposit_amount: plan.amountDue,
+        created_at: nowIso,
+        updated_at: nowIso,
+        cancelled_at: null,
+        cancelled_by: null,
+      };
+
+      try {
+        const appointment = await insertAppointment(row);
+        return { appointment, customer };
+      } catch (error) {
+        if (error instanceof SupabaseError && error.isConflict && ignoreBusy) {
+          lastConflict = error;
+          continue;
+        }
+        if (error instanceof SupabaseError && error.isConflict) {
+          throw new BookingError("SLOT_TAKEN", "Ce créneau vient d'être réservé.");
+        }
+        throw error;
       }
-      throw error;
     }
+
+    if (lastConflict) {
+      throw new BookingError("SLOT_TAKEN", "Ce créneau vient d'être réservé.");
+    }
+    throw new BookingError("SLOT_TAKEN", "Ce créneau vient d'être réservé.");
   });
 }
 

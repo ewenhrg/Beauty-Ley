@@ -195,7 +195,7 @@ create index if not exists notifications_appointment_idx on notifications (appoi
 create table if not exists settings (
   id                        text        primary key,
   slot_granularity_min      integer     not null default 15,
-  min_notice_min            integer     not null default 120,
+  min_notice_min            integer     not null default 60,
   max_advance_days          integer     not null default 60,
   cancellation_window_hours integer     not null default 24,
   auto_confirm              boolean     not null default true,

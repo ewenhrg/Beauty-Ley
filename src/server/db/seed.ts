@@ -236,7 +236,7 @@ export function buildSeed(now = new Date()): Seed {
     {
       id: "settings",
       slot_granularity_min: 15,
-      min_notice_min: 120,
+      min_notice_min: 60,
       max_advance_days: 60,
       cancellation_window_hours: 24,
       auto_confirm: true,

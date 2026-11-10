@@ -381,6 +381,7 @@ export async function findNextOpenDay(
 /**
  * Re-validates a slot at write time and resolves which staff member takes it.
  * `preferredStaffId` is undefined for "peu importe".
+ * `staffIds` is ordered for retries when several clients book the same créneau.
  */
 export async function resolveSlot(
   serviceId: string,
@@ -393,6 +394,7 @@ export async function resolveSlot(
   | {
       ok: true;
       staffId: string;
+      staffIds: string[];
       service: ServiceRow;
       settings: SettingsRow;
       durationMin: number;
@@ -416,11 +418,27 @@ export async function resolveSlot(
       ? preferredStaffId
       : undefined;
 
+  const endMs = startMs + context.durationMin * 60_000;
+  const busy = await loadBusy(dateKey, context.staff);
+  const overlaps = (staffId: string) =>
+    (busy.get(staffId) ?? []).some((block) => block.start < endMs && block.end > startMs);
+
+  // Prefer staff who are actually free for this window, then lightest day load.
+  const ranked = [...slot.staffIds].sort((a, b) => {
+    const free = Number(overlaps(a)) - Number(overlaps(b));
+    if (free !== 0) return free;
+    const load = (busy.get(a)?.length ?? 0) - (busy.get(b)?.length ?? 0);
+    if (load !== 0) return load;
+    return slot.staffIds.indexOf(a) - slot.staffIds.indexOf(b);
+  });
+
   if (preferred) {
     if (!slot.staffIds.includes(preferred)) return { ok: false, reason: "slot" };
+    const staffIds = [preferred, ...ranked.filter((id) => id !== preferred)];
     return {
       ok: true,
       staffId: preferred,
+      staffIds: context.ignoreBusy ? staffIds : [preferred],
       service: context.service,
       settings: context.settings,
       durationMin: context.durationMin,
@@ -428,17 +446,10 @@ export async function resolveSlot(
     };
   }
 
-  // "Peu importe": spread the load rather than always picking the first member.
-  const busy = await loadBusy(dateKey, context.staff);
-  const chosen = [...slot.staffIds].sort((a, b) => {
-    const load = (busy.get(a)?.length ?? 0) - (busy.get(b)?.length ?? 0);
-    if (load !== 0) return load;
-    return slot.staffIds.indexOf(a) - slot.staffIds.indexOf(b);
-  })[0];
-
   return {
     ok: true,
-    staffId: chosen,
+    staffId: ranked[0],
+    staffIds: ranked,
     service: context.service,
     settings: context.settings,
     durationMin: context.durationMin,

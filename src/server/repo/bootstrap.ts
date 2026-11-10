@@ -45,7 +45,24 @@ async function run() {
     await syncStaffFromAccounts(store);
     await ensureBannerDefaults(store);
     await ensureFlyerDefaults(store);
+    await ensureSameDayBooking(store);
   });
+}
+
+/** Same-day booking with a 1-hour minimum lead time. */
+async function ensureSameDayBooking(store: Store) {
+  try {
+    const rows = await store.select("settings", { limit: 1 });
+    const current = rows[0];
+    // Migrate old defaults (2h) and the previous "no lead time" (0) to 60 min.
+    if (!current || (current.min_notice_min !== 0 && current.min_notice_min < 120)) return;
+    await store.update("settings", current.id, {
+      min_notice_min: 60,
+      updated_at: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.warn("[bootstrap] same-day booking setting", error);
+  }
 }
 
 async function ensureBannerDefaults(store: Store) {
