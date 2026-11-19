@@ -5,9 +5,15 @@ import { useSearchParams } from "next/navigation";
 import { BookingApiError, createAppointment, fetchCatalog } from "@/lib/booking-client";
 import type { AppointmentDto, CatalogDto } from "@/lib/booking-types";
 import { priceLabel } from "@/lib/booking-types";
-import { cartTotals, needsManicureOptions } from "@/lib/booking-cart";
+import {
+  cartTotals,
+  needsBrushingStyle,
+  needsManicureOptions,
+  needsServiceOptions,
+} from "@/lib/booking-cart";
 import { formatDateKey, formatDuration } from "@/lib/time";
 import { AddMoreStep } from "./AddMoreStep";
+import { BrushingStyleStep } from "./BrushingStyleStep";
 import { ConfirmationView } from "./ConfirmationView";
 import { DateTimeStep } from "./DateTimeStep";
 import { DetailsStep } from "./DetailsStep";
@@ -89,7 +95,7 @@ export function BookingFlow({
       dispatch({
         type: "pickService",
         serviceId: requested,
-        needsOptions: needsManicureOptions(service, catalog.categories),
+        needsOptions: needsServiceOptions(service, catalog.categories),
         chooseStaff: serviceAllowsStaffChoice(service.categoryId, catalog.categories),
       });
       return;
@@ -146,7 +152,7 @@ export function BookingFlow({
     if (!state.pendingServiceId) return state.items;
     return [
       ...state.items,
-      { serviceId: state.pendingServiceId, manicureOption: null },
+      { serviceId: state.pendingServiceId, manicureOption: null, brushingStyle: null },
     ];
   }, [state.items, state.pendingServiceId]);
 
@@ -312,7 +318,7 @@ export function BookingFlow({
           const pending = onlineCatalog.services.find(
             (service) => service.id === state.pendingServiceId,
           );
-          if (pending && needsManicureOptions(pending, onlineCatalog.categories)) {
+          if (pending && needsServiceOptions(pending, onlineCatalog.categories)) {
             return "options";
           }
           return hideServiceStep && !state.items.length ? null : "service";
@@ -386,7 +392,7 @@ export function BookingFlow({
               dispatch({
                 type: "pickService",
                 serviceId: picked.id,
-                needsOptions: needsManicureOptions(picked, onlineCatalog.categories),
+                needsOptions: needsServiceOptions(picked, onlineCatalog.categories),
                 chooseStaff: serviceAllowsStaffChoice(picked.categoryId, onlineCatalog.categories),
               });
               scrollToTop();
@@ -394,7 +400,9 @@ export function BookingFlow({
           />
         ) : null}
 
-        {state.step === "options" && pendingService ? (
+        {state.step === "options" &&
+        pendingService &&
+        needsManicureOptions(pendingService, onlineCatalog.categories) ? (
           <ManicureOptionStep
             services={onlineCatalog.services}
             selected={null}
@@ -402,6 +410,18 @@ export function BookingFlow({
             onSelect={(option) => {
               setDirection("forward");
               dispatch({ type: "pickManicureOption", option });
+              scrollToTop();
+            }}
+          />
+        ) : null}
+
+        {state.step === "options" && pendingService && needsBrushingStyle(pendingService) ? (
+          <BrushingStyleStep
+            selected={null}
+            stepNumber={stepNumber}
+            onSelect={(style) => {
+              setDirection("forward");
+              dispatch({ type: "pickBrushingStyle", style });
               scrollToTop();
             }}
           />

@@ -1,11 +1,18 @@
 import type { CategoryDto, ServiceDto } from "@/lib/booking-types";
 
 export type ManicureOptionId = "nail-art" | "french" | "none";
+export type BrushingStyleId = "lisse" | "wavy";
+
+/** Extra charged when the client chooses a wavy brushing. */
+export const WAVY_SUPPLEMENT_EGP = 200;
+export const WAVY_EXTRA_DURATION_MIN = 15;
 
 export type CartItem = {
   serviceId: string;
   /** Set only for manicure base services; `null` when the question does not apply. */
   manicureOption: ManicureOptionId | null;
+  /** Set only for brushing services; `null` otherwise. */
+  brushingStyle: BrushingStyleId | null;
 };
 
 function normalise(value: string) {
@@ -34,6 +41,18 @@ export function needsManicureOptions(
   if (name.includes("ongle casse") || name.includes("broken")) return false;
   if (name.includes("depose") || name.includes("removal") || name.includes("remove")) return false;
   return true;
+}
+
+/** True when the client must choose Lisse or Wavy after picking a brushing. */
+export function needsBrushingStyle(service: ServiceDto): boolean {
+  return normalise(service.name).includes("brushing");
+}
+
+export function needsServiceOptions(
+  service: ServiceDto,
+  categories: CategoryDto[],
+): boolean {
+  return needsManicureOptions(service, categories) || needsBrushingStyle(service);
 }
 
 export function findNailArtService(services: ServiceDto[]): ServiceDto | null {
@@ -84,6 +103,20 @@ export function optionMeta(
     : FALLBACK_FRENCH;
 }
 
+export function brushingStyleMeta(
+  style: BrushingStyleId,
+): { duration: number; price: number; priceKind: "fixed" | "from"; name: string } | null {
+  if (style === "lisse") {
+    return { duration: 0, price: 0, priceKind: "fixed", name: "Lisse" };
+  }
+  return {
+    duration: WAVY_EXTRA_DURATION_MIN,
+    price: WAVY_SUPPLEMENT_EGP,
+    priceKind: "fixed",
+    name: "Wavy",
+  };
+}
+
 export function cartTotals(
   items: CartItem[],
   services: ServiceDto[],
@@ -114,6 +147,17 @@ export function cartTotals(
         price += meta.price;
         if (meta.priceKind === "from") from = true;
         label = `${service.name} + ${meta.name}`;
+      }
+    }
+    if (item.brushingStyle) {
+      const meta = brushingStyleMeta(item.brushingStyle);
+      if (meta) {
+        duration += meta.duration;
+        price += meta.price;
+        label =
+          item.brushingStyle === "wavy"
+            ? `${service.name} · Wavy (+${WAVY_SUPPLEMENT_EGP} EGP)`
+            : `${service.name} · Lisse`;
       }
     }
     labels.push(label);

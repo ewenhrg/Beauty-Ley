@@ -1,6 +1,6 @@
 "use client";
 
-import type { CartItem, ManicureOptionId } from "@/lib/booking-cart";
+import type { BrushingStyleId, CartItem, ManicureOptionId } from "@/lib/booking-cart";
 
 export type CustomerDetails = {
   firstName: string;
@@ -70,6 +70,7 @@ export const initialState: BookingState = {
 export type BookingAction =
   | { type: "pickService"; serviceId: string; needsOptions: boolean; chooseStaff: boolean }
   | { type: "pickManicureOption"; option: ManicureOptionId }
+  | { type: "pickBrushingStyle"; style: BrushingStyleId }
   | { type: "addMore"; yes: boolean }
   | { type: "pickStaff"; staffId: string | null }
   | { type: "pickDate"; date: string }
@@ -86,12 +87,16 @@ function nextAfterCart(chooseStaff: boolean): StepId {
 
 function commitPending(
   state: BookingState,
-  manicureOption: ManicureOptionId | null,
+  options: {
+    manicureOption?: ManicureOptionId | null;
+    brushingStyle?: BrushingStyleId | null;
+  } = {},
 ): BookingState {
   if (!state.pendingServiceId) return state;
   const item: CartItem = {
     serviceId: state.pendingServiceId,
-    manicureOption,
+    manicureOption: options.manicureOption ?? null,
+    brushingStyle: options.brushingStyle ?? null,
   };
   return {
     ...state,
@@ -117,15 +122,17 @@ export function reducer(state: BookingState, action: BookingAction): BookingStat
       };
     }
     case "pickManicureOption": {
-      const committed = commitPending(state, action.option);
+      const committed = commitPending(state, { manicureOption: action.option });
+      return { ...committed, step: "addMore" };
+    }
+    case "pickBrushingStyle": {
+      const committed = commitPending(state, { brushingStyle: action.style });
       return { ...committed, step: "addMore" };
     }
     case "addMore": {
-      // Commit pending without manicure option when arriving from non-manicure path.
+      // Commit pending without finish options when arriving from a plain service path.
       const base =
-        state.pendingServiceId && state.step === "addMore"
-          ? commitPending(state, null)
-          : state;
+        state.pendingServiceId && state.step === "addMore" ? commitPending(state) : state;
       if (action.yes) {
         return { ...base, pendingServiceId: null, step: "service" };
       }
@@ -196,12 +203,18 @@ export function loadDraft(): BookingState | null {
     const parsed = JSON.parse(raw) as Partial<BookingState>;
     if (!parsed || typeof parsed !== "object") return null;
     const items = Array.isArray(parsed.items)
-      ? parsed.items.filter(
-          (item): item is CartItem =>
-            Boolean(item) &&
-            typeof item === "object" &&
-            typeof (item as CartItem).serviceId === "string",
-        )
+      ? parsed.items
+          .filter(
+            (item): item is CartItem =>
+              Boolean(item) &&
+              typeof item === "object" &&
+              typeof (item as CartItem).serviceId === "string",
+          )
+          .map((item) => ({
+            serviceId: item.serviceId,
+            manicureOption: item.manicureOption ?? null,
+            brushingStyle: item.brushingStyle ?? null,
+          }))
       : [];
     return {
       ...initialState,

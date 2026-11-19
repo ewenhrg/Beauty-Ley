@@ -2,6 +2,7 @@ import { createBooking, describeAppointment, sendAppointmentEmail } from "@/serv
 import {
   resolveBookingCart,
   type BookingCartItem,
+  type BrushingStyleId,
   type ManicureOptionId,
 } from "@/server/booking-cart";
 import { handler, jsonError, jsonOk } from "@/server/http";
@@ -19,7 +20,8 @@ import {
 
 export const dynamic = "force-dynamic";
 
-const OPTIONS: ManicureOptionId[] = ["nail-art", "french", "none"];
+const MANICURE_OPTIONS: ManicureOptionId[] = ["nail-art", "french", "none"];
+const BRUSHING_STYLES: BrushingStyleId[] = ["lisse", "wavy"];
 
 function parseCartItems(body: Record<string, unknown>): BookingCartItem[] {
   if (Array.isArray(body.items) && body.items.length) {
@@ -29,16 +31,34 @@ function parseCartItems(body: Record<string, unknown>): BookingCartItem[] {
       }
       const item = raw as Record<string, unknown>;
       const serviceId = asString(item.serviceId, `items.${index}.serviceId`);
+
       const optionRaw = item.manicureOption;
       let manicureOption: ManicureOptionId | null = null;
       if (optionRaw === null || optionRaw === undefined || optionRaw === "") {
         manicureOption = null;
-      } else if (typeof optionRaw === "string" && OPTIONS.includes(optionRaw as ManicureOptionId)) {
+      } else if (
+        typeof optionRaw === "string" &&
+        MANICURE_OPTIONS.includes(optionRaw as ManicureOptionId)
+      ) {
         manicureOption = optionRaw as ManicureOptionId;
       } else {
         throw new ValidationError("Option manucure invalide.", `items.${index}.manicureOption`);
       }
-      return { serviceId, manicureOption };
+
+      const styleRaw = item.brushingStyle;
+      let brushingStyle: BrushingStyleId | null = null;
+      if (styleRaw === null || styleRaw === undefined || styleRaw === "") {
+        brushingStyle = null;
+      } else if (
+        typeof styleRaw === "string" &&
+        BRUSHING_STYLES.includes(styleRaw as BrushingStyleId)
+      ) {
+        brushingStyle = styleRaw as BrushingStyleId;
+      } else {
+        throw new ValidationError("Style brushing invalide.", `items.${index}.brushingStyle`);
+      }
+
+      return { serviceId, manicureOption, brushingStyle };
     });
   }
 
@@ -47,6 +67,7 @@ function parseCartItems(body: Record<string, unknown>): BookingCartItem[] {
     {
       serviceId: asString(body.serviceId, "serviceId"),
       manicureOption: null,
+      brushingStyle: null,
     },
   ];
 }

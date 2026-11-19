@@ -89,7 +89,11 @@ export function fetchSlots(
 
 export type BookingPayload = {
   serviceId?: string;
-  items: Array<{ serviceId: string; manicureOption: "nail-art" | "french" | "none" | null }>;
+  items: Array<{
+    serviceId: string;
+    manicureOption: "nail-art" | "french" | "none" | null;
+    brushingStyle: "lisse" | "wavy" | null;
+  }>;
   partySize: number;
   staffId?: string;
   startAt: string;

@@ -1,11 +1,18 @@
+import {
+  WAVY_EXTRA_DURATION_MIN,
+  WAVY_SUPPLEMENT_EGP,
+  type BrushingStyleId,
+  type ManicureOptionId,
+} from "@/lib/booking-cart";
 import { getService, listServices } from "./repo/catalog";
 import type { ServiceRow } from "./db/types";
 
-export type ManicureOptionId = "nail-art" | "french" | "none";
+export type { BrushingStyleId, ManicureOptionId };
 
 export type BookingCartItem = {
   serviceId: string;
   manicureOption: ManicureOptionId | null;
+  brushingStyle: BrushingStyleId | null;
 };
 
 function normalise(value: string) {
@@ -42,6 +49,17 @@ function optionAddon(
     : { duration: 0, price: 250, name: "French" };
 }
 
+function brushingAddon(
+  style: BrushingStyleId,
+): { duration: number; price: number; name: string } | null {
+  if (style === "lisse") return { duration: 0, price: 0, name: "Lisse" };
+  return {
+    duration: WAVY_EXTRA_DURATION_MIN,
+    price: WAVY_SUPPLEMENT_EGP,
+    name: `Wavy (+${WAVY_SUPPLEMENT_EGP} EGP)`,
+  };
+}
+
 export async function resolveBookingCart(
   items: BookingCartItem[],
   partySize: number,
@@ -74,6 +92,17 @@ export async function resolveBookingCart(
         duration += addon.duration;
         price += addon.price;
         label = `${service.name} + ${addon.name}`;
+      }
+    }
+    if (item.brushingStyle) {
+      const addon = brushingAddon(item.brushingStyle);
+      if (addon) {
+        duration += addon.duration;
+        price += addon.price;
+        label =
+          item.brushingStyle === "wavy"
+            ? `${service.name} · Wavy (+${WAVY_SUPPLEMENT_EGP} EGP)`
+            : `${service.name} · Lisse`;
       }
     }
     labels.push(label);
