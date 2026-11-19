@@ -4,7 +4,7 @@ export type ManicureOptionId = "nail-art" | "french" | "none";
 export type BrushingStyleId = "lisse" | "wavy";
 
 /** Extra charged when the client chooses a wavy brushing. */
-export const WAVY_SUPPLEMENT_EGP = 200;
+export const WAVY_SUPPLEMENT_EGP = 150;
 export const WAVY_EXTRA_DURATION_MIN = 15;
 
 export type CartItem = {

@@ -21,19 +21,16 @@ export function BrushingStyleStep({
   const choices: Array<{
     id: BrushingStyleId;
     title: string;
-    hint: string;
     price?: string;
   }> = [
     {
       id: "lisse",
       title: t("booking.brushing.lisse"),
-      hint: t("booking.brushing.lisseHint"),
     },
     {
       id: "wavy",
       title: t("booking.brushing.wavy"),
-      hint: t("booking.brushing.wavyHint", { amount }),
-      price: t("booking.brushing.wavyExtra", { amount }),
+      price: `+${amount}`,
     },
   ];
 
@@ -62,11 +59,8 @@ export function BrushingStyleStep({
                     : "border-line bg-white/55 hover:border-terracotta/50 hover:bg-blush/25"
                 }`}
               >
-                <span className="min-w-0 flex-1">
-                  <span className="block text-[15px] font-medium text-ink">{choice.title}</span>
-                  <span className="mt-1 block text-[13px] leading-relaxed text-ink-soft">
-                    {choice.hint}
-                  </span>
+                <span className="min-w-0 flex-1 text-[15px] font-medium text-ink">
+                  {choice.title}
                 </span>
                 {choice.price ? (
                   <span className="font-display shrink-0 text-lg text-terracotta">{choice.price}</span>
