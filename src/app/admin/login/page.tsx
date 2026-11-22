@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { LoginForm } from "@/components/admin/LoginForm";
 import { Logo } from "@/components/Logo";
 import { firstAdminHref, getAdminSession } from "@/server/auth";
-import { getT } from "@/i18n/server";
+import { getAdminT as getT } from "@/i18n/server-admin";
 import { LanguageSwitcher } from "@/i18n/LanguageSwitcher";
 
 export async function generateMetadata(): Promise<Metadata> {

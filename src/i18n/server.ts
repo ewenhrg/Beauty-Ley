@@ -1,10 +1,10 @@
-import { cookies } from "next/headers";
-import { LOCALE_COOKIE, parseLocale, type Locale } from "./config";
+import { locale as rootLocale } from "next/root-params";
+import { parseLocale, type Locale } from "./config";
 import { translator, type Translate } from "./t";
 
+/** Locale of the public site, read from the `[locale]` URL segment. */
 export async function getLocale(): Promise<Locale> {
-  const jar = await cookies();
-  return parseLocale(jar.get(LOCALE_COOKIE)?.value);
+  return parseLocale(await rootLocale());
 }
 
 export async function getT(): Promise<Translate> {

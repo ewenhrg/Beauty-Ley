@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 export function Logo({
   inverted = false,
   compact = false,
@@ -8,13 +10,16 @@ export function Logo({
   return (
     <span className="flex items-center gap-3">
       {inverted ? (
-        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-cream font-display text-sm tracking-wide text-ink">
+        <span aria-hidden="true" className="flex h-9 w-9 items-center justify-center rounded-full bg-cream font-display text-sm tracking-wide text-ink">
           LB
         </span>
       ) : (
-        <img
+        <Image
           src="/images/logo/monogram.png"
           alt=""
+          width={420}
+          height={309}
+          sizes="66px"
           className={compact ? "h-10 w-auto" : "h-12 w-auto"}
         />
       )}

@@ -5,12 +5,12 @@ import { groupCatalogKey, itemCatalogKey, noteCatalogKey } from "@/data/services
 import { formatPrice } from "@/lib/format";
 import { ColorPriceTable } from "./ColorPriceTable";
 import { Reveal } from "./Reveal";
-import { useLocale, useT } from "@/i18n/I18nProvider";
-import { catalogLabel } from "@/i18n/catalog";
+import { useCatalogLabel, useLocale, useT } from "@/i18n/I18nProvider";
 
 export function PriceList({ groups }: { groups: ServiceGroup[] }) {
   const t = useT();
   const locale = useLocale();
+  const label = useCatalogLabel();
   const labels = { from: t("price.from"), quote: t("price.quote"), range: t("price.range") };
 
   return (
@@ -27,7 +27,7 @@ export function PriceList({ groups }: { groups: ServiceGroup[] }) {
             id={group.id}
             className="bg-terracotta px-4 py-3 text-[12px] font-medium tracking-[0.22em] text-cream uppercase"
           >
-            {catalogLabel(locale, groupCatalogKey(group.id), group.title)}
+            {label(groupCatalogKey(group.id), group.title)}
           </h3>
           {group.id === "coloration-avancee" ? (
             <div className="mt-5">
@@ -41,7 +41,7 @@ export function PriceList({ groups }: { groups: ServiceGroup[] }) {
                       className="flex items-baseline justify-between gap-4 border-b border-line py-3.5 transition-colors hover:bg-blush/15"
                     >
                       <span className="text-sm tracking-wide text-ink">
-                        {catalogLabel(locale, itemCatalogKey(group.id, item.id), item.name)}
+                        {label(itemCatalogKey(group.id, item.id), item.name)}
                       </span>
                       <span className="price-chip shrink-0 bg-ink px-2.5 py-1 text-[11px] font-medium tracking-[0.08em] text-cream">
                         {formatPrice(item.price, labels)}
@@ -58,7 +58,7 @@ export function PriceList({ groups }: { groups: ServiceGroup[] }) {
                   className="flex flex-col gap-1 border-b border-line py-3.5 transition-colors hover:bg-blush/15 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4"
                 >
                   <span className="text-sm tracking-wide text-ink">
-                    {catalogLabel(locale, itemCatalogKey(group.id, item.id), item.name)}
+                    {label(itemCatalogKey(group.id, item.id), item.name)}
                   </span>
                   <span className="price-chip w-fit shrink-0 px-2.5 py-1 text-[11px] font-medium tracking-[0.08em] text-cream">
                     {item.price.kind === "from" ? (
@@ -78,7 +78,7 @@ export function PriceList({ groups }: { groups: ServiceGroup[] }) {
           )}
           {group.notes?.map((note) => (
             <p key={note} className="mt-3 text-[11px] tracking-[0.12em] text-ink-soft uppercase">
-              {catalogLabel(locale, noteCatalogKey(note), note)}
+              {label(noteCatalogKey(note), note)}
             </p>
           ))}
         </Reveal>

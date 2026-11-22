@@ -1,24 +1,24 @@
 "use client";
 
-import { useLocale, useT } from "@/i18n/I18nProvider";
-import { catalogLabel } from "@/i18n/catalog";
+import { useCatalogLabel, useLocale, useT } from "@/i18n/I18nProvider";
 
 export function ColorPriceTable() {
   const t = useT();
   const locale = useLocale();
+  const label = useCatalogLabel();
   const techniques = [
-    { id: "ombre", label: catalogLabel(locale, "color.ombre", "Ombré") },
-    { id: "balayage", label: catalogLabel(locale, "color.balayage", "Balayage") },
-    { id: "highlight", label: catalogLabel(locale, "color.highlight", "Highlight") },
+    { id: "ombre", label: label("color.ombre", "Ombré") },
+    { id: "balayage", label: label("color.balayage", "Balayage") },
+    { id: "highlight", label: label("color.highlight", "Highlight") },
   ] as const;
   const rows = [
-    { id: "short", label: catalogLabel(locale, "color.short", "Cheveux court"), prices: [4500, 5000, 7000] },
+    { id: "short", label: label("color.short", "Cheveux court"), prices: [4500, 5000, 7000] },
     {
       id: "medium",
-      label: catalogLabel(locale, "color.medium", "Cheveux mi-longs"),
+      label: label("color.medium", "Cheveux mi-longs"),
       prices: [5500, 6000, 8500],
     },
-    { id: "long", label: catalogLabel(locale, "color.long", "Cheveux longs"), prices: [6000, 7000, 9500] },
+    { id: "long", label: label("color.long", "Cheveux longs"), prices: [6000, 7000, 9500] },
   ];
 
   return (
@@ -28,7 +28,7 @@ export function ColorPriceTable() {
         <thead>
           <tr>
             <th className="bg-terracotta px-3 py-3 text-[11px] font-medium tracking-[0.16em] text-cream uppercase">
-              {catalogLabel(locale, "color.length", "Longueur")}
+              {label("color.length", "Longueur")}
             </th>
             {techniques.map((technique) => (
               <th

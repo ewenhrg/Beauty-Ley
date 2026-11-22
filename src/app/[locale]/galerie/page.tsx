@@ -2,18 +2,20 @@ import type { Metadata } from "next";
 import { PageHeader } from "@/components/PageHeader";
 import { GalleryGrid } from "@/components/GalleryGrid";
 import { BookingCta } from "@/components/BookingCta";
-import { getT } from "@/i18n/server";
+import { getLocale, getT } from "@/i18n/server";
+import { breadcrumbJsonLd, JsonLd, pageMetadata } from "@/lib/seo";
+import { seoCopy } from "@/i18n/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getT();
-  return { title: t("page.gallery.title"), description: t("page.gallery.meta") };
+  return pageMetadata(await getLocale(), "gallery");
 }
 
 export default async function GaleriePage() {
-  const t = await getT();
+  const [t, locale] = await Promise.all([getT(), getLocale()]);
   return (
     <>
-      <PageHeader eyebrow="Beauty Ley" title={t("page.gallery.title")}>
+      <JsonLd data={breadcrumbJsonLd(locale, "gallery")} />
+      <PageHeader eyebrow={seoCopy(locale).heroKicker} title={t("page.gallery.title")}>
         <p>{t("page.gallery.lead")}</p>
       </PageHeader>
       <section>

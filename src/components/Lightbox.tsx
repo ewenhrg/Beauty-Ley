@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { Photo } from "./Photo";
 import type { GalleryItem } from "@/data/gallery";
 
 type Props = {
@@ -33,9 +34,10 @@ export function Lightbox({ items, index, onClose, onIndex }: Props) {
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-ink/92 p-4">
       <button type="button" className="absolute inset-0" aria-label="Fermer" onClick={onClose} />
       <figure className="relative z-10 max-h-[90vh] max-w-5xl">
-        <img
+        <Photo
           src={item.src}
           alt={item.alt}
+          sizes="90vw"
           className="max-h-[82vh] w-auto max-w-full object-contain"
         />
         <figcaption className="mt-4 text-center text-sm text-cream/80">{item.alt}</figcaption>

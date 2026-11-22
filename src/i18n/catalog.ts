@@ -917,3 +917,8 @@ export function catalogLabel(locale: Locale, key: string, fallback = ""): string
     fallback
   );
 }
+
+/** One language's catalog with its fallbacks resolved, for the client provider. */
+export function catalogFor(locale: Locale): CatalogDict {
+  return { ...dictionaries.fr, ...dictionaries[DEFAULT_LOCALE], ...dictionaries[locale] };
+}

@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "images": "node scripts/optimize-images.mjs"
+    "images": "node scripts/optimize-images.mjs",
+    "image-sizes": "node scripts/image-sizes.mjs"
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",

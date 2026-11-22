@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { gallery, type GalleryItem } from "@/data/gallery";
 import { Lightbox } from "./Lightbox";
+import { Photo } from "./Photo";
 import { Reveal } from "./Reveal";
 
 const filters = [
@@ -49,11 +50,11 @@ export function GalleryGrid({ items = gallery, limit }: { items?: GalleryItem[];
               onClick={() => setActive(index)}
               className="hover-lift block w-full rounded-[1.6rem] focus-visible:outline-terracotta"
             >
-              <img
+              <Photo
                 src={item.src}
                 alt={item.alt}
+                sizes="(min-width: 1024px) 400px, (min-width: 640px) 50vw, 100vw"
                 className="h-auto w-full"
-                loading="lazy"
               />
             </button>
           </Reveal>

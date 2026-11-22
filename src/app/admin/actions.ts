@@ -117,6 +117,8 @@ async function run(fn: () => Promise<string | void>, paths: string[]): Promise<A
       revalidatePath(path, "layout");
     }
     revalidatePath("/admin", "layout");
+    // Public pages are prerendered per language: refresh them all.
+    revalidatePath("/[locale]", "layout");
     return { ok: true, message: message ?? null };
   } catch (error) {
     if (error instanceof ValidationError || error instanceof BookingError || error instanceof UsersTableMissingError) {

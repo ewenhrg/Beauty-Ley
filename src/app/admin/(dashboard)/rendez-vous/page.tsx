@@ -9,7 +9,7 @@ import { APPOINTMENT_STATUSES } from "@/server/db/types";
 import type { AppointmentStatus } from "@/server/db/types";
 import { listServices, listStaff, staffDisplayName } from "@/server/repo/catalog";
 import { addDays, formatDateKey, isValidDateKey, todayKey } from "@/lib/time";
-import { getT } from "@/i18n/server";
+import { getAdminT as getT } from "@/i18n/server-admin";
 import { statusKey } from "@/i18n/keys";
 
 export const dynamic = "force-dynamic";

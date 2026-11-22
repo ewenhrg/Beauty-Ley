@@ -1,8 +1,9 @@
 "use client";
 
-import Link from "next/link";
+import { LocalizedLink } from "./LocalizedLink";
 import { gallery } from "@/data/gallery";
 import { Reveal } from "./Reveal";
+import { Photo } from "./Photo";
 import { useT } from "@/i18n/I18nProvider";
 
 export function GalleryPreview() {
@@ -21,22 +22,22 @@ export function GalleryPreview() {
               {t("gallery.title")}
             </Reveal>
           </div>
-          <Link
+          <LocalizedLink
             href="/galerie"
             className="nav-link text-[11px] tracking-[0.22em] text-rose uppercase underline-offset-4 hover:text-ink"
           >
             {t("gallery.see")}
-          </Link>
+          </LocalizedLink>
         </div>
 
         <ul className="mt-12 columns-1 gap-4 sm:columns-2 lg:columns-3">
           {preview.map((item, index) => (
             <Reveal as="li" key={item.src} delay={index * 70} className="mb-4 break-inside-avoid">
-              <img
+              <Photo
                 src={item.src}
                 alt={item.alt}
+                sizes="(min-width: 1024px) 400px, (min-width: 640px) 50vw, 100vw"
                 className="h-auto w-full rounded-[1.5rem]"
-                loading="lazy"
               />
             </Reveal>
           ))}

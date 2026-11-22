@@ -1,22 +1,22 @@
 import type { Locale } from "./config";
 import { dictionaries, type MessageKey } from "./messages";
+import { makeTranslate, type Messages, type Translate } from "./format";
 
-export type Translate = (key: MessageKey, vars?: Record<string, string | number>) => string;
+export type { Translate };
+
+/** Server only: the full dictionaries never reach the browser. */
+export function messagesFor(locale: Locale): Messages {
+  return locale === "en" ? dictionaries.en : { ...dictionaries.en, ...dictionaries[locale] };
+}
 
 export function translate(
   locale: Locale,
   key: MessageKey,
   vars?: Record<string, string | number>,
 ): string {
-  let value = dictionaries[locale][key] ?? dictionaries.en[key] ?? key;
-  if (vars) {
-    for (const [name, replacement] of Object.entries(vars)) {
-      value = value.replaceAll(`{${name}}`, String(replacement));
-    }
-  }
-  return value;
+  return makeTranslate(messagesFor(locale))(key, vars);
 }
 
 export function translator(locale: Locale): Translate {
-  return (key, vars) => translate(locale, key, vars);
+  return makeTranslate(messagesFor(locale));
 }

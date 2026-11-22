@@ -8,18 +8,27 @@ import { BookingCta } from "@/components/BookingCta";
 import { categories } from "@/data/services";
 import { PriceList } from "@/components/PriceList";
 import { Reveal } from "@/components/Reveal";
-import Link from "next/link";
-import { getT } from "@/i18n/server";
+import { LocalizedLink } from "@/components/LocalizedLink";
+import type { Metadata } from "next";
+import { LocalSeo } from "@/components/LocalSeo";
+import { GoogleReviews } from "@/components/GoogleReviews";
+import { getLocale, getT } from "@/i18n/server";
+import { seoCopy } from "@/i18n/seo";
+import { pageMetadata } from "@/lib/seo";
+
+export async function generateMetadata(): Promise<Metadata> {
+  return pageMetadata(await getLocale(), "home");
+}
 
 export default async function HomePage() {
-  const t = await getT();
+  const [t, locale] = await Promise.all([getT(), getLocale()]);
   const featured = categories
     .filter((category) => category.id === "ongles" || category.id === "cils")
     .flatMap((category) => category.groups.slice(0, 1));
 
   return (
     <>
-      <Hero />
+      <Hero kicker={seoCopy(locale).heroKicker} />
       <About />
       <ServicesPreview />
       <section className="relative">
@@ -33,20 +42,22 @@ export default async function HomePage() {
                 {t("home.pricesTitle")}
               </Reveal>
             </div>
-            <Link
+            <LocalizedLink
               href="/tarifs"
               className="nav-link text-[11px] tracking-[0.22em] text-ink-soft uppercase underline-offset-4 hover:text-ink"
             >
               {t("home.pricesAll")}
-            </Link>
+            </LocalizedLink>
           </div>
           <div className="mt-12">
             <PriceList groups={featured} />
           </div>
         </div>
       </section>
+      <GoogleReviews />
       <GalleryPreview />
       <SocialSection />
+      <LocalSeo />
       <ContactSection />
       <BookingCta />
     </>

@@ -8,8 +8,8 @@
   --color-cream-deep: #f1ddd1;
   --color-sand: #e8cfc0;
   --color-blush: #e8c4b4;
-  --color-rose: #c97d73;
-  --color-terracotta: #c17a5c;
+  --color-rose: #9c5149;
+  --color-terracotta: #9e5839;
   --color-gold: #c4a06a;
   --color-gold-soft: #ddc39a;
   --color-gold-deep: #8d6236;
@@ -513,5 +513,58 @@ tr:hover .price-chip {
   .pick-card:hover,
   .pick-card:active {
     transform: none;
+  }
+}
+
+/* Google reviews: endless horizontal scroll (list is rendered twice, track moves by half). */
+.review-marquee {
+  mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
+}
+
+.review-track {
+  animation: review-scroll 60s linear infinite;
+}
+
+.review-marquee:hover .review-track,
+.review-marquee:focus-within .review-track {
+  animation-play-state: paused;
+}
+
+@keyframes review-scroll {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .review-marquee {
+    overflow-x: auto;
+    mask-image: none;
+  }
+
+  .review-track {
+    animation: none;
+  }
+}
+
+/* Same entrance as .reveal but always visible: for the main title, which is the
+   page's Largest Contentful Paint and must not wait for an opacity fade. */
+.reveal-lcp {
+  animation: rise-lcp 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--delay, 0ms);
+}
+
+@keyframes rise-lcp {
+  from {
+    transform: translateY(18px);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal-lcp {
+    animation: none;
   }
 }

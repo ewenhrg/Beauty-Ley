@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { BookingButton } from "./BookingButton";
 import { Reveal } from "./Reveal";
 import { getT } from "@/i18n/server";
@@ -7,15 +8,7 @@ export async function BookingCta() {
 
   return (
     <section className="relative overflow-hidden">
-      <picture>
-        <source srcSet="/images/salon/pedicure-lounge.webp" type="image/webp" />
-        <img
-          src="/images/salon/pedicure-lounge.jpg"
-          alt=""
-          className="absolute inset-0 h-full w-full object-cover"
-          loading="lazy"
-        />
-      </picture>
+      <Image src="/images/salon/pedicure-lounge.jpg" alt="" fill sizes="100vw" quality={60} className="object-cover" />
       <div className="absolute inset-0 bg-linear-to-br from-terracotta/80 via-rose/70 to-gold-deep/70" />
       <div className="absolute inset-0 bg-linear-to-t from-ink/55 to-transparent" />
       <div

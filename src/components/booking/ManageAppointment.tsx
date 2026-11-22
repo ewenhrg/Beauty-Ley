@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { LocalizedLink } from "@/components/LocalizedLink";
 import { useEffect, useState } from "react";
 import {
   BookingApiError,
@@ -143,12 +143,12 @@ export function ManageAppointment({
           >
             Reprendre rendez-vous
           </a>
-          <Link
+          <LocalizedLink
             href="/"
             className="inline-flex items-center justify-center border border-line px-6 py-3.5 text-[11px] font-medium tracking-[0.22em] text-ink-soft uppercase transition-all duration-300 hover:-translate-y-0.5 hover:text-ink"
           >
             Retour au site
-          </Link>
+          </LocalizedLink>
         </div>
       ) : mode === "view" ? (
         <>

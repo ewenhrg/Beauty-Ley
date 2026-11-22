@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { LocalizedLink } from "./LocalizedLink";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Logo } from "./Logo";
@@ -9,9 +9,11 @@ import { nav, salon } from "@/data/salon";
 import { InstagramIcon } from "./SocialIcons";
 import { LanguageSwitcher } from "@/i18n/LanguageSwitcher";
 import { useT } from "@/i18n/I18nProvider";
+import { splitLocale } from "@/i18n/paths";
 
 export function Header({ hasPromo = false }: { hasPromo?: boolean }) {
-  const pathname = usePathname();
+  // Compare against unprefixed paths so `/fr/tarifs` highlights "Tarifs".
+  const pathname = splitLocale(usePathname()).path.replace(/(.)\/$/, "$1");
   const t = useT();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -48,13 +50,12 @@ export function Header({ hasPromo = false }: { hasPromo?: boolean }) {
       }`}
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-5 py-4 lg:px-8">
-        <Link
+        <LocalizedLink
           href="/"
-          aria-label={t("header.homeAria")}
           className="relative z-10 transition-transform duration-300 hover:scale-[1.03]"
         >
           <Logo inverted={light} compact />
-        </Link>
+        </LocalizedLink>
 
         <nav className="hidden items-center gap-5 xl:gap-8 lg:flex" aria-label={t("header.navAria")}>
           {nav.map((item) => {
@@ -77,9 +78,9 @@ export function Header({ hasPromo = false }: { hasPromo?: boolean }) {
                 {t(item.key)}
               </a>
             ) : (
-              <Link key={item.href} href={item.href} data-active={pathname === item.href} className={className}>
+              <LocalizedLink key={item.href} href={item.href} data-active={pathname === item.href} className={className}>
                 {t(item.key)}
-              </Link>
+              </LocalizedLink>
             );
           })}
         </nav>
@@ -135,9 +136,9 @@ export function Header({ hasPromo = false }: { hasPromo?: boolean }) {
                 {t(item.key)}
               </a>
             ) : (
-              <Link key={item.href} href={item.href} className={className}>
+              <LocalizedLink key={item.href} href={item.href} className={className}>
                 {t(item.key)}
-              </Link>
+              </LocalizedLink>
             );
           })}
           <div className="pt-8">

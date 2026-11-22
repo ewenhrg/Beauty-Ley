@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { LocalizedLink } from "@/components/LocalizedLink";
 import { Reveal } from "@/components/Reveal";
 import { getT } from "@/i18n/server";
 
@@ -13,12 +13,12 @@ export default async function NotFound() {
         {t("page.notFound.title")}
       </Reveal>
       <Reveal delay={160}>
-        <Link
+        <LocalizedLink
           href="/"
           className="nav-link mt-8 inline-block text-[11px] tracking-[0.22em] text-rose uppercase transition-colors hover:text-ink"
         >
           {t("page.notFound.back")}
-        </Link>
+        </LocalizedLink>
       </Reveal>
     </section>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { LocalizedLink } from "@/components/LocalizedLink";
 import type { AppointmentDto } from "@/lib/booking-types";
 import { priceLabel } from "@/lib/booking-types";
 import { googleCalendarUrl, icsDataUrl } from "@/lib/calendar-links";
@@ -63,18 +63,18 @@ export function ConfirmationView({ appointment }: { appointment: AppointmentDto 
         </a>
 
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <Link
+          <LocalizedLink
             href={`/rendez-vous/${appointment.reference}?t=${manageToken(appointment)}`}
             className="inline-flex items-center justify-center border border-terracotta/40 px-6 py-3.5 text-[11px] font-medium tracking-[0.22em] text-ink uppercase transition-all duration-300 hover:-translate-y-0.5 hover:border-rose hover:text-rose"
           >
             {t("booking.confirm.manage")}
-          </Link>
-          <Link
+          </LocalizedLink>
+          <LocalizedLink
             href="/"
             className="inline-flex items-center justify-center border border-line px-6 py-3.5 text-[11px] font-medium tracking-[0.22em] text-ink-soft uppercase transition-all duration-300 hover:-translate-y-0.5 hover:border-terracotta/40 hover:text-ink"
           >
             {t("booking.confirm.home")}
-          </Link>
+          </LocalizedLink>
         </div>
       </div>
     </div>

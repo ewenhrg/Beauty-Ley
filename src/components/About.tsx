@@ -1,6 +1,7 @@
 "use client";
 
 import { Reveal } from "./Reveal";
+import { Photo } from "./Photo";
 import { useT } from "@/i18n/I18nProvider";
 
 export function About() {
@@ -9,25 +10,17 @@ export function About() {
     <section className="relative">
       <div className="mx-auto grid max-w-7xl items-center gap-10 px-5 py-20 sm:px-8 lg:grid-cols-2 lg:gap-16 lg:py-28">
         <div className="relative pb-10 sm:pb-12">
-          <picture>
-            <source srcSet="/images/salon/reception.webp" type="image/webp" />
-            <img
+          <Photo
               src="/images/salon/reception.jpg"
               alt={t("about.altReception")}
               className="aspect-4/5 w-full rounded-[2rem] object-cover"
-              loading="lazy"
-            />
-          </picture>
+             sizes="(min-width: 1024px) 40vw, 100vw" />
           <div className="absolute right-4 -bottom-8 hidden w-36 overflow-hidden rounded-[1.5rem] shadow-soft sm:block lg:right-6 lg:w-44">
-            <picture>
-              <source srcSet="/images/work/hair-balayage.webp" type="image/webp" />
-              <img
+            <Photo
                 src="/images/work/hair-balayage.jpg"
                 alt={t("about.altHair")}
                 className="aspect-3/4 w-full object-cover"
-                loading="lazy"
-              />
-            </picture>
+               sizes="(min-width: 1024px) 176px, 144px" />
           </div>
         </div>
         <div className="relative z-10 pt-10 lg:pt-0 lg:pl-4">

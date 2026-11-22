@@ -1,10 +1,11 @@
 "use client";
 
-import Link from "next/link";
+import { LocalizedLink } from "./LocalizedLink";
 import { categories } from "@/data/services";
 import { BookingButton } from "./BookingButton";
 import { Reveal } from "./Reveal";
 import { useT } from "@/i18n/I18nProvider";
+import { Photo } from "./Photo";
 import { categoryKey } from "@/i18n/keys";
 
 export function ServicesPreview() {
@@ -21,12 +22,12 @@ export function ServicesPreview() {
               {t("services.title")}
             </Reveal>
           </div>
-          <Link
+          <LocalizedLink
             href="/tarifs"
             className="nav-link text-[11px] tracking-[0.22em] text-rose uppercase underline-offset-4 hover:text-ink"
           >
             {t("services.allPrices")}
-          </Link>
+          </LocalizedLink>
         </div>
 
         <ul className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -34,15 +35,15 @@ export function ServicesPreview() {
             const key = categoryKey(category.id);
             return (
               <Reveal as="li" key={category.id} delay={index * 90}>
-                <Link
+                <LocalizedLink
                   href={category.href}
                   className="hover-lift group relative block overflow-hidden rounded-[2rem] ring-1 ring-transparent transition-[box-shadow,transform] hover:ring-gold/60"
                 >
-                  <img
+                  <Photo
                     src={category.image}
                     alt={category.imageAlt}
+                    sizes="(min-width: 1024px) 400px, (min-width: 640px) 50vw, 100vw"
                     className="aspect-4/5 w-full object-cover object-top"
-                    loading="lazy"
                   />
                   <div className="absolute inset-0 bg-linear-to-t from-ink/90 via-ink/45 to-transparent transition-opacity duration-500 group-hover:from-ink/95" />
                   <div className="absolute inset-x-0 bottom-0 p-6">
@@ -56,7 +57,7 @@ export function ServicesPreview() {
                       </span>
                     </p>
                   </div>
-                </Link>
+                </LocalizedLink>
               </Reveal>
             );
           })}

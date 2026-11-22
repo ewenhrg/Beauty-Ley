@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { LocalizedLink } from "./LocalizedLink";
 import { Logo } from "./Logo";
 import { BookingButton } from "./BookingButton";
 import { nav, salon } from "@/data/salon";
@@ -43,9 +43,9 @@ export function Footer() {
                       {t(item.key)}
                     </a>
                   ) : (
-                    <Link href={item.href} className={className}>
+                    <LocalizedLink href={item.href} className={className}>
                       {t(item.key)}
-                    </Link>
+                    </LocalizedLink>
                   )}
                 </li>
               );

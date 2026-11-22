@@ -2,18 +2,19 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { HybridReservation } from "@/components/booking/HybridReservation";
-import { getT } from "@/i18n/server";
+import { getLocale, getT } from "@/i18n/server";
+import { breadcrumbJsonLd, JsonLd, pageMetadata } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getT();
-  return { title: t("page.book.title"), description: t("page.book.meta") };
+  return pageMetadata(await getLocale(), "book");
 }
 
 export default async function ReservationPage() {
-  const t = await getT();
+  const [t, locale] = await Promise.all([getT(), getLocale()]);
 
   return (
     <>
+      <JsonLd data={breadcrumbJsonLd(locale, "book")} />
       <PageHeader eyebrow={t("booking.fallback.eyebrow")} title={t("page.book.title")}>
         <p>{t("page.book.leadOnline")}</p>
       </PageHeader>

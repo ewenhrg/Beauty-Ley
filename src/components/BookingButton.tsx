@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { LocalizedLink } from "./LocalizedLink";
 import { useT } from "@/i18n/I18nProvider";
 
 type Props = {
@@ -24,8 +24,8 @@ export function BookingButton({ variant = "solid", className = "", children }: P
   const styles = VARIANTS[variant];
 
   return (
-    <Link href="/reservation" className={`${BASE} ${styles} ${className}`}>
+    <LocalizedLink href="/reservation" className={`${BASE} ${styles} ${className}`}>
       {children ?? t("cta.book")}
-    </Link>
+    </LocalizedLink>
   );
 }

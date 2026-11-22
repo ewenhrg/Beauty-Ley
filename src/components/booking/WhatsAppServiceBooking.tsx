@@ -7,8 +7,7 @@ import {
 } from "@/data/services";
 import { formatPrice } from "@/lib/format";
 import { whatsappBookingUrl } from "@/lib/whatsapp";
-import { useLocale, useT } from "@/i18n/I18nProvider";
-import { catalogLabel } from "@/i18n/catalog";
+import { useCatalogLabel, useT } from "@/i18n/I18nProvider";
 import { categoryKey } from "@/i18n/keys";
 import { WhatsAppIcon } from "../SocialIcons";
 
@@ -28,7 +27,7 @@ function normalise(value: string) {
 
 export function WhatsAppServiceBooking() {
   const t = useT();
-  const locale = useLocale();
+  const label = useCatalogLabel();
   const [categoryId, setCategoryId] = useState(categories[0]?.id ?? "");
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -42,7 +41,7 @@ export function WhatsAppServiceBooking() {
     return categories.flatMap((category) =>
       category.groups.flatMap((group) =>
         group.items.map((item) => {
-          const name = catalogLabel(locale, itemCatalogKey(group.id, item.id), item.name);
+          const name = label(itemCatalogKey(group.id, item.id), item.name);
           return {
             id: `${category.id}:${group.id}:${item.id}`,
             name,
@@ -52,7 +51,7 @@ export function WhatsAppServiceBooking() {
         }),
       ),
     );
-  }, [t, locale]);
+  }, [t, label]);
 
   const searching = query.trim().length > 1;
   const visible = useMemo(() => {
