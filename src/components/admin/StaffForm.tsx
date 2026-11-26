@@ -127,7 +127,7 @@ export function StaffForm({
           <input type="hidden" name="id" value={member.id} />
           <SubmitButton
             variant="danger"
-            confirm="Supprimer ce membre ? Son planning et ses indisponibilités seront effacés."
+            confirm="Retirer ce membre de l'équipe ? S'il a déjà des rendez-vous, le profil sera désactivé (historique conservé) au lieu d'être effacé."
           >
             Supprimer le profil
           </SubmitButton>

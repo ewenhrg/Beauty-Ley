@@ -460,7 +460,10 @@ export async function deleteStaffAction(
   await guard("equipe");
   const id = asString(formData.get("id"), "id");
   const result = await run(async () => {
-    await deleteStaff(id);
+    const mode = await deleteStaff(id);
+    return mode === "deactivated"
+      ? "Profil désactivé : des rendez-vous sont encore liés à ce membre (historique conservé)."
+      : "Profil supprimé.";
   }, ["/admin/equipe"]);
   if (result.ok) redirect("/admin/equipe");
   return result;

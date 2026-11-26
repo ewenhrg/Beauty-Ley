@@ -175,15 +175,32 @@ export async function updateStaff(id: string, patch: Partial<StaffRow>) {
   return getStore().update("staff", id, patch);
 }
 
-export async function deleteStaff(id: string) {
+/**
+ * Removes a team member from the live roster.
+ * Hard-deletes when no appointment history exists; otherwise deactivates so
+ * past and upcoming RDV keep their staff reference (FK on appointments).
+ */
+export async function deleteStaff(id: string): Promise<"deleted" | "deactivated"> {
   const store = getStore();
+  const linkedAppointments = await store.select("appointments", {
+    eq: { staff_id: id },
+    limit: 1,
+  });
+
   const links = await store.select("staff_services", { eq: { staff_id: id } });
   for (const link of links) await store.remove("staff_services", link.id);
   const schedules = await store.select("staff_schedules", { eq: { staff_id: id } });
   for (const schedule of schedules) await store.remove("staff_schedules", schedule.id);
   const timeOff = await store.select("staff_time_off", { eq: { staff_id: id } });
   for (const entry of timeOff) await store.remove("staff_time_off", entry.id);
+
+  if (linkedAppointments.length) {
+    await store.update("staff", id, { active: false });
+    return "deactivated";
+  }
+
   await store.remove("staff", id);
+  return "deleted";
 }
 
 export function staffDisplayName(member: Pick<StaffRow, "first_name" | "last_name">) {
